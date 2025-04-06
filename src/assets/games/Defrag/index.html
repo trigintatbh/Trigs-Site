@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>XP Defrag Game</title>
+  <style>
+    /* General body/html setup */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #3A6EA5; /* Default Windows XP blue background */
+      font-family: "Tahoma", sans-serif; /* Classic XP font */
+      font-size: 11px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* XP Window Container */
+    #xp-window {
+      width: 600px; /* Fixed width */
+      height: 450px; /* Fixed height */
+      background-color: #ECE9D8; /* XP window background */
+      border: 1px solid #003C74; /* Outer border */
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      border-radius: 5px 5px 0 0; /* Slightly rounded top corners */
+    }
+
+    /* Title Bar */
+    #title-bar {
+      background: linear-gradient(to bottom, #0058CC, #003C74); /* XP blue gradient */
+      padding: 3px 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #003C74;
+      border-radius: 4px 4px 0 0; /* Match window rounding */
+      user-select: none; /* Prevent text selection on title bar */
+      cursor: default; /* Indicate it's not draggable (in this simple version) */
+    }
+
+    #title {
+      color: white;
+      font-weight: bold;
+      padding-left: 3px;
+    }
+
+    #window-controls button {
+      background-color: #FF4C4C; /* Close button red */
+      border: 1px solid #A00000;
+      color: white;
+      font-weight: bold;
+      font-family: "Arial Black", Gadget, sans-serif; /* Font for buttons */
+      font-size: 10px;
+      width: 18px;
+      height: 16px;
+      line-height: 14px; /* Adjust vertical alignment */
+      text-align: center;
+      margin-left: 2px;
+      cursor: default; /* Make them look disabled */
+      border-radius: 2px;
+      padding: 0;
+    }
+    #window-controls button.minimize,
+    #window-controls button.maximize {
+        background-color: #0058CC; /* Blue for other buttons */
+        border: 1px solid #003C74;
+    }
+    #window-controls button:active {
+        /* Basic visual feedback, though they are disabled */
+        filter: brightness(0.8);
+    }
+
+    /* Menu Bar (optional) */
+    #menu-bar {
+        background-color: #ECE9D8;
+        padding: 3px 5px;
+        border-bottom: 1px solid #ACA899; /* Separator line */
+        user-select: none;
+    }
+    #menu-bar span {
+        margin-right: 10px;
+        cursor: default; /* Looks like a menu but doesn't do anything */
+        padding: 1px 4px; /* Add padding for hover effect */
+    }
+    #menu-bar span:hover {
+        background-color: #316AC5;
+        color: white;
+    }
+
+
+    /* Main Content Area */
+    #content-area {
+        flex-grow: 1; /* Takes remaining space */
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        background-color: #FFF; /* White background for game area container */
+        border: 1px inset #ACA899; /* Inset border common in XP */
+        margin: 2px; /* Small margin inside the window frame */
+        overflow: hidden; /* Prevents content spilling out */
+    }
+
+    /* Status Bar */
+    #status-bar {
+        border: 1px solid #ACA899;
+        border-top: none; /* Often combined with area above */
+        padding: 2px 5px;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        flex-shrink: 0; /* Prevent status bar from shrinking */
+    }
+
+    /* Game Area (Grid) */
+    #game-area {
+      position: relative; /* Needed for absolute positioning of blocks */
+      width: 100%;
+      flex-grow: 1; /* Takes available space in content area */
+      background-color: #FFFFFF; /* White background represents free space */
+      cursor: pointer;
+      border: 1px solid #ACA899;
+      overflow: hidden; /* Hide blocks overflowing */
+    }
+
+    /* Blocks */
+    .block {
+      position: absolute;
+      width: 8px;   /* Smaller square blocks */
+      height: 8px;
+      background-color: #FF0000; /* Default: Fragmented (Red) */
+      border: 1px solid #A00000; /* Border for definition */
+      box-sizing: border-box; /* Include border in size */
+    }
+
+    /* Block State Classes (XP Defrag Colors) */
+    .green { /* Target to click (Defragmenting) */
+      background-color: #00FF00;
+      border-color: #00A000;
+    }
+    .gray { /* Missed target */
+      background-color: #D3D3D3; /* Light gray */
+      border-color: #808080;
+    }
+    .hit { /* Successfully clicked (Defragmented) */
+      background-color: #0000A0; /* Dark Blue */
+      border-color: #000050;
+    }
+
+    /* Legend */
+    #legend {
+        padding-top: 5px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        flex-shrink: 0; /* Prevent legend from shrinking */
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+    }
+    .legend-color {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: 5px;
+        border: 1px solid #555;
+        box-sizing: border-box;
+    }
+
+    /* Optional: Animation for penalty flash on game area background */
+    /* @keyframes flashMiss {
+      0%, 100% { background-color: #FFFFFF; }
+      50% { background-color: #FFDDDD; }
+    } */
+
+    /* .flash-miss-penalty {
+        animation: flashMiss 0.3s ease-out;
+    } */
+
+  </style>
+</head>
+<body>
+  <div id="xp-window">
+    <div id="title-bar">
+      <span id="title">XP Defragmenter Game</span>
+      <div id="window-controls">
+        <button class="window-button minimize" disabled>_</button>
+        <button class="window-button maximize" disabled>☐</button>
+        <button class="window-button close" disabled>X</button>
+      </div>
+    </div>
+    <div id="menu-bar">
+       <span>File</span> <span>View</span> <span>Help</span>
+    </div>
+    <div id="content-area">
+        <div id="status-bar">
+            <span>Status: Defragmenting...</span>
+            <span>Score: <span id="score-value">0</span></span>
+        </div>
+        <div id="game-area">
+           </div>
+        <div id="legend">
+            <div class="legend-item"><span class="legend-color" style="background-color: #FF0000;"></span> Fragmented</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #00FF00;"></span> Defragmenting</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #0000A0;"></span> Defragmented (Hit)</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #D3D3D3;"></span> Missed</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #FFFFFF; border: 1px solid #ccc;"></span> Free Space</div>
+        </div>
+    </div>
+  </div>
+
+  <script>
+    // Game settings
+    let intervalTime = 1000;      // starting interval in ms
+    const minInterval = 200;      // minimum allowed interval
+    const intervalDecrement = 1;  // decrease interval by 1ms per block added
+    const blockSize = 8;          // Width/Height of block in px (match CSS)
+    const blockMargin = 1;        // Space between blocks in px
+    const chanceOfGreen = 0.15;   // 15% chance for a target block
+    const greenTimeoutFactor = 0.8; // Green blocks turn gray after 80% of interval
+    const penaltyPoints = 5;      // Points deducted for wrong click
+
+    // DOM Elements
+    let gameArea;
+    let scoreValueElement;
+    let statusBarTextElement;
+
+    // Game state
+    let score = 0;
+    let blockIndex = 0;
+    let gameLoopTimeoutId = null;
+    let gridCols = 0;
+    let gridRows = 0;
+    let maxBlocks = 0;
+    let isGameOver = false;
+
+    // Calculate grid size based on container dimensions
+    function calculateGrid() {
+        const containerWidth = gameArea.clientWidth;
+        const containerHeight = gameArea.clientHeight;
+        gridCols = Math.floor(containerWidth / (blockSize + blockMargin));
+        gridRows = Math.floor(containerHeight / (blockSize + blockMargin));
+        maxBlocks = gridCols * gridRows;
+        console.log(`Grid calculated: ${gridCols}x${gridRows} = ${maxBlocks} blocks. Area: ${containerWidth}x${containerHeight}`);
+    }
+
+    // Adds a new block to the grid
+    function addBlock() {
+        if (blockIndex >= maxBlocks || isGameOver) {
+            if (!isGameOver) {
+                statusBarTextElement.textContent = "Status: Defragmentation Complete!";
+                console.log("Game area full.");
+            }
+            isGameOver = true;
+            if (gameLoopTimeoutId) clearTimeout(gameLoopTimeoutId);
+            return;
+        }
+
+        const block = document.createElement('div');
+        block.classList.add('block');
+
+        const col = blockIndex % gridCols;
+        const row = Math.floor(blockIndex / gridCols);
+        const leftPos = col * (blockSize + blockMargin);
+        const topPos = row * (blockSize + blockMargin);
+
+        if (leftPos + blockSize <= gameArea.clientWidth && topPos + blockSize <= gameArea.clientHeight) {
+            block.style.left = leftPos + "px";
+            block.style.top = topPos + "px";
+
+            const currentInterval = intervalTime;
+            if (Math.random() < chanceOfGreen) {
+                block.classList.add('green');
+                block.timeoutId = setTimeout(() => {
+                    if (block.classList.contains('green') && !isGameOver) {
+                        block.classList.remove('green');
+                        block.classList.add('gray');
+                        block.timeoutId = null;
+                        console.log("Block timed out - turned gray");
+                    }
+                }, currentInterval * greenTimeoutFactor);
+            }
+
+            gameArea.appendChild(block);
+            blockIndex++;
+        } else {
+            console.warn("Calculated position overflows container client area, stopping placement.");
+             if (!isGameOver) {
+                statusBarTextElement.textContent = "Status: Defragmentation Complete!";
+             }
+             isGameOver = true;
+             if (gameLoopTimeoutId) clearTimeout(gameLoopTimeoutId);
+        }
+    }
+
+    // Adds a block then schedules the next one
+    function addBlockAndScheduleNext() {
+        if (isGameOver) return;
+        addBlock();
+        if (!isGameOver && blockIndex < maxBlocks) {
+            if (intervalTime > minInterval) {
+                intervalTime = Math.max(intervalTime - intervalDecrement, minInterval);
+            }
+            gameLoopTimeoutId = setTimeout(addBlockAndScheduleNext, intervalTime);
+        } else if (!isGameOver) {
+             if (blockIndex >= maxBlocks) {
+                 statusBarTextElement.textContent = "Status: Defragmentation Complete!";
+                 isGameOver = true;
+             }
+        }
+    }
+
+    // Update score display
+    function updateScore() {
+        scoreValueElement.textContent = score;
+    }
+
+    // --- Click Handler (REVISED LOGIC) ---
+    function handleGameAreaClick() { // No need for 'event' argument if not using event.target directly
+        if (isGameOver) {
+            // console.log("Game is over, click ignored.");
+            return;
+        }
+
+        // Find ALL currently green blocks within the gameArea
+        const greenBlocks = gameArea.querySelectorAll('.block.green');
+        // console.log(`Click detected. Found ${greenBlocks.length} green blocks.`);
+
+        // Case 1: There are green blocks to hit
+        if (greenBlocks.length > 0) {
+            let hitsRegistered = 0;
+            greenBlocks.forEach(block => {
+                // console.log("Processing green block:", block);
+                if (block.timeoutId) {
+                    clearTimeout(block.timeoutId); // Prevent it from turning gray
+                    block.timeoutId = null;
+                    // console.log("Timeout cleared for block.");
+                }
+                block.classList.remove('green');
+                block.classList.add('hit'); // Mark as successfully hit (blue)
+                score++; // Increment score for EACH green block hit
+                hitsRegistered++;
+            });
+            updateScore(); // Update score display once after processing all hits
+            console.log(`${hitsRegistered} Hit(s) registered! Current Score: ${score}`);
+        }
+        // Case 2: No green blocks were active - PENALTY!
+        else {
+            console.log("Clicked, but no green blocks were active. Penalty!");
+            score -= penaltyPoints;
+            updateScore();
+            console.log(`Penalty Applied! Current Score: ${score}`);
+
+            // Optional: Visual feedback for miss (e.g., flash game area background)
+            /*
+            gameArea.classList.add('flash-miss-penalty');
+            setTimeout(() => {
+                gameArea.classList.remove('flash-miss-penalty');
+            }, 300); // Match animation duration
+            */
+        }
+    }
+
+    // --- Initialization ---
+    window.addEventListener('load', () => {
+        // Assign DOM elements
+        gameArea = document.getElementById('game-area');
+        scoreValueElement = document.getElementById('score-value');
+        statusBarTextElement = document.getElementById('status-bar').children[0];
+
+        // Add the event listener to the whole game area
+        gameArea.addEventListener('click', handleGameAreaClick);
+
+        // Calculate grid and start game
+        calculateGrid();
+        updateScore();
+
+        if (maxBlocks > 0) {
+             addBlockAndScheduleNext();
+        } else {
+            console.error("Game area too small to calculate grid.");
+            statusBarTextElement.textContent = "Error: Game area too small!";
+            isGameOver = true;
+        }
+    });
+
+  </script>
+</body>
+</html>

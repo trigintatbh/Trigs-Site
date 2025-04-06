@@ -1,0 +1,234 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevent scrollbars on the body */
+    font-family: sans-serif;
+    background-color: #000; /* Background behind canvas */
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Canvas behind UI */
+}
+
+#ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10; /* UI above canvas */
+    pointer-events: none; /* Allow clicks to pass through to canvas by default */
+    color: white;
+    text-shadow: 1px 1px 2px black; /* Make text readable */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pushes elements to top and bottom */
+    align-items: center; /* Centers hotbar horizontally */
+}
+
+/* Allow interaction with specific UI elements */
+#ui-overlay button, #ui-overlay select, #hotbar div {
+    pointer-events: auto; /* Re-enable clicks/hovers for buttons, etc. */
+}
+
+
+.stats-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #00000000;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 1.2em;
+}
+.stats-overlay p { margin: 2px 0; }
+
+
+#hotbar {
+    display: flex;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid #555;
+    border-radius: 3px;
+    margin-bottom: 10px; /* Space from bottom edge */
+}
+
+.hotbar-slot {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #888;
+    margin: 0 2px;
+    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    font-size: 10px; /* For item count */
+    background-size: cover; /* For block previews */
+    background-position: center;
+    image-rendering: pixelated; /* Keep block previews sharp */
+}
+
+.hotbar-slot.selected {
+    border: 2px solid #FFF;
+    box-shadow: 0 0 5px #FFF;
+}
+
+.item-count {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    color: white;
+    text-shadow: 1px 1px 1px black;
+    font-weight: bold;
+}
+
+/* Simple block preview styling */
+/* Colors are now primarily handled by JS setting background */
+
+
+.inventory-status {
+    position: absolute;
+    bottom: 15px; /* Position above hotbar */
+    right: -30px;
+    transform: translateX(-50%);
+    background-color: #00000000;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 1.3em;
+}
+
+
+.shop-overlay {
+     position: absolute;
+     top: 10px;
+     right: 10px;
+     display: flex;
+     flex-direction: column;
+     gap: 5px;
+}
+
+.shop-overlay button {
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    text-shadow: none;
+}
+.shop-overlay button:hover {
+    background-color: #4cae4c;
+}
+.shop-overlay button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+#message-log {
+    position: absolute;
+    bottom: 80px; /* Adjust as needed */
+    left: 10px;
+    max-height: 100px;
+    overflow-y: hidden; /* Can be auto if needed */
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 5px;
+    border-radius: 3px;
+    width: 300px;
+    font-size: 0.8em;
+    opacity: 1;
+    transition: opacity 0.5s ease-out 2s; /* Fade out after 2 seconds */
+}
+#message-log p {
+    margin: 1px 0;
+}
+#message-log.active {
+    opacity: 1;
+     transition: none; /* Keep visible while active */
+}
+
+
+/* --- Inventory Screen --- */
+#inventory-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 600px;
+    height: 70%;
+    max-height: 500px;
+    background-color: rgba(10, 10, 10, 0.85);
+    border: 3px solid #666;
+    border-radius: 10px;
+    z-index: 20; /* Above UI overlay */
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column;
+    padding: 15px;
+    color: white;
+    pointer-events: auto; /* Enable interaction */
+}
+
+#inventory-screen h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+#inventory-grid {
+    flex-grow: 1; /* Take available space */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); /* Responsive grid */
+    gap: 5px;
+    overflow-y: auto; /* Scroll if needed */
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.inventory-slot {
+    width: 45px;
+    height: 45px;
+    border: 1px solid #777;
+    background-color: rgba(255, 255, 255, 0.1);
+    position: relative;
+     display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+}
+/* Style for occupied slots will be added by JS */
+
+
+#close-inventory-button {
+     margin-top: 15px; /* Space above button */
+     padding: 8px 20px;
+     align-self: center; /* Center button */
+     cursor: pointer;
+      /* Use shop button styles */
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-shadow: none;
+}
+#close-inventory-button:hover {
+     background-color: #c9302c;
+}

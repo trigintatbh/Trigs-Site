@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trig's Cafe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            user-select: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #eee;
+            padding-bottom: 180px;
+            position: relative;
+            min-height: 100vh;
+            background-image: url('media/images/floor/floor.png'); 
+            background-repeat: repeat; 
+            background-position: center; 
+            background-size: 100px 100px; 
+            overflow: hidden;
+        }
+
+        #customerArea {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .customerSlot {
+            width: 270px;
+            text-align: center;
+            position: relative;
+            min-height: 270px;
+        }
+
+        .customerAvatar {
+            width: 240px;
+            height: 240px;
+            object-fit: cover;
+            border-radius: 15px;
+            border: none;
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+        }
+
+        .customerAvatar.slide-down {
+            transform: translateY(0);
+        }
+
+        .customerAvatar.initial-position{
+            transform: translateY(-500%);
+            opacity: 0;
+        }
+
+        .speechBubble {
+            position: absolute;
+            bottom: 200px;
+            left: 44.5%;
+            transform: translateX(-50%);
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 5px 10px;
+            font-size: 1.1rem;
+            display: none;
+            white-space: nowrap;
+            height: 6.5em;          
+            line-height: 1.5em;      
+            text-align: center;     
+            width: 150px;         
+            align-items: center; 
+            justify-content: center; 
+            margin-bottom: 40px;
+            flex-direction: column;
+        }
+
+        .speechBubble div {
+            margin: 0;
+            padding: 0;
+            vertical-align: middle; 
+        }
+
+        .speechBubble::before { 
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 9px; 
+            border-style: solid;
+            border-color: #333 transparent transparent transparent; 
+            z-index: -1; 
+        }
+
+        .speechBubble::after { 
+            content: "";
+            position: absolute;
+            top: calc(100% - 2px); 
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent; 
+        }
+
+        #plateArea {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            background-color: #8c581e;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            padding: 10px;
+            height: 120px;
+            flex-wrap: wrap;
+            z-index: 10;
+        }
+
+        .plate {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: #ffffff00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #333;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .plate .plateImg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            object-fit: contain;
+            pointer-events: none;
+            border-radius: 50%; 
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); 
+        }
+
+        .plate {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: #ffffff00;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #333;
+            cursor: pointer;
+            margin: 10px;
+            overflow: visible; 
+        }
+
+        .plate .plateImg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            object-fit: contain;
+            pointer-events: none;
+            border-radius: 50%;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            z-index: 0;
+        }
+
+        .plate .lockIcon {
+            width: 50%;
+            height: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: contain;
+            pointer-events: none;
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 20%, transparent 60%); 
+            z-index: 1;
+        }
+
+        .plate .countBadge {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            background: #7300ff;
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.7rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #bottomBar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            background-color: #444;
+            padding: 10px;
+            height: 60px;
+            z-index: 20;
+        }
+
+        #bottomBar button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+        }
+
+        #restockBtn {
+            background-color: #7300ff;
+        }
+
+        #upgradeBtn {
+            background-color: #7300ff;
+        }
+
+        #moneyDisplay {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        #upgradesModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111114; 
+            color: white;
+            z-index: 30;
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            overflow: auto; 
+        }
+
+        #upgradesContent {
+            width: 90%; 
+            padding: 20px;
+        }
+
+        #upgradesHeader {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #upgradesHeader h2 {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        #upgradesHeader button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #7300ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #upgradesGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min-content, 1fr)); 
+            gap: 20px;
+        }
+
+        @media (min-width: 600px) {
+            #upgradesGrid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            }
+        }
+
+        @media (min-width: 900px) {
+            #upgradesGrid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            }
+        }
+
+        .upgradeItem {
+            background-color: #222226; 
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .upgradeItem img {
+            width: 100px; 
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .upgradeItem h3 {
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+
+        .upgradeItem p {
+            margin: 5px 0;
+        }
+
+        .upgradeItem button {
+            padding: 8px 15px;
+            background-color: #7300ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #modalClose {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #minigameModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #minigameModal > div {
+            background-color: #111114;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #minigameButton {
+            width: 200px; 
+            height: 200px;
+            border-radius: 50%;
+            background-color: transparent;
+            border: none;
+            background-image: url('media/images/minigames/button/up.png');
+            margin: 20px 0; 
+            background-size: contain;
+            background-size: 80px 80px;
+            background-repeat: no-repeat; 
+            background-position: center; 
+        }
+
+        #barMinigame {
+            display: none;
+            width: 300px;
+            height: 20px;
+            margin: 20px 0;
+            position: relative; 
+            overflow: hidden; 
+            border-radius: 10px;
+        }
+
+        #greenBar {
+            width: 20px;
+            height: 100%;
+            position: absolute;
+            left: 0;
+        }
+
+        #arrow {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 10px solid rgb(255, 255, 255);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            border-bottom: 20px solid rgb(255, 255, 255); 
+            top: -20px; 
+        }
+
+        .plate .food {
+            width: 50px; 
+            height: 50px; 
+            object-fit: contain; 
+            z-index: 1;
+        }
+
+        #settingsContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        #settingsModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111114; 
+            color: white; 
+            z-index: 9999; 
+            overflow: auto; 
+            padding: 20px; 
+            box-sizing: border-box; 
+        }
+
+        .modal-content {
+            width: 80%; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            background-color: #222226; 
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: white;
+        }
+
+        .settings-option {
+            margin-bottom: 20px;
+        }
+
+        #settingsContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000000000000;
+        }
+
+        #settingsBtn {
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            z-index: 20000000;
+        }
+
+        #settingsModal button { 
+            background-color: #7300ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3); 
+        }
+
+        #settingsModal button:hover { 
+            background-color: #6000e0; 
+        }
+
+        #settingsModal input[type="range"] { 
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="customerArea">
+        <div class="customerSlot" data-slot="0">
+            <img class="customerAvatar" src="" draggable="none" style="display: none;" />
+            <div class="speechBubble" data-request="" data-quantity=""></div>
+        </div>
+        <div class="customerSlot" data-slot="1">
+            <img class="customerAvatar" src="" draggable="none" style="display: none;" />
+            <div class="speechBubble" data-request="" data-quantity=""></div>
+        </div>
+        <div class="customerSlot" data-slot="2">
+            <img class="customerAvatar" src="" draggable="none" style="display: none;" />
+            <div class="speechBubble" data-request="" data-quantity=""></div>
+        </div>
+    </div>
+
+    <div id="plateArea" draggable="none" style="user-select: none;">
+    </div>
+
+    <div id="bottomBar">
+        <div id="moneyDisplay">Money: $0</div>
+        <button id="restockBtn">Restock Food</button>
+        <button id="upgradeBtn">Upgrade Shop</button>
+    </div>
+
+    <div id="upgradesModal">
+        <div id="upgradesContent">
+            <div id="upgradesHeader">
+                <h2>Upgrade Shop</h2>
+                <button id="modalClose">Back</button>
+            </div>
+            <div id="upgradesGrid">
+                </div>
+        </div>
+    </div>
+
+    <div id="minigameModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+        <div style="padding: 20px; border-radius: 10px; text-align: center; width: 100%; height: 100%;">
+            <h2 id="minigameTitle"></h2>
+            <div id="minigameTimer"></div>
+
+            <button id="minigameButton" style="width: 100px; height: 100px; border-radius: 50%; background-color: transparent; border: none; margin-top: 20px;"></button>
+            <div id="minigameCount" style="margin-top: 10px;"></div>
+
+            <div id="barMinigame" style="display: none; width: 300px; height: 20px; background-color: rgb(255, 0, 51); margin: 20px 0; position: relative; overflow: hidden;">
+                <div id="greenBar" style="height: 100%; background-color: rgb(20, 255, 122); position: absolute;"></div>
+                <div id="arrow" style="width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid rgb(255, 255, 255); position: absolute; top: -20px; left: 0;"></div> </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsContainer">
+        <button id="settingsBtn">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeSettingsBtn">&times;</span>
+            <h2>Settings</h2>
+            <div class="settings-option">
+                <h3>Master Volume</h3>
+                <input type="range" id="masterVolumeSlider" min="0" max="100" value="100">
+            </div>
+            <div class="settings-option">
+                <h3>Music Volume</h3>
+                <input type="range" id="musicVolumeSlider" min="0" max="100" value="100">
+            </div>
+            <div class="settings-option">
+                <h3>SFX Volume</h3>
+                <input type="range" id="sfxVolumeSlider" min="0" max="100" value="100">
+            </div>
+            <div class="settings-option">
+                <button id="wipeSaveBtn">Wipe Save Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let money = 0;
+
+function updateMoney(val) {
+    money = val;
+    document.getElementById("moneyDisplay").innerText = `Money: $${money}`;
+}
+
+function generatePlateHTML(plate) {
+    let html = `<div class="plate ${plate.locked ? 'locked' : ''}" data-index="${plate.index}" draggable="false">`;
+    html += `<img class="plateImg" src="media/images/plate/plate.png" alt="Plate" draggable="false" style="${plate.locked ? 'filter: grayscale(100%);' : ''}" ondragstart="return false;" />`;
+    if (plate.locked) {
+        html += `<img class="lockIcon" src="media/images/plate/lock.png" alt="Locked" draggable="false" ondragstart="return false;" />`;
+    }
+    html += `<img class="food" src="${plate.foodType}" draggable="false" style="${plate.locked ? 'display: none;' : ''}" ondragstart="return false;" />`;
+    html += `<div class="countBadge" style="${plate.locked ? 'display: none;' : ''}">${plate.count}</div>`;
+    html += `</div>`;
+    return html;
+}
+
+let plateEls = document.querySelectorAll(".plate");
+
+function renderPlates() {
+    const plateArea = document.getElementById("plateArea");
+    let plateHTML = "";
+    plates.forEach(plate => {
+        plateHTML += generatePlateHTML(plate);
+    });
+    requestAnimationFrame(() => {
+        plateArea.innerHTML = plateHTML;
+        addFoodDragListeners();
+        plateEls = document.querySelectorAll(".plate");
+    });
+}
+
+let incomingMoney = 0;
+
+function addFoodDragListeners() {
+    document.querySelectorAll(".plate .food").forEach(foodEl => {
+        let isDragging = false;
+        let dragImage = null;
+        let initialPlateIndex = null;
+
+        foodEl.addEventListener("mousedown", (e) => {
+            if (!e.target.classList.contains("food")) return;
+            const plateIndex = Number(e.target.closest(".plate").dataset.index);
+            const plateData = plates[plateIndex];
+            if (plateData.locked || plateData.count <= 0) return;
+            isDragging = true;
+            initialPlateIndex = plateIndex;
+            e.preventDefault();
+            playSfx("media/audio/sfx/pop.mp3");
+            dragImage = document.createElement('img');
+            dragImage.src = plateData.foodType;
+            dragImage.style.width = '80px';
+            dragImage.style.height = '80px';
+            dragImage.style.position = 'absolute';
+            dragImage.style.zIndex = '1000';
+            document.body.appendChild(dragImage);
+            document.addEventListener("mousemove", updateDragImagePosition);
+            document.addEventListener("mouseup", (e) => {
+                if (isDragging) {
+                    isDragging = false;
+                    document.body.removeChild(dragImage);
+                    document.removeEventListener("mousemove", updateDragImagePosition);
+                    const customerEl = document.elementFromPoint(e.clientX, e.clientY);
+                    if (customerEl && customerEl.classList.contains("customerAvatar")) {
+                        const slotEl = customerEl.closest(".customerSlot");
+                        const bubbleEl = slotEl.querySelector(".speechBubble");
+                        let requestedFoods = JSON.parse(bubbleEl.dataset.request);
+                        let remaining = parseInt(bubbleEl.dataset.remaining);
+                        const draggedFood = plates[initialPlateIndex].foodType;
+                        const foodIndex = requestedFoods.findIndex(item => item.includes(draggedFood));
+                        if (foodIndex !== -1 && remaining > 0) {
+                            const requestedFoodImgSrc = requestedFoods[foodIndex].match(/src="([^"]+)"/)[1];
+                            if (draggedFood === requestedFoodImgSrc) {
+                                const [food, currentQuantity] = requestedFoods[foodIndex].split(" x ");
+                                let newQuantity = parseInt(currentQuantity) - 1;
+                                incomingMoney += Math.floor(plates[initialPlateIndex].basePrice * (plates[initialPlateIndex].level ** 1.98));
+                                if (newQuantity > 0) {
+                                    requestedFoods[foodIndex] = `${food} x ${newQuantity}`;
+                                } else {
+                                    requestedFoods.splice(foodIndex, 1);
+                                }
+                                remaining--;
+                                bubbleEl.dataset.remaining = remaining;
+                                bubbleEl.dataset.request = JSON.stringify(requestedFoods);
+                                if (remaining === 0) {
+                                    const earnedAmount = incomingMoney;
+                                    bubbleEl.innerHTML = `Thanks!<br><br>$${earnedAmount}`;
+                                    playSfx("media/audio/sfx/collect.mp3");
+                                    setTimeout(() => {
+                                        updateMoney(money + incomingMoney);
+                                    }, 500);
+                                    setTimeout(() => {
+                                        bubbleEl.style.transition = "opacity 0.5s ease-in-out";
+                                        bubbleEl.style.opacity = 0;
+                                        const avatarEl = slotEl.querySelector(".customerAvatar");
+                                        avatarEl.style.transition = "opacity 0.5s ease-in-out";
+                                        avatarEl.style.opacity = 0;
+                                        setTimeout(() => {
+                                            bubbleEl.style.display = "none";
+                                            avatarEl.style.display = "none";
+                                            bubbleEl.style.opacity = 1;
+                                            avatarEl.style.opacity = 1;
+                                            incomingMoney = 0;
+                                        }, 500);
+                                        removeCustomer(slotEl);
+                                    }, 1500);
+                                } else {
+                                    bubbleEl.innerHTML = requestedFoods.map(food => `<div>${food}</div>`).join('');
+                                    playSfx("media/audio/sfx/pop2.mp3");
+                                }
+                                plates[initialPlateIndex].count -= 1;
+                                requestAnimationFrame(renderPlates);
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        function updateDragImagePosition(e) {
+            if (isDragging && dragImage) {
+                dragImage.style.left = `${e.clientX - 40}px`;
+                dragImage.style.top = `${e.clientY - 40}px`;
+            }
+        }
+    });
+}
+
+let plates = [
+    { index: 0, foodType: "media/images/food/toast.png", foodName: "Toast", count: 0, level: 1, locked: false, costToUnlock: 0, basePrice: 3 },
+    { index: 1, foodType: "media/images/food/cereal.png", foodName: "Cereal", count: 0, level: 1, locked: true, costToUnlock: 100, basePrice: 15 },
+    { index: 2, foodType: "media/images/food/juice.png", foodName: "Juice", count: 0, level: 1, locked: true, costToUnlock: 450, basePrice: 50 },
+    { index: 3, foodType: "media/images/food/milk.png", foodName: "Milk", count: 0, level: 1, locked: true, costToUnlock: 800, basePrice: 125 },
+    { index: 4, foodType: "media/images/food/yogurt.png", foodName: "Yogurt", count: 0, level: 1, locked: true, costToUnlock: 1800, basePrice: 275 },
+    { index: 5, foodType: "media/images/food/coffee.png", foodName: "Coffee", count: 0, level: 1, locked: true, costToUnlock: 3000, basePrice: 520 },
+    { index: 5, foodType: "media/images/food/waffle.png", foodName: "Waffle", count: 0, level: 1, locked: true, costToUnlock: 7500, basePrice: 650 },
+    { index: 6, foodType: "media/images/food/fries.png", foodName: "Fries", count: 0, level: 1, locked: true, costToUnlock: 17000, basePrice: 1100 },
+    { index: 7, foodType: "media/images/food/bacon.png", foodName: "Bacon", count: 0, level: 1, locked: true, costToUnlock: 30000, basePrice: 1650 },
+    { index: 8, foodType: "media/images/food/pizza.png", foodName: "Pizza", count: 0, level: 1, locked: true, costToUnlock: 70000, basePrice: 3000 },
+    { index: 9, foodType: "media/images/food/burger.png", foodName: "Burger", count: 0, level: 1, locked: true, costToUnlock: 200000, basePrice: 7000 },
+    { index: 10, foodType: "media/images/food/ice_cream.png", foodName: "Ice Cream", count: 0, level: 1, locked: true, costToUnlock: 1000000, basePrice: 20000 },
+    { index: 11, foodType: "media/images/food/cake.png", foodName: "Cake", count: 0, level: 1, locked: true, costToUnlock: 5000000, basePrice: 70000 }
+];
+
+renderPlates();
+
+const collectSound = new Audio("media/audio/sfx/collect.mp3");
+const popSound = new Audio("media/audio/sfx/pop.mp3");
+const pop2Sound = new Audio("media/audio/sfx/pop2.mp3");
+
+const upgradesBtn = document.getElementById("upgradeBtn");
+const upgradesModal = document.getElementById("upgradesModal");
+const modalClose = document.getElementById("modalClose");
+const upgradesList = document.getElementById("upgradesList");
+const baseServeValue = 10;
+
+function generateCustomerImageURLs(count) {
+    const urls = [];
+    for (let i = 0; i < count; i++) {
+        urls.push(`media/images/customers/${i}.png`);
+    }
+    return urls;
+}
+
+const avatarURLs = generateCustomerImageURLs(29);
+
+function unlockPlateUI(plateEl, plateData) {
+    plateEl.classList.remove("locked");
+    const lockIcon = plateEl.querySelector(".lockIcon");
+    if (lockIcon) {
+        lockIcon.style.display = "none";
+    }
+    const foodEl = plateEl.querySelector(".food");
+    if (foodEl) {
+        foodEl.style.display = "block";
+    }
+    const badge = plateEl.querySelector(".countBadge");
+    if (badge) {
+        badge.style.display = "flex";
+    }
+    updatePlateCountUI(plateData.index, plateData.count);
+}
+
+function updatePlateCountUI(index, newCount) {
+    plateEls = document.querySelectorAll(".plate");
+    const plateEl = plateEls[index];
+    const badgeEl = plateEl.querySelector(".countBadge");
+    badgeEl.innerText = newCount;
+}
+
+function dragOverHandler(e) {
+    e.preventDefault();
+}
+
+function serveCustomer(plateIndex, bubbleEl, slotEl, dropHandler) {
+    console.log("serveCustomer called with plateIndex:", plateIndex);
+    const p = plates[plateIndex];
+    if (p.count < 1) {
+        alert("Not enough food on that plate!");
+        return;
+    }
+    p.count -= 1;
+    updatePlateCountUI(plateIndex, p.count);
+    const earned = Math.floor(plates[plateIndex].basePrice * (plates[plateIndex].level ** 1.98));
+    updateMoney(money + earned);
+    renderPlates();
+
+    let remaining = parseInt(bubbleEl.dataset.remaining);
+    console.log("Remaining:", remaining);
+    if (remaining <= 0) {
+        bubbleEl.innerHTML = `Thanks!<br><br>$${incomingMoney}`;
+        playSfx("media/audio/sfx/collect.mp3");
+        setTimeout(() => {
+            updateMoney(money + incomingMoney);
+        }, 500);
+        setTimeout(() => {
+            bubbleEl.style.transition = "opacity 0.5s ease-in-out";
+            bubbleEl.style.opacity = 0;
+            const avatarEl = slotEl.querySelector(".customerAvatar");
+            avatarEl.style.transition = "opacity 0.5s ease-in-out";
+            avatarEl.style.opacity = 0;
+            setTimeout(() => {
+                bubbleEl.style.display = "none";
+                avatarEl.style.display = "none";
+                bubbleEl.style.opacity = 1;
+                avatarEl.style.opacity = 1;
+                incomingMoney = 0;
+                removeCustomer(slotEl);
+            }, 500);
+        }, 1500);
+        saveGameData();
+    } else {
+        remaining -= 1;
+        console.log("remaining decremented to:", remaining);
+        bubbleEl.dataset.remaining = remaining;
+        console.log("Remaining dataset:", bubbleEl.dataset.remaining);
+        bubbleEl.innerHTML = JSON.parse(bubbleEl.dataset.request).map(food => `<div>${food}</div>`).join('');
+        playSfx("media/audio/sfx/pop2.mp3");
+    }
+}
+
+function removeCustomer(slotEl) {
+    const avatar = slotEl.querySelector(".customerAvatar");
+    const bubble = slotEl.querySelector(".speechBubble");
+    console.log("Customer removed from slot:", slotEl);
+    if (avatar) {
+        avatar.style.display = "none";
+        avatar.src = "";
+    }
+    if (bubble) {
+        bubble.style.display = "none";
+        bubble.innerHTML = "";
+        bubble.dataset.request = "";
+        bubble.dataset.remaining = "";
+    }
+    setTimeout(() => {
+        slotEl.dataset.occupied = "false";
+    }, 10);
+}
+
+function spawnCustomer() {
+    console.log("spawnCustomer called");
+    const customerSlots = document.querySelectorAll(".customerSlot");
+    const freeSlots = [];
+    customerSlots.forEach(slot => {
+        if (slot.dataset.occupied !== "true") {
+            freeSlots.push(slot);
+        }
+    });
+    if (freeSlots.length === 0) return;
+    const slotEl = freeSlots[Math.floor(Math.random() * freeSlots.length)];
+    slotEl.dataset.occupied = "true";
+    const avatarEl = slotEl.querySelector(".customerAvatar");
+    const bubbleEl = slotEl.querySelector(".speechBubble");
+
+    if (Math.random() < 0.001) {
+        avatarEl.src = "media/images/customers/finn.png";
+    } else if (Math.random() < 0.001) {
+        avatarEl.src = "media/images/customers/zorp.png";
+    } else {
+        avatarEl.src = avatarURLs[Math.floor(Math.random() * avatarURLs.length)];
+    }
+
+    avatarEl.style.transition = 'none';
+    avatarEl.style.opacity = 1;
+    avatarEl.style.display = 'block';
+    avatarEl.classList.remove("initial-position", "slide-down");
+    avatarEl.classList.add("initial-position");
+    void avatarEl.offsetWidth;
+    avatarEl.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
+
+    const unlockedPlates = plates.filter(p => !p.locked);
+    const orderFoods = [];
+    const orderQuantities = [];
+    let totalOrderQuantity = 0;
+
+    let numberOfFoods = Math.floor(Math.random() * 3) + 1;
+    if (unlockedPlates.length === 1) {
+        numberOfFoods = 1;
+    }
+
+    const chosenFoods = new Set();
+    for (let i = 0; i < numberOfFoods; i++) {
+        let chosen;
+        let orderQuantity;
+        do {
+            chosen = unlockedPlates[Math.floor(Math.random() * unlockedPlates.length)];
+            orderQuantity = Math.floor(Math.random() * 3) + 1;
+        } while (chosenFoods.has(chosen));
+        chosenFoods.add(chosen);
+
+        const foodImg = document.createElement('img');
+        foodImg.src = chosen.foodType;
+        foodImg.alt = chosen.foodType;
+        foodImg.style.width = '30px';
+        foodImg.style.height = '30px';
+        foodImg.style.verticalAlign = 'middle';
+
+        const quantityText = document.createTextNode(` x ${orderQuantity}`);
+        const imageAndCountSpan = document.createElement('span');
+        imageAndCountSpan.appendChild(foodImg);
+        imageAndCountSpan.appendChild(quantityText);
+        const foodContainer = document.createElement('div');
+        foodContainer.appendChild(imageAndCountSpan);
+
+        orderFoods.push(foodContainer);
+        orderQuantities.push(orderQuantity);
+        totalOrderQuantity += orderQuantity;
+    }
+
+    bubbleEl.innerHTML = '';
+    orderFoods.forEach(food => bubbleEl.appendChild(food));
+    bubbleEl.dataset.request = JSON.stringify(orderFoods.map(food => food.innerHTML));
+    bubbleEl.dataset.remaining = totalOrderQuantity;
+
+    avatarEl.classList.add("slide-down");
+
+    clearTimeout(customerTimeout); 
+    customerTimeout = setTimeout(() => {
+        avatarEl.classList.remove("slide-down");
+
+        setTimeout(() => {
+            avatarEl.classList.remove("initial-position");
+
+            bubbleEl.style.display = "flex";
+            bubbleEl.style.opacity = 0;
+            bubbleEl.style.transition = "opacity 0.5s ease-in-out";
+            setTimeout(() => {
+                bubbleEl.style.opacity = 1;
+            }, 500);
+
+        }, 500);
+    }, 1000);
+
+    const dropHandler = (e) => {
+        e.preventDefault();
+        const requested = bubbleEl.dataset.request;
+        const draggedFood = e.dataTransfer.getData("foodType");
+        const plateIndex = Number(e.dataTransfer.getData("plateIndex"));
+        if (draggedFood === requested) {
+            serveCustomer(plateIndex, bubbleEl, slotEl, dropHandler);
+        }
+    };
+    avatarEl.addEventListener("dragover", dragOverHandler);
+    avatarEl.addEventListener("drop", dropHandler);
+}
+
+let customerTimeout;
+
+const restockBtn = document.getElementById("restockBtn");
+const minigameModal = document.getElementById("minigameModal");
+const minigameTitle = document.getElementById("minigameTitle");
+const minigameTimer = document.getElementById("minigameTimer");
+const minigameButton = document.getElementById("minigameButton");
+const minigameCount = document.getElementById("minigameCount");
+const barMinigame = document.getElementById("barMinigame");
+const greenBar = document.getElementById("greenBar");
+const arrow = document.getElementById("arrow");
+
+let minigameActive = false;
+let clickCount = 0;
+let minigameTimeout = null;
+let minigameStartTime = 0;
+let barMinigameInterval = null;
+
+restockBtn.addEventListener("click", () => {
+    if (minigameActive) return;
+
+    minigameActive = true;
+    clickCount = 0;
+
+    playSfx("media/audio/sfx/pop.mp3");
+
+    const randomMinigame = Math.random() < 0.5 ? "button" : "bar";
+
+    if (randomMinigame === "button") {
+        minigameTitle.innerText = "Press the button";
+        minigameCount.innerText = "0";
+        minigameButton.style.display = "block";
+        barMinigame.style.display = "none";
+        minigameModal.style.display = "flex";
+        minigameTimer.style.display = "block";
+        minigameCount.style.display = "block";
+
+        minigameStartTime = Date.now();
+        updateTimer();
+
+        minigameTimeout = setTimeout(() => {
+            minigameTimer.innerText = "00:00:000";
+            minigameActive = false;
+            minigameModal.style.display = "none";
+            alert("Too slow! Try again.");
+        }, 5000);
+
+        minigameButton.addEventListener("click", minigameClickHandler);
+    } else if (randomMinigame === "bar") {
+        minigameTitle.innerText = "Time it right!";
+        minigameButton.style.display = "none";
+        barMinigame.style.display = "block";
+        minigameModal.style.display = "flex";
+        minigameTimer.style.display = "none";
+        minigameCount.style.display = "none";
+        startBarMinigame();
+    }
+});
+
+function minigameClickHandler() {
+    clickCount++;
+    minigameCount.innerText = clickCount;
+
+    if (clickCount >= 10) {
+        clearTimeout(minigameTimeout);
+        minigameActive = false;
+        minigameModal.style.display = "none";
+        minigameButton.removeEventListener("click", minigameClickHandler);
+        restockFood();
+    }
+}
+
+function updateTimer() {
+    if (!minigameActive) return;
+
+    const elapsedTime = Date.now() - minigameStartTime;
+    const remainingTime = 5000 - elapsedTime;
+
+    if (remainingTime <= 0) return;
+
+    const minutes = Math.floor(remainingTime / 60000);
+    const seconds = Math.floor((remainingTime % 60000) / 1000);
+    const milliseconds = remainingTime % 1000;
+
+    minigameTimer.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(3, '0')}`;
+    requestAnimationFrame(updateTimer);
+}
+
+function startBarMinigame() {
+
+    const greenBarWidth = Math.floor(Math.random() * 100) + 50;
+    const greenBarPosition = Math.floor(Math.random() * (barMinigame.offsetWidth - greenBarWidth));
+    greenBar.style.width = `${greenBarWidth}px`;
+    greenBar.style.left = `${greenBarPosition}px`;
+
+    let arrowPosition = 0;
+    let direction = 1;
+
+    barMinigameInterval = setInterval(() => {
+        arrowPosition += direction * 5;
+        if (arrowPosition >= barMinigame.offsetWidth - arrow.offsetWidth || arrowPosition <= 0) {
+            direction *= -1;
+        }
+        arrow.style.left = `${arrowPosition}px`;
+    }, 50);
+
+    clearTimeout(minigameTimeout);
+
+    const barMinigameClickHandler = () => {
+        const arrowRect = arrow.getBoundingClientRect();
+        const greenBarRect = greenBar.getBoundingClientRect();
+
+        if (arrowRect.right >= greenBarRect.left && arrowRect.left <= greenBarRect.right) {
+
+            clearInterval(barMinigameInterval);
+            minigameActive = false;
+            minigameModal.style.display = "none";
+            restockFood();
+        } else {
+
+            clearInterval(barMinigameInterval);
+            minigameActive = false;
+            minigameModal.style.display = "none";
+            alert("Missed! Try again.");
+        }
+
+        playSfx("media/audio/sfx/pop.mp3");
+
+        minigameModal.removeEventListener("click", barMinigameClickHandler);
+    };
+
+    minigameModal.addEventListener("click", barMinigameClickHandler);
+}
+
+function restockFood() {
+    plates.forEach(p => {
+        if (!p.locked) {
+            p.count++;
+            updatePlateCountUI(p.index, p.count);
+        }
+    });
+    saveGameData();
+    renderPlates();
+}
+
+minigameButton.addEventListener("mousedown", () => {
+    minigameButton.style.backgroundImage = "url('media/images/minigames/button/down.png')";
+    playSfx("media/audio/sfx/pop.mp3");
+});
+
+minigameButton.addEventListener("mouseup", () => {
+    minigameButton.style.backgroundImage = "url('media/images/minigames/button/up.png')";
+    playSfx("media/audio/sfx/pop2.mp3");
+});
+
+upgradesBtn.addEventListener("click", () => {
+    showUpgrades();
+    upgradesModal.style.display = "block";
+    playSfx("media/audio/sfx/pop.mp3");
+    saveGameData();
+});
+
+modalClose.addEventListener("click", () => {
+    upgradesModal.style.display = "none";
+    playSfx("media/audio/sfx/pop.mp3");
+});
+
+function showUpgrades() {
+    const upgradesGrid = document.getElementById("upgradesGrid");
+    upgradesGrid.innerHTML = "";
+
+    let bestUnlockedIndex = plates.findIndex(plate => plate.locked);
+    if (bestUnlockedIndex === -1) {
+        bestUnlockedIndex = plates.length;
+    }
+
+    plates.forEach((plate, index) => {
+        const upgradeItem = document.createElement("div");
+        upgradeItem.classList.add("upgradeItem");
+
+        const foodImage = document.createElement("img");
+        foodImage.src = index > bestUnlockedIndex ? "media/images/plate/lock.png" : plate.foodType;
+        foodImage.alt = plate.foodType;
+        upgradeItem.appendChild(foodImage);
+
+        const foodName = document.createElement("h3");
+        foodName.textContent = index > bestUnlockedIndex ? "???" : plate.foodName;
+        upgradeItem.appendChild(foodName);
+
+        const levelInfo = document.createElement("p");
+        levelInfo.textContent = plate.locked ? "Locked" : `Level ${plate.level}`;
+        upgradeItem.appendChild(levelInfo);
+
+        const buttonContainer = document.createElement("div");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.flexDirection = "column";
+        buttonContainer.style.alignItems = "center";
+
+        let unlockButton, upgradeButton;
+
+        if (plate.locked) {
+            unlockButton = document.createElement("button");
+            unlockButton.textContent = "Unlock";
+            unlockButton.addEventListener("click", () => {
+                if (money >= plate.costToUnlock) {
+                    updateMoney(money - plate.costToUnlock);
+                    plate.locked = false;
+                    renderPlates();
+                    playSfx("media/audio/sfx/pop.mp3");
+                    showUpgrades();
+                } else {
+                    alert("Not enough money to unlock!");
+                }
+            });
+
+            unlockButton.disabled = index > bestUnlockedIndex;
+
+            if (unlockButton.disabled) {
+                unlockButton.style.backgroundColor = "#4c0178";
+                unlockButton.style.cursor = "not-allowed";
+            } else {
+                if (money < plate.costToUnlock) {
+                    unlockButton.style.backgroundColor = "#4c0178";
+                    unlockButton.style.cursor = "not-allowed";
+                } else {
+                    unlockButton.style.backgroundColor = "";
+                    unlockButton.style.cursor = "";
+                }
+            }
+
+            buttonContainer.appendChild(unlockButton);
+
+            const unlockCost = document.createElement("p");
+            unlockCost.textContent = `$${plate.costToUnlock}`;
+            unlockCost.style.fontSize = "12px";
+            buttonContainer.appendChild(unlockCost);
+
+            upgradeItem.appendChild(buttonContainer);
+        } else {
+            if (buttonContainer.firstChild) {
+                buttonContainer.removeChild(buttonContainer.firstChild);
+            }
+
+            const currentPrice = Math.floor(plate.basePrice * (plate.level ** 1.98));
+            const newPrice = Math.floor(plate.basePrice * ((plate.level + 1) ** 1.98));
+
+            upgradeButton = document.createElement("button");
+            upgradeButton.textContent = `Upgrade ($${currentPrice} -> $${newPrice})`;
+            upgradeButton.addEventListener("click", () => {
+                playSfx("media/audio/sfx/pop.mp3");
+                const cost = Math.floor(plate.basePrice * ((plate.level + 1) ** 1.98));
+                if (money >= cost) {
+                    updateMoney(money - cost);
+                    plate.level++;
+                    renderPlates();
+                    showUpgrades();
+                } else {
+                    alert("Not enough money to upgrade!");
+                }
+            });
+
+            const cost = Math.floor(plate.basePrice * ((plate.level + 1) ** 1.98));
+
+            upgradeButton.disabled = index > bestUnlockedIndex;
+
+            if (upgradeButton.disabled) {
+                upgradeButton.style.backgroundColor = "#4c0178";
+                upgradeButton.style.cursor = "not-allowed";
+            } else {
+                if (money < cost) {
+                    upgradeButton.style.backgroundColor = "#4c0178";
+                    upgradeButton.style.cursor = "not-allowed";
+                } else {
+                    upgradeButton.style.backgroundColor = "";
+                    upgradeButton.style.cursor = "";
+                }
+            }
+
+            buttonContainer.appendChild(upgradeButton);
+
+            const upgradeCost = document.createElement("p");
+            upgradeCost.textContent = `$${cost}`;
+            upgradeCost.style.fontSize = "12px";
+            buttonContainer.appendChild(upgradeCost);
+
+            upgradeItem.appendChild(buttonContainer);
+        }
+
+        upgradesGrid.appendChild(upgradeItem);
+    });
+
+    upgradesModal.style.display = "block";
+}
+
+function positionCustomerSlots() {
+  const plateArea = document.getElementById("plateArea");
+  const customerSlots = document.querySelectorAll(".customerSlot");
+  const plateAreaRect = plateArea.getBoundingClientRect();
+
+  customerSlots.forEach(slot => {
+    const marginTop = plateAreaRect.top - slot.offsetHeight;
+    slot.style.marginTop = `${marginTop}px`;
+  });
+}
+
+positionCustomerSlots();
+window.addEventListener("resize", positionCustomerSlots);
+
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsModal = document.getElementById("settingsModal");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const masterVolumeSlider = document.getElementById("masterVolumeSlider");
+const musicVolumeSlider = document.getElementById("musicVolumeSlider");
+const sfxVolumeSlider = document.getElementById("sfxVolumeSlider");
+const wipeSaveBtn = document.getElementById("wipeSaveBtn");
+
+settingsBtn.addEventListener("click", () => {
+    settingsModal.style.display = "block";
+    playSfx("media/audio/sfx/pop.mp3");
+});
+
+closeSettingsBtn.addEventListener("click", () => {
+    settingsModal.style.display = "none";
+    playSfx("media/audio/sfx/pop.mp3");
+});
+
+const audio = new Audio(); 
+
+const musicAudio = new Audio();
+musicAudio.id = "musicPlayer";
+musicAudio.loop = true;
+document.body.appendChild(musicAudio);
+
+const sfxAudio = new Audio();
+sfxAudio.id = "sfxPlayer";
+document.body.appendChild(sfxAudio);
+
+const tracks = [
+    "media/audio/music/chill.mp3",
+    "media/audio/music/cafe.mp3",
+    "media/audio/music/flop.mp3"
+];
+
+let currentTrackIndex = null;
+
+function playRandomTrack() {
+
+    let newTrackIndex;
+    do {
+        newTrackIndex = Math.floor(Math.random() * tracks.length);
+    } while (newTrackIndex === currentTrackIndex);
+    currentTrackIndex = newTrackIndex;
+
+    musicAudio.src = tracks[currentTrackIndex];
+    musicAudio.play();
+}
+
+function startMusic() {
+    playRandomTrack();
+
+    document.removeEventListener('click', startMusic);
+
+    musicAudio.addEventListener("ended", playRandomTrack);
+}
+
+masterVolumeSlider.addEventListener("input", () => {
+    const volume = masterVolumeSlider.value / 100;
+    audio.volume = volume;
+    if(musicAudio){musicAudio.volume = musicVolumeSlider.value / 100 * volume;}
+    if(sfxAudio){sfxAudio.volume = sfxVolumeSlider.value / 100 * volume;}
+    playSfx("media/audio/sfx/pop.mp3");
+});
+
+musicVolumeSlider.addEventListener("input", () => {
+    const volume = musicVolumeSlider.value / 100;
+    if(musicAudio){musicAudio.volume = volume * masterVolumeSlider.value / 100;}
+    playSfx("media/audio/sfx/pop.mp3");
+});
+
+sfxVolumeSlider.addEventListener("input", () => {
+    const volume = sfxVolumeSlider.value / 100;
+    if(sfxAudio){sfxAudio.volume = volume * masterVolumeSlider.value / 100;}
+    playSfx("media/audio/sfx/pop.mp3");
+});
+
+wipeSaveBtn.addEventListener("click", () => {
+    if (confirm("Are you sure you want to wipe your save data?")) {
+        localStorage.removeItem('cookinGameData');
+        money = 0;
+        plates.forEach(plate => {
+            plate.count = 0;
+            plate.level = 1;
+            plate.locked = plate.costToUnlock > 0;
+        });
+        updateMoney(money);
+        renderPlates();
+
+        const customerSlots = document.querySelectorAll(".customerSlot");
+        customerSlots.forEach(slot => {
+            const avatar = slot.querySelector(".customerAvatar");
+            const bubble = slot.querySelector(".speechBubble");
+            if (avatar) {
+                avatar.style.display = "none";
+            }
+            if (bubble) {
+                bubble.style.display = "none";
+            }
+        });
+
+        clearInterval(customerInterval);
+        customerInterval = setInterval(generateCustomer, 10000);
+
+        settingsModal.style.display = "none";
+        playSfx("media/audio/sfx/pop.mp3");
+    }
+});
+
+document.addEventListener('click', startMusic);
+
+function saveGameData() {
+    const gameData = {
+        money: money,
+        plates: plates,
+    };
+    localStorage.setItem('cookinGameData', JSON.stringify(gameData));
+    console.log('Game data saved.');
+}
+
+function loadGameData() {
+    const savedData = localStorage.getItem('cookinGameData');
+    if (savedData) {
+        const gameData = JSON.parse(savedData);
+        money = gameData.money;
+        plates = gameData.plates;
+
+        updateMoney(money);
+        renderPlates();
+
+        console.log('Game data loaded.')
+    }
+}
+
+setInterval(saveGameData, 30000);
+
+function playSfx(src){
+    sfxAudio.src = src;
+    sfxAudio.play();
+}
+
+updateMoney(0);
+spawnCustomer();
+loadGameData();
+if (!window.customerSpawnInterval) {
+    window.customerSpawnInterval = setInterval(() => {
+        console.log("spawnCustomer interval running"); 
+        spawnCustomer();
+    }, Math.random() * 3000 + 4000);
+}
+    </script>
+</body>
+</html>

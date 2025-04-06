@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #111114;
+  --color-card: #27272e;
+  --color-border: #32323a;
+  --color-primary: #9500ff;
+}
+
+@font-face {
+  font-family: 'Alexandria';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/src/assets/Alexandria-VariableFont_wght.ttf);
+}
+
+body {
+  @apply bg-background;
+  font-family: 'Alexandria';
+}
+
+#root {
+  @apply min-h-screen;
+}
+
+.header,
+.footer {
+  @apply flex w-full justify-between py-4 px-5 border-b-2 select-none;
+}
+
+.footer {
+  @apply border-b-0 border-t-2;
+}
+
+.header__logo,
+.header__nav {
+  @apply flex items-center gap-2.5;
+}
+
+.header__nav {
+  @apply gap-5;
+}
+
+.header__logo--image {
+  @apply rounded-lg w-11 h-11;
+}
+
+.header__logo--text {
+  @apply font-bold;
+}
+
+.main {
+  @apply flex flex-col grow-1;
+}
+
+.games {
+  @apply place-items-center grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-5 gap-y-5;
+}
+
+.games--window {
+  @apply absolute left-0 top-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-1;
+  /* @apply absolute w-1/2 h-1/2 translate-x-[25vw] translate-y-50; */
+}
+
+.games--window--bar {
+  width: 100%;
+  height: 28px;
+  background-color: rgb(13, 13, 13);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  font-size: medium;
+}
+
+.games--window--bar svg {
+  cursor: pointer;
+  height: 100%;
+  width: 24px;
+  font-size: large;
+}
+
+.games--window--bar svg:hover {
+  background-color: rgb(245, 20, 80);
+}
+
+.games--window iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.card {
+  @apply p-5 pb-0 bg-card h-50 w-50 rounded-lg z-0;
+}
+
+.card--title {
+  @apply font-bold;
+}
+
+.card--content {
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat;
+  background-size: contain;
+  width: 100%;
+  height: 75%;
+}
+
+.card--description {
+  @apply text-sm h-3/4;
+}
+
+.card--footer {
+  @apply mt-3 pt-2;
+}
+
+* {
+  @apply border-border text-white;
+}

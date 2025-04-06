@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Electron Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #gameOverScreen {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="gameOverScreen">
+    <h1>Game Over</h1>
+    <p>Press Space or Click to Restart</p>
+  </div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Set canvas size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Floor properties
+    const floorHeight = 100;
+    const floorY = canvas.height - floorHeight;
+
+    // Load character sprites
+    const walkSprites = [];
+    const totalSprites = 6;
+    for (let i = 0; i < totalSprites; i++) {
+      const img = new Image();
+      img.src = `images/walk${i}.png`;
+      walkSprites.push(img);
+    }
+    const upSprite = new Image();
+    upSprite.src = "images/up.png";
+    const downSprite = new Image();
+    downSprite.src = "images/down.png";
+
+    // Load obstacle sprite
+    const cactusImg = new Image();
+    cactusImg.src = "images/cactus.png";
+
+    // Character properties
+    let frameCount = 0;
+    let cactiFrameCount = 0;
+    let currentSprite = 0;
+    let currentCactiSprite = 0;
+    const framesPerSprite = 7;
+    let framesPerCacti = 100;
+    const gravity = 0.5;
+    const jumpPower = -20;
+    let velocityY = 0;
+    let isJumping = false;
+
+    // Scale settings
+    const playerScale = 2; // Player is now 30% size
+    const cactusScale = 2.5; // Cactus still 25% bigger
+
+    const character = {
+      width: 128 * playerScale,
+      height: 128 * playerScale,
+      x: (canvas.width - 128 * playerScale) / 2,
+      y: floorY - 128 * playerScale + 10
+    };
+
+    // Cactus obstacles
+    const cacti = [];
+    const cactusSpeed = 5;
+    let nextCactusSpawn = Math.floor(Math.random() * (1500 - 1000 + 1)) + 1000; // 10x further spacing
+
+    function spawnCactus() {
+      cacti.push({
+        x: canvas.width,
+        y: floorY - 50 * cactusScale * 1.5 + 10, // Keep the visual position the same
+        width: (50 * cactusScale) / 4, // Reduce the hitbox width
+        height: (50 * cactusScale * 1.5) / 2, // Reduce the hitbox height
+        imgWidth: 50 * cactusScale, // Keep the full image width
+        imgHeight: 50 * cactusScale * 1.5, // Keep the full image height
+      });
+      nextCactusSpawn = Math.floor(Math.random() * (1500 - 1000 + 1)) + 1000; // Next one also far
+    }
+
+    function checkCollision(a, b) {
+      return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+      );
+    }
+
+    function gameLoop() {
+      if (gameOver) return;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw floor
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(0, floorY, canvas.width, floorHeight);
+
+      // Handle jumping physics
+      if (isJumping) {
+        velocityY += gravity;
+        character.y += velocityY;
+
+        if (character.y >= floorY - character.height + 10) {
+          character.y = floorY - character.height + 10;
+          isJumping = false;
+          velocityY = 0;
+        }
+      }
+
+      // Update sprite animation
+      frameCount++;
+      cactiFrameCount++;
+      if (frameCount >= framesPerSprite) {
+        frameCount = 0;
+        currentSprite = (currentSprite + 1) % totalSprites;
+      }
+
+      if (cactiFrameCount >= framesPerCacti) {
+        cactiFrameCount = 0;
+        currentCactiSprite = (currentCactiSprite + 1) % framesPerCacti;
+      }
+
+      // Choose correct sprite
+      let sprite = walkSprites[currentSprite];
+      if (isJumping) {
+        sprite = velocityY < 0 ? upSprite : downSprite;
+      }
+
+      // Draw character
+      ctx.drawImage(sprite, character.x, character.y, character.width, character.height);
+
+      // Move and draw cacti
+      for (let i = 0; i < cacti.length; i++) {
+  cacti[i].x -= 7;
+  
+  // Draw cactus with full size
+  ctx.drawImage(cactusImg, cacti[i].x, cacti[i].y, cacti[i].imgWidth, cacti[i].imgHeight);
+  
+  // Adjust hitbox for collision detection
+  let hitbox = {
+    x: cacti[i].x + (cacti[i].imgWidth - cacti[i].width) / 2, // Center hitbox
+    y: cacti[i].y + (cacti[i].imgHeight - cacti[i].height) / 2, // Center hitbox
+    width: cacti[i].width,
+    height: cacti[i].height
+  };
+
+  if (checkCollision(character, hitbox)) {
+    gameOver = true;
+    document.getElementById("gameOverScreen").style.display = "block";
+    return;
+  }
+}
+
+      // Remove off-screen cacti
+      if (cacti.length > 0 && cacti[0].x + cacti[0].width < 0) {
+        cacti.shift();
+      }
+
+      // Spawn cacti randomly but spaced far apart
+      if (cactiFrameCount % Math.floor(nextCactusSpawn * cactusSpeed) === 0) {
+        spawnCactus();
+      }
+
+      framesPerCacti = Math.floor(Math.random() * (220 - 85 + 1)) + 85;
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function jump() {
+      if (!isJumping) {
+        isJumping = true;
+        velocityY = jumpPower;
+      }
+    }
+
+    function restartGame() {
+      gameOver = false;
+      cacti.length = 0;
+      character.y = floorY - character.height + 10;
+      velocityY = 0;
+      isJumping = false;
+      frameCount = 0;
+      cactiFrameCount = 0;
+      document.getElementById("gameOverScreen").style.display = "none";
+      gameLoop();
+    }
+
+    // Event listeners
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.code === "ArrowUp") {
+        if (gameOver) restartGame();
+        else jump();
+      }
+    });
+
+    document.addEventListener("click", () => {
+      if (gameOver) restartGame();
+      else jump();
+    });
+
+    let gameOver = false;
+    gameLoop();
+  </script>
+</body>
+</html>

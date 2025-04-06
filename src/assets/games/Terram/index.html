@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Terram</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-overlay">
+        <div class="stats-overlay">
+            <p>Money: $<span id="money">0</span></p>
+             <p>Coords: (<span id="player-coords-x">0</span>, <span id="player-coords-y">0</span>)</p>
+            <p>FPS: <span id="fps">--</span></p> </div>
+
+        <div id="hotbar">
+            </div>
+
+         <div class="inventory-status">
+            Terram a0.0.5
+         </div>
+
+        <div class="shop-overlay">
+            <button id="sell-button">Sell All ($<span id="sell-value">0</span>)</button>
+            <button id="upgrade-tool-button">Upgrade Tool ($<span id="tool-cost">50</span>)</button>
+             <button id="upgrade-inventory-button">Upgrade Inv ($<span id="inventory-cost">25</span>)</button>
+        </div>
+
+         <div id="message-log" style="display: none;"></div>
+
+    </div>
+
+    <div id="inventory-screen" style="display: none;">
+        <h2>Inventory</h2>
+        <div id="inventory-grid">
+            </div>
+        <button id="close-inventory-button">Close</button>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
