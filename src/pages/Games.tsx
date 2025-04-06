@@ -1,17 +1,18 @@
-import Chatroom from "../assets/games/Chatroom/chatroom.html";
-import ChatroomThumbnail from "../assets/thumb/Chatroom.png";
-
-import Cometbrick from "../assets/games/Cometbrick/index.html"
+import Cometbrick from "../assets/games/Cometbrick/index.html?url"
 import CometbrickThumbnail from "../assets/thumb/Cometbrick.png";
 
-import Defrag from "../assets/games/Defrag/index.html"
-import Lightsim from "../assets/games/lightsim/lightsim.html"
-import RunningGame from "../assets/games/Running Game/index.html"
+import Defrag from "../assets/games/Defrag/index.html?url"
+import DefragThumbnail from "../assets/thumb/Defr4g.png";
 
-import Terram from "../assets/games/Terram/index.html"
+import Lightsim from "../assets/games/lightsim/lightsim.html?url"
+import LightsimThumbnail from "../assets/thumb/Lightsim.png";
+
+import RunningGame from "../assets/games/Running Game/index.html?url"
+
+import Terram from "../assets/games/Terram/index.html?url"
 import TerramThumbnail from "../assets/thumb/Terram.png";
 
-import TrigCafe from "../assets/games/Trig's Cafe/index.html"
+import TrigCafe from "../assets/games/Trig's Cafe/index.html?url"
 import TrigCafeThumbnail from "../assets/thumb/Trigs Cafe.png";
 
 import Card from "../components/Card";
@@ -20,7 +21,6 @@ import { MdClose } from "react-icons/md";
 import { useState } from "react";
 
 export default function Games() {
-
     const [windowURL, setWindowURL] = useState<string | null>(null);
     const [windowTitle, setWindowTitle] = useState<string | null>(null);
 
@@ -36,15 +36,6 @@ export default function Games() {
                     <iframe src={windowURL || ""} />
                 </div>
             </div>
-            <Card title="Chatroom" description="talk to people! except it's not discord." thumbnail={ChatroomThumbnail} footer={
-                <div className="flex gap-2">
-                    <FaPlay onClick={() => {
-                        setWindowURL(Chatroom);
-                        setWindowTitle("Chatroom");
-                    }} />
-                    <FaArrowDown />
-                </div>
-            } />
             <Card title="Cometbrick" description="bounce balls on bricks" thumbnail={CometbrickThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
@@ -54,7 +45,7 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
             } />
-            <Card title="Defrag" description="defragment like it's 2001" footer={
+            <Card title="Defr4g" description="defragment like it's 2001" thumbnail={DefragThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
                         setWindowURL(Defrag);
@@ -63,7 +54,7 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
             } />
-            <Card title="Lightsim" description="the worst light ray simulation you've ever seen" footer={
+            <Card title="Lightsim" description="the worst light ray simulation you've ever seen" thumbnail={LightsimThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
                         setWindowURL(Lightsim);
@@ -72,7 +63,7 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
             } />
-            <Card title="Running Game" description="chrome dino? where are you?" footer={
+            <Card title="Running Game" description="chrome dino? where are you?" thumbnail="" footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
                         setWindowURL(RunningGame);

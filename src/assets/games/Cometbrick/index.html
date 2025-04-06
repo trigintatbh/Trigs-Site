@@ -1,774 +1,815 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <title>Cometbrick</title>
-  <style>
-    html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; }
-    body { display: flex; flex-direction: column; min-height: 100vh; background-color: #1a1a1a; font-family: 'Poppins', sans-serif; color: #e0e0e0; }
-    *, *:before, *:after { box-sizing: inherit; }
-    #topBar { width: 98%; max-width: 100%; margin: 10px auto; padding: 10px 20px; background-color: #2a2a2a; border: 1px solid #444; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); z-index: 5; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
-    #canvasContainer { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 10px; overflow: hidden; width: 100%; }
-    #gameCanvas { display: block; max-width: 100%; max-height: 100%; border: 1px solid #444; background-color: #222; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); border-radius: 8px; object-fit: contain; }
-    #topBar .section { display: flex; align-items: center; gap: 15px; }
-    #topBar .section img { width: 28px; height: 28px; }
-    #topBar .section span { font-size: 20px; font-weight: 600; color: #e0e0e0; }
-    #moneySection span { color: #4CAF50; text-shadow: 0 0 5px rgba(76, 175, 80, 0.7); }
-    #levelSection span:first-child { color: #e0e0e0; text-shadow: none; }
-    #levelSection span#level { color: #9121f3; text-shadow: 0 0 5px rgba(159, 33, 243, 0.7); }
-    #buyButtons { display: flex; gap: 15px; }
-    #buyButtons .buyButton { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; background-color: #333; border: 1px solid #555; border-radius: 10px; cursor: pointer; color: #e0e0e0; transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); }
-    #buyButtons .buyButton:hover { background-color: #444; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); }
-    #buyButtons .buyButton.disabled { cursor: not-allowed; opacity: 0.5; background-color: #2a2a2a; }
-    #buyButtons .buyButton.disabled:hover { transform: none; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); }
-    #buyButtons .buyButton img { width: 45px; height: 45px; margin-bottom: 15px; }
-    #buyButtons .buyButton .price { position: absolute; bottom: 5px; font-size: 14px; font-weight: 600; color: #FFEB3B; }
-    .tooltip { display: none; position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; white-space: nowrap; z-index: 10; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); opacity: 0; transition: opacity 0.2s ease; }
-    #buyButtons .buyButton:hover .tooltip { display: block; opacity: 1; }
-    #upgradeMenu { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; max-width: 450px; background-color: #2f2f2f; padding: 25px; border: 1px solid #555; border-radius: 15px; z-index: 100; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; }
-    #upgradeMenu.visible { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    #upgradeMenu h2 { margin: 0 0 20px 0; font-size: 26px; color: #e0e0e0; text-align: center; border-bottom: 1px solid #555; padding-bottom: 10px; }
-    #upgradeMenu .upgradeSection { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: #ccc; padding: 10px 0; border-bottom: 1px dashed #444; }
-    #upgradeMenu .upgradeSection:last-of-type { border-bottom: none; }
-    #upgradeMenu .upgradeSection span { flex-grow: 1; margin-right: 15px; font-size: 16px; }
-    #upgradeMenu .upgradeSection button { background-color: #4CAF50; border: none; padding: 8px 15px; cursor: pointer; color: #fff; border-radius: 8px; font-weight: 600; min-width: 130px; text-align: center; transition: background-color 0.2s ease, transform 0.1s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
-    #upgradeMenu .upgradeSection button:hover { background-color: #367c39; transform: translateY(-1px); }
-    #upgradeMenu .upgradeSection button:active { transform: translateY(0px); }
-    #upgradeMenu .upgradeSection button.disabled { background-color: #555; cursor: not-allowed; opacity: 0.6; }
-    #upgradeMenu .upgradeSection button.disabled:hover { background-color: #555; transform: none; }
-    #closeUpgradeMenu { background-color: #f44336; border: none; padding: 10px 20px; cursor: pointer; color: #fff; border-radius: 8px; float: right; margin-top: 15px; font-weight: 600; transition: background-color 0.2s ease, transform 0.1s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
-    #closeUpgradeMenu:hover { background-color: #c3382d; transform: translateY(-1px); }
-    #closeUpgradeMenu:active { transform: translateY(0px); }
-    .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; transform: translate3d(0, 0, 0); }
-    
-    .btn {
-      --clr-font-main: hsla(0 0% 20% / 100);
-      --btn-bg-1: rgb(168, 97, 255);
-      --btn-bg-2: rgb(165, 31, 255);
-      --btn-bg-color: hsla(360 100% 100% / 1);
-      --radii: 0.5em;
-      cursor: pointer;
-      padding: 0.9em 1.4em;
-      min-width: 120px;
-      min-height: 44px;
-      font-size: var(--size, 1rem);
-      font-weight: 500;
-      font-family: 'Poppins', sans-serif;
-      transition: 0.8s;
-      background-size: 280% auto;
-      background-image: linear-gradient(
-        325deg,
-        var(--btn-bg-2) 0%,
-        var(--btn-bg-1) 55%,
-        var(--btn-bg-2) 90%
-      );
-      border: none;
-      border-radius: var(--radii);
-      color: var(--btn-bg-color);
-      box-shadow:
-        0px 0px 20px rgba(181, 71, 255, 0.5),
-        0px 5px 5px -1px rgba(175, 58, 233, 0.25),
-        inset 4px 4px 8px rgba(223, 175, 255, 0.5),
-        inset -4px -4px 8px rgba(150, 19, 216, 0.35);
-    }
-    
-    .btn:hover {
-      background-position: right top;
-    }
-    
-    @media (prefers-reduced-motion: reduce) {
-      .btn {
-        transition: linear;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <title>Cometbrick</title>
+    <style>
+        html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; overflow: hidden; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background-color: #111114; font-family: 'Poppins', sans-serif; color: #e0e0e0; }
+        *, *:before, *:after { box-sizing: inherit; }
+        #topBar { width: 98%; max-width: 100%; margin: 10px auto; padding: 10px 20px; background-color: #1f1f22; border: 1px solid #333; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); z-index: 5; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        #canvasContainer { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 10px; overflow: hidden; width: 100%; }
+        #gameCanvas { display: block; max-width: 100%; max-height: 100%; border: 1px solid #333; background-color: #1a1a1d; box-shadow: 0 0 15px rgba(0, 0, 0, 0.6); border-radius: 8px; object-fit: contain; }
+        #topBar .section { display: flex; align-items: center; gap: 15px; }
+        #topBar .section img { width: 28px; height: 28px; }
+        #topBar .section span { font-size: 20px; font-weight: 600; color: #e0e0e0; }
+        #moneySection span { color: #4CAF50; text-shadow: 0 0 5px rgba(76, 175, 80, 0.7); }
+        #levelSection span:first-child { color: #e0e0e0; text-shadow: none; }
+        #levelSection span#level { color: #9121f3; text-shadow: 0 0 5px rgba(159, 33, 243, 0.7); }
+        #buyButtons { display: flex; gap: 15px; }
+        #buyButtons .buyButton { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; background-color: #2c2c30; border: 1px solid #444; border-radius: 10px; cursor: pointer; color: #e0e0e0; transition: background-color 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); }
+        #buyButtons .buyButton:hover { background-color: #3a3a3e; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6); }
+        #buyButtons .buyButton.disabled { cursor: not-allowed; opacity: 0.5; background-color: #202023; }
+        #buyButtons .buyButton.disabled:hover { transform: none; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); }
+        #buyButtons .buyButton img { width: 45px; height: 45px; margin-bottom: 15px; }
+        #buyButtons .buyButton .price { position: absolute; bottom: 5px; font-size: 14px; font-weight: 600; color: #FFEB3B; }
+        .tooltip { display: none; position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background-color: rgba(10, 10, 12, 0.9); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; white-space: nowrap; z-index: 10; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4); opacity: 0; transition: opacity 0.2s ease; border: 1px solid #444; }
+        #buyButtons .buyButton:hover .tooltip { display: block; opacity: 1; }
+
+        .menu-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; background-color: #28282c; padding: 20px; border: 1px solid #444; border-radius: 15px; z-index: 100; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; max-height: 85vh; display: none; grid-template-rows: auto 1fr auto; color: #ddd; }
+        .menu-modal.visible { display: grid; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .menu-modal h2 { margin: 0 0 15px 0; font-size: 26px; color: #e8e8e8; text-align: center; border-bottom: 1px solid #444; padding-bottom: 10px; grid-column: 1 / -1; }
+        .menu-modal-footer { grid-row: 3; text-align: right; padding-top: 15px; border-top: 1px solid #444; }
+        #upgradeMenu { max-width: 900px; }
+        #upgradeContent { grid-row: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px 30px; overflow-y: auto; padding: 15px 10px; }
+        .upgrade-column { padding: 10px; border: 1px solid #3a3a3f; border-radius: 8px; background-color: #2f2f33; }
+        .upgrade-column h3 { margin-top: 0; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #555; color: #f0f0f0; font-size: 1.1em; text-align: center;}
+        #settingsMenu { max-width: 600px; }
+        #settingsContent { grid-row: 2; padding: 15px 5px; overflow-y: auto; }
+
+        #upgradeMenu .upgradeSection, #settingsMenu .settingsSection { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 12px; color: #bbb; padding-bottom: 8px; border-bottom: 1px dashed #404044; }
+        #upgradeMenu .upgradeSection:last-child, #settingsMenu .settingsSection:last-child { margin-bottom: 0; border-bottom: none;}
+        #upgradeMenu .upgradeSection span, #settingsMenu .settingsSection span:first-child { flex-basis: calc(100% - 130px); margin-right: 15px; font-size: 15px; line-height: 1.3; }
+        #upgradeMenu .upgradeSection span .upgrade-values { display: block; font-size: 0.85em; color: #999; margin-top: 3px; }
+        #settingsMenu .settingsSection span { align-self: center; }
+        #settingsMenu .settingsSection textarea, #settingsMenu .settingsSection input[type="text"], .popup-modal textarea, .popup-modal input[type="text"] { background-color: #18181b; color: #ddd; border: 1px solid #444; border-radius: 4px; padding: 8px; font-size: 0.9em; margin-top: 5px; width: 100%; box-sizing: border-box; }
+        #settingsMenu .settingsSection textarea, .popup-modal textarea { font-family: monospace; resize: vertical; min-height: 80px; }
+        #settingsMenu .settingsSection input[type="text"], .popup-modal input[type="text"] { height: 40px; cursor: text; }
+        #settingsMenu .statusMessage, .popup-modal .statusMessage { font-size: 0.9em; margin-top: 8px; min-height: 1.2em; text-align: left; flex-grow: 1; margin-right: 10px; color: #aaa; width: 100%; }
+
+        button { cursor: pointer; }
+        .menu-modal button, .popup-modal button { background-color: #FFFFFF; border: 1px solid #555; padding: 10px 15px; color: #18181b; border-radius: 6px; font-weight: 600; min-width: 100px; text-align: center; transition: background-color 0.2s ease, border-color 0.2s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); font-size: 1em; font-family: 'Poppins', sans-serif;}
+        .menu-modal button:hover, .popup-modal button:hover { background-color: #e9ecef; border-color: #666; transform: translateY(-1px); }
+        .menu-modal button:active, .popup-modal button:active { transform: translateY(0px); background-color: #dee2e6; }
+        .menu-modal button.disabled, .popup-modal button.disabled { background-color: #adb5bd !important; color: #495057 !important; border-color: #6c757d !important; cursor: not-allowed; opacity: 0.7; transform: none !important; box-shadow: none !important; }
+        .menu-modal button.disabled:hover, .popup-modal button.disabled:hover { background-color: #adb5bd !important; transform: none !important; }
+
+        #closeUpgradeMenu, #closeSettingsMenu, .popup-modal .cancel-button { background-color: #5a5a5e; color: #fff; border-color: #444;}
+        #closeUpgradeMenu:hover, #closeSettingsMenu:hover, .popup-modal .cancel-button:hover { background-color: #48484b; border-color: #555;}
+        #wipeSaveTrigger, #confirmWipeButton, #confirmWipe1, #confirmWipe2 { background-color: #c0392b; color: #fff; border: none;}
+        #wipeSaveTrigger:hover, #confirmWipeButton:hover, #confirmWipe1:hover, #confirmWipe2:hover { background-color: #a03024; border: none; }
+
+        .popup-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 450px; background-color: #303035; padding: 25px; border: 1px solid #555; border-radius: 10px; z-index: 120; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.7); text-align: center; color: #ddd; }
+        .popup-modal h3 { margin-top: 0; color: #eee; border-bottom: 1px solid #555; padding-bottom: 10px; margin-bottom: 20px;}
+        .popup-modal p { margin-top: 0; margin-bottom: 20px; font-size: 1.05em; line-height: 1.4;}
+        .popup-modal input[type="text"] { background-color: #18181b; color: #ddd; border: 1px solid #444; border-radius: 4px; padding: 10px; width: calc(100% - 22px); margin-bottom: 15px; font-size: 1em;}
+        .popup-modal textarea { background-color: #18181b; color: #ddd; border: 1px solid #444; border-radius: 4px; font-family: monospace; resize: vertical; width: calc(100% - 22px); padding: 8px; font-size: 0.9em; margin-top: 5px; min-height: 80px;}
+        .popup-modal .button-group { display: flex; justify-content: space-around; gap: 15px; margin-top: 20px;}
+        .popup-modal .statusMessage { text-align: center; color: #ffc107; }
+
+        #modalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 110; display: none; }
+        #modalOverlay.visible { display: block; }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; transform: translate3d(0, 0, 0); }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-3px, 0, 0); } 40%, 60% { transform: translate3d(3px, 0, 0); } }
+        .btn { --clr-font-main: hsla(0 0% 20% / 100); --btn-bg-1: rgb(168, 97, 255); --btn-bg-2: rgb(165, 31, 255); --btn-bg-color: hsla(360 100% 100% / 1); --radii: 0.5em; cursor: pointer; padding: 0.9em 1.4em; min-width: 120px; min-height: 44px; font-size: var(--size, 1rem); font-weight: 500; font-family: 'Poppins', sans-serif; transition: background-position 0.8s; background-size: 280% auto; background-image: linear-gradient( 325deg, var(--btn-bg-2) 0%, var(--btn-bg-1) 55%, var(--btn-bg-2) 90% ); border: none; border-radius: var(--radii); color: var(--btn-bg-color); box-shadow: 0px 0px 20px rgba(181, 71, 255, 0.5), 0px 5px 5px -1px rgba(175, 58, 233, 0.25), inset 4px 4px 8px rgba(223, 175, 255, 0.5), inset -4px -4px 8px rgba(150, 19, 216, 0.35); margin-left: 10px;}
+        .btn:hover { background-position: right top; }
+        @media (prefers-reduced-motion: reduce) { .btn { transition: linear; } }
+    </style>
 </head>
 <body>
-  <div id="topBar">
-    <div class="section" id="moneySection"><span id="money">$ 0</span></div>
-    <div class="section" id="levelSection"><span>Level</span> <span id="level">1</span></div>
-    <div class="section" id="buyButtons">
-      <div class="buyButton" id="basicBall">
-        <img src="textures/basicBall.png" alt="Basic Ball"><div class="price" id="basicPrice">$25</div>
-        <div class="tooltip">Basic Ball: Destroys bricks regularly.</div>
-      </div>
-      <div class="buyButton" id="fireballBall">
-        <img src="textures/fireball.png" alt="Fireball"><span class="price" id="fireballPrice">$500</span>
-        <div class="tooltip">Fireball: Splash damage to nearby bricks. Burn!</div>
-      </div>
-      <div class="buyButton" id="sniperBallBall">
-        <img src="textures/sniperball.png" alt="Sniper Ball"><span class="price" id="sniperPrice">$7500</span>
-        <div class="tooltip">Sniper Ball: Targets one brick until destroyed, then finds next.</div>
-      </div>
-      <div class="buyButton" id="scatterBall">
-        <img src="textures/scatterBall.png" alt="Scatter Ball"><span class="price" id="scatterPrice">$50000</span>
-        <div class="tooltip">Scatter Ball: Spawns smaller balls on impact.</div>
-      </div>
-      <div class="buyButton" id="wreckingBall">
-        <img src="textures/wreckingBall.png" alt="Wrecking Ball"><span class="price" id="wreckingPrice">$650000</span>
-        <div class="tooltip">Wrecking Ball: Slow but powerful. Pierces weak bricks.</div>
-      </div>
+    <div id="topBar">
+        <div class="section" id="moneySection"><span id="money">$ 0</span></div>
+        <div class="section" id="levelSection"><span>Level</span> <span id="level">1</span></div>
+        <div class="section" id="buyButtons">
+            <div class="buyButton" id="basicBall"><img src="textures/basicBall.png" alt="Basic Ball"><div class="price" id="basicPrice">$25</div><div class="tooltip">Basic Ball: Destroys bricks regularly.</div></div>
+            <div class="buyButton" id="fireballBall"><img src="textures/fireball.png" alt="Fireball"><span class="price" id="fireballPrice">$500</span><div class="tooltip">Fireball: Splash damage to nearby bricks. Burn!</div></div>
+            <div class="buyButton" id="sniperBallBall"><img src="textures/sniperball.png" alt="Sniper Ball"><span class="price" id="sniperPrice">$7500</span><div class="tooltip">Sniper Ball: Targets one brick until destroyed, then finds next.</div></div>
+            <div class="buyButton" id="scatterBall"><img src="textures/scatterBall.png" alt="Scatter Ball"><span class="price" id="scatterPrice">$50000</span><div class="tooltip">Scatter Ball: Spawns smaller balls on impact.</div></div>
+            <div class="buyButton" id="wreckingBall"><img src="textures/wreckingBall.png" alt="Wrecking Ball"><span class="price" id="wreckingPrice">$650000</span><div class="tooltip">Wrecking Ball: Slow but powerful. Pierces weak bricks.</div></div>
+        </div>
+        <div class="section" id="menuSection">
+            <button id="upgrades" class="btn">Upgrades</button>
+            <button id="settingsButton" class="btn">Settings</button>
+        </div>
     </div>
-    <div class="section" id="menuSection"><button id="upgrades" class="btn">Upgrades</button></div>
-  </div>
 
-  <div id="canvasContainer"><canvas id="gameCanvas"></canvas></div>
+    <div id="canvasContainer"><canvas id="gameCanvas"></canvas></div>
 
-  <div id="upgradeMenu">
-    <h2>Upgrades</h2>
-    <div class="upgradeSection"><span>Basic Ball Power (+1)</span><button id="upgradeBasicPower" data-cost="50" data-ball="basic" data-stat="power">Upgrade ($50)</button></div>
-    <div class="upgradeSection"><span>Basic Ball Speed (+0.5)</span><button id="upgradeBasicSpeed" data-cost="75" data-ball="basic" data-stat="speed">Upgrade ($75)</button></div>
-    <div class="upgradeSection"><span>Fireball Power (+1)</span><button id="upgradeFireballPower" data-cost="200" data-ball="fireball" data-stat="power">Upgrade ($200)</button></div>
-    <div class="upgradeSection"><span>Fireball Speed (+0.5)</span><button id="upgradeFireballSpeed" data-cost="300" data-ball="fireball" data-stat="speed">Upgrade ($300)</button></div>
-    <div class="upgradeSection"><span>Sniper Ball Power (+2)</span><button id="upgradeSniperBallPower" data-cost="1000" data-ball="sniper" data-stat="power">Upgrade ($1000)</button></div>
-    <div class="upgradeSection"><span>Sniper Ball Speed (+1)</span><button id="upgradeSniperBallSpeed" data-cost="1500" data-ball="sniper" data-stat="speed">Upgrade ($1500)</button></div>
-    <button id="closeUpgradeMenu">Close</button>
-  </div>
+    <div id="upgradeMenu" class="menu-modal">
+        <h2>Upgrades</h2>
+        <div id="upgradeContent">
+            <div class="upgrade-column" id="generalUpgrades"><h3>General</h3><div class="upgradeSection"><span>Click Power (+1)<span class="upgrade-values"></span></span><button id="upgradeClickPower" data-cost="25" data-ball="click" data-stat="power">Upgrade ($25)</button></div></div>
+            <div class="upgrade-column" id="basicUpgrades"><h3>Basic Ball</h3><div class="upgradeSection"><span>Power (+1)<span class="upgrade-values"></span></span><button id="upgradeBasicPower" data-cost="50" data-ball="basic" data-stat="power">Upgrade ($50)</button></div><div class="upgradeSection"><span>Speed (+0.5)<span class="upgrade-values"></span></span><button id="upgradeBasicSpeed" data-cost="75" data-ball="basic" data-stat="speed">Upgrade ($75)</button></div></div>
+            <div class="upgrade-column" id="fireballUpgrades"><h3>Fireball</h3><div class="upgradeSection"><span>Power (+1)<span class="upgrade-values"></span></span><button id="upgradeFireballPower" data-cost="200" data-ball="fireball" data-stat="power">Upgrade ($200)</button></div><div class="upgradeSection"><span>Speed (+0.5)<span class="upgrade-values"></span></span><button id="upgradeFireballSpeed" data-cost="300" data-ball="fireball" data-stat="speed">Upgrade ($300)</button></div></div>
+            <div class="upgrade-column" id="sniperUpgrades"><h3>Sniper Ball</h3><div class="upgradeSection"><span>Power (+2)<span class="upgrade-values"></span></span><button id="upgradeSniperPower" data-cost="1000" data-ball="sniper" data-stat="power">Upgrade ($1K)</button></div><div class="upgradeSection"><span>Speed (+1)<span class="upgrade-values"></span></span><button id="upgradeSniperSpeed" data-cost="1500" data-ball="sniper" data-stat="speed">Upgrade ($1.5K)</button></div></div>
+            <div class="upgrade-column" id="scatterUpgrades"><h3>Scatter Ball</h3><div class="upgradeSection"><span>Power (+2)<span class="upgrade-values"></span></span><button id="upgradeScatterPower" data-cost="5000" data-ball="scatter" data-stat="power">Upgrade ($5K)</button></div><div class="upgradeSection"><span>Speed (+0.5)<span class="upgrade-values"></span></span><button id="upgradeScatterSpeed" data-cost="7500" data-ball="scatter" data-stat="speed">Upgrade ($7.5K)</button></div></div>
+            <div class="upgrade-column" id="wreckingUpgrades"><h3>Wrecking Ball</h3><div class="upgradeSection"><span>Power (+10)<span class="upgrade-values"></span></span><button id="upgradeWreckingPower" data-cost="25000" data-ball="wrecking" data-stat="power">Upgrade ($25K)</button></div><div class="upgradeSection"><span>Speed (+0.1)<span class="upgrade-values"></span></span><button id="upgradeWreckingSpeed" data-cost="35000" data-ball="wrecking" data-stat="speed">Upgrade ($35K)</button></div></div>
+        </div>
+        <div class="menu-modal-footer"><button id="closeUpgradeMenu">Close</button></div>
+    </div>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 1700; canvas.height = 750;
+    <div id="settingsMenu" class="menu-modal">
+         <h2>Settings</h2>
+         <div id="settingsContent">
+              <div class="settingsSection"><span>Load save data from input:</span><button id="loadSaveTrigger">Load</button></div>
+              <hr style="border-color: #444; margin: 10px 0;">
+              <div class="settingsSection"><span>Export save data:</span><button id="exportSaveButton">Export & Copy</button></div>
+              <div class="settingsSection" style="flex-direction: column; align-items: flex-start;"><textarea id="exportData" rows="3" readonly placeholder="Click Export to get Base64 save data..."></textarea><span id="exportStatus" class="statusMessage"></span></div>
+              <hr style="border-color: #444; margin: 15px 0;">
+              <div class="settingsSection"><span>Reset ALL Progress:</span><button id="wipeSaveTrigger">Wipe Save</button><span id="wipeStatus" class="statusMessage" style="text-align: right;"></span></div>
+         </div>
+         <div class="menu-modal-footer"><button id="closeSettingsMenu">Close</button></div>
+    </div>
 
-    let balls = [];
-    let bricks = [];
-    let money = 0;
-    let level = 1;
-    let ballIdCounter = 0;
-    let particles = [];
-    let levelIsCleared = false;
-    let gameIsOver = false;
+    <div id="loadModal" class="popup-modal">
+        <h3>Load Save Data</h3>
+        <p>Paste your save code below:</p>
+        <textarea id="loadDataInput" rows="4" placeholder="Paste Base64 code here..."></textarea>
+        <p id="loadStatus" class="statusMessage"></p>
+        <div class="button-group">
+             <button id="validateLoadButton" class="disabled" disabled>Validate & Load</button>
+             <button id="cancelLoadButton" class="cancel-button">Cancel</button>
+        </div>
+    </div>
 
-    // Default game state objects
-    let ballAttributes = {
-      'basic': { baseSpeed: 3, basePower: 1, currentSpeed: 3, currentPower: 1 },
-      'fireball': { baseSpeed: 3, basePower: 2, currentSpeed: 3, currentPower: 2, splashPower: 1 },
-      'sniper': { baseSpeed: 5, basePower: 5, currentSpeed: 5, currentPower: 5, target: null },
-      'scatter': { baseSpeed: 3, basePower: 3, currentSpeed: 3, currentPower: 3, spawnCount: 2, spawnPowerDivider: 2 },
-      'wrecking': { baseSpeed: 0.7, basePower: 50, currentSpeed: 0.7, currentPower: 50 },
-      'scatterGenerated': { baseSpeed: 4, basePower: 1, currentSpeed: 4, currentPower: 1, duration: Infinity }
-    };
-    let ballPrices = {
-      'basic': 25, 'fireball': 500, 'sniper': 7500, 'scatter': 50000, 'wrecking': 650000
-    };
-    const priceIncreaseMultiplier = 1.15;
-    const upgradeIncrements = {
-      'basic': { power: 1, speed: 0.5 },
-      'fireball': { power: 1, speed: 0.5 },
-      'sniper': { power: 2, speed: 1 },
-    };
+    <div id="wipeModal1" class="popup-modal">
+        <h3>Confirm Wipe</h3>
+        <p>Are you sure you want to wipe ALL save data? This cannot be undone!</p>
+        <div class="button-group">
+             <button id="confirmWipe1">Yes, Continue</button>
+             <button id="cancelWipe1" class="cancel-button">Cancel</button>
+        </div>
+    </div>
+    <div id="wipeModal2" class="popup-modal">
+        <h3>Confirm Wipe</h3>
+        <p>Are you VERY sure? There is no going back!</p>
+        <div class="button-group">
+             <button id="confirmWipe2">Yes, VERY Sure</button>
+             <button id="cancelWipe2" class="cancel-button">Cancel</button>
+        </div>
+    </div>
+    <div id="wipeModal3" class="popup-modal">
+         <h3>Confirm Wipe</h3>
+         <label for="wipeConfirmInput" style="display: block; margin-bottom: 10px;">Type 'wipe it please' below to confirm:</label>
+         <input type="text" id="wipeConfirmInput" placeholder="wipe it please">
+         <p id="wipeModalStatus" class="statusMessage"></p>
+         <div class="button-group">
+              <button id="confirmWipeButton" class="disabled" disabled>Confirm Wipe</button>
+              <button id="cancelWipe3" class="cancel-button">Cancel</button>
+         </div>
+    </div>
 
-    const brickRows = 9;
-    const brickCols = 9;
-    const brickPadding = 5;
-    const brickTopOffset = 50;
-    const brickLeftOffset = 50;
-    const availableWidth = canvas.width - (2 * brickLeftOffset);
-    const brickWidth = (availableWidth / brickCols) - brickPadding;
-    const brickHeight = 35;
-    const brickColors = ['#ff1140', '#ff822a', '#ffc62a', '#41ff5b', '#2aff94', '#2ae6ff', '#2a74ff', '#7f2aff', '#ff41bd'];
+    <div id="modalOverlay"></div>
 
-    const ballTextures = {
-      'basic': loadImage('textures/basicball.png'),
-      'fireball': loadImage('textures/fireball.png'),
-      'sniper': loadImage('textures/sniperball.png'),
-      'scatter': loadImage('textures/scatterball.png'),
-      'wrecking': loadImage('textures/wreckingball.png'),
-      'scatterGenerated': loadImage('textures/scatter.png')
-    };
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1700;
+        canvas.height = 750;
 
-    // Define multiple hit sounds
-    const hitSounds = [
-      new Audio('sounds/hit1.mp3'),
-      new Audio('sounds/hit2.mp3'),
-      new Audio('sounds/hit3.mp3')
-    ];
-    hitSounds.forEach(sound => { sound.volume = 0.5; });
+        let balls = [];
+        let bricks = [];
+        let money = 0;
+        let level = 1;
+        let clickPower = 1;
+        let ballIdCounter = 0;
+        let particles = [];
+        let levelIsCleared = false;
+        let gameIsOver = false;
 
-    // Define tap sound (for any button)
-    const tapSound = new Audio('sounds/tap.mp3');
-    tapSound.volume = 0.5;
-
-    function loadImage(src) {
-      const img = new Image();
-      img.src = src;
-      img.onerror = () => console.error(`Failed to load image: ${src}`);
-      return img;
-    }
-    
-    // Updated playSound function: if soundName is 'hit', choose a random hit sound.
-    function playSound(soundName) {
-      if (soundName === 'hit') {
-        const randomIndex = Math.floor(Math.random() * hitSounds.length);
-        const sound = hitSounds[randomIndex];
-        sound.currentTime = 0;
-        sound.play().catch(e => {});
-      }
-    }
-    
-    function formatMoney(amount) {
-      if (amount >= 1e9) return `$${(amount / 1e9).toFixed(2)}B`;
-      if (amount >= 1e6) return `$${(amount / 1e6).toFixed(2)}M`;
-      if (amount >= 1e3) return `$${(amount / 1e3).toFixed(2)}K`;
-      return `$${Math.floor(amount)}`;
-    }
-
-    function saveGame() {
-      const gameState = {
-        money,
-        level,
-        ballPrices,
-        ballAttributes,
-        ballIdCounter,
-        balls: balls.map(ball => ({
-          id: ball.id,
-          x: ball.x,
-          y: ball.y,
-          speedX: ball.speedX,
-          speedY: ball.speedY,
-          radius: ball.radius,
-          type: ball.type,
-          power: ball.power,
-          hitCooldown: ball.hitCooldown,
-          life: ball.life,
-          trailColor: ball.trailColor
-        })),
-        bricks: bricks.map(brick => ({
-          x: brick.x,
-          y: brick.y,
-          width: brick.width,
-          height: brick.height,
-          health: brick.health,
-          maxHealth: brick.maxHealth,
-          id: brick.id,
-          color: brick.color
-        }))
-      };
-      localStorage.setItem('cometbricGameState', JSON.stringify(gameState));
-    }
-    function loadGame() {
-      const savedState = localStorage.getItem('cometbricGameState');
-      if (savedState) {
-        try {
-          const state = JSON.parse(savedState);
-          money = state.money !== undefined ? state.money : money;
-          level = state.level !== undefined ? state.level : level;
-          ballPrices = state.ballPrices || ballPrices;
-          ballAttributes = state.ballAttributes || ballAttributes;
-          ballIdCounter = state.ballIdCounter || ballIdCounter;
-          if (state.balls) {
-            balls = state.balls.map(b => ({
-              ...b,
-              texture: ballTextures[b.type]
-            }));
-          }
-          if (state.bricks) {
-            bricks = state.bricks;
-          }
-        } catch (e) {
-          console.error("Failed to load game state:", e);
-        }
-      }
-    }
-
-    const createLevel = () => {
-      bricks = [];
-      levelIsCleared = false;
-      const startX = brickLeftOffset + brickPadding / 2 + brickWidth / 2;
-      const startY = brickTopOffset + brickPadding / 2 + brickHeight / 2;
-      const colorIndex = (level - 1) % brickColors.length;
-      for (let r = 0; r < brickRows; r++) {
-        for (let c = 0; c < brickCols; c++) {
-          let health = level;
-          bricks.push({
-            x: startX + c * (brickWidth + brickPadding),
-            y: startY + r * (brickHeight + brickPadding),
-            width: brickWidth,
-            height: brickHeight,
-            health: health,
-            maxHealth: health,
-            id: `brick-${r}-${c}`,
-            color: brickColors[colorIndex]
-          });
-        }
-      }
-    };
-
-    const drawBricks = () => {
-      bricks.forEach(brick => {
-        const healthRatio = Math.max(0, brick.health / brick.maxHealth);
-        ctx.beginPath();
-        if (ctx.roundRect)
-          ctx.roundRect(brick.x - brick.width / 2, brick.y - brick.height / 2, brick.width, brick.height, 5);
-        else
-          ctx.rect(brick.x - brick.width / 2, brick.y - brick.height / 2, brick.width, brick.height);
-        ctx.globalAlpha = 0.3 + 0.7 * healthRatio;
-        ctx.fillStyle = brick.color;
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-        ctx.strokeStyle = brick.color;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.closePath();
-        ctx.font = '16px Poppins';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-        ctx.shadowBlur = 3;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-        ctx.fillText(Math.ceil(brick.health), brick.x, brick.y);
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-      });
-    };
-    const drawBalls = () => {
-      balls.forEach(ball => {
-        ctx.fillStyle = ball.trailColor || 'rgba(255, 255, 255, 0.1)';
-        ctx.beginPath();
-        ctx.arc(ball.x - ball.speedX, ball.y - ball.speedY, ball.radius * 1.2, 0, Math.PI * 2);
-        ctx.fill();
-        if (ball.texture && ball.texture.complete && ball.texture.naturalWidth > 0) {
-          ctx.drawImage(ball.texture, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
-        } else {
-          ctx.fillStyle = 'white';
-          ctx.beginPath();
-          ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
-    };
-
-    function createParticles(x, y, count, color) {
-      for (let i = 0; i < count; i++) {
-        const p = {
-          x: x,
-          y: y,
-          size: Math.random() * 3 + 1,
-          speedX: Math.random() * 4 - 2,
-          speedY: Math.random() * 4 - 2,
-          life: Math.random() * 50 + 30,
-          color: color || '#ffffff',
+        let ballAttributes = {
+            'basic': { baseSpeed: 3, basePower: 1, currentSpeed: 3, currentPower: 1 },
+            'fireball': { baseSpeed: 3, basePower: 2, currentSpeed: 3, currentPower: 2, splashPower: 1 },
+            'sniper': { baseSpeed: 5, basePower: 5, currentSpeed: 5, currentPower: 5, target: null },
+            'scatter': { baseSpeed: 3, basePower: 3, currentSpeed: 3, currentPower: 3, spawnCount: 2, spawnPowerDivider: 2 },
+            'wrecking': { baseSpeed: 0.7, basePower: 50, currentSpeed: 0.7, currentPower: 50 },
+            'scatterGenerated': { baseSpeed: 4, basePower: 1, currentSpeed: 4, currentPower: 1, duration: Infinity }
         };
-        p.initialLife = p.life;
-        particles.push(p);
-      }
-    }
-    function updateParticles() {
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.speedX;
-        p.y += p.speedY;
-        p.life--;
-        p.speedY += 0.05;
-        if (p.life <= 0) particles.splice(i, 1);
-      }
-    }
-    function drawParticles() {
-      particles.forEach(p => {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = Math.max(0, p.life / p.initialLife);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.globalAlpha = 1.0;
-    }
+        let ballPrices = {
+            'basic': 25,
+            'fireball': 500,
+            'sniper': 7500,
+            'scatter': 50000,
+            'wrecking': 650000
+        };
+        const priceIncreaseMultiplier = 1.15;
+        const upgradeCostMultiplier = 1.8;
+        const upgradeIncrements = {
+            'click': { power: 1 },
+            'basic': { power: 1, speed: 0.5 },
+            'fireball': { power: 1, speed: 0.5 },
+            'sniper': { power: 2, speed: 1 },
+            'scatter': { power: 2, speed: 0.5 },
+            'wrecking': { power: 10, speed: 0.1 },
+        };
 
-    const createBall = (type) => {
-      if (!ballAttributes[type] || !ballTextures[type]) return;
-      const attrs = ballAttributes[type];
-      const ball = {
-        id: ballIdCounter++,
-        x: canvas.width / 2,
-        y: canvas.height - 50,
-        radius: (type === 'wrecking') ? 12 : 8,
-        speedX: (Math.random() - 0.5) * attrs.currentSpeed * 1.5,
-        speedY: -attrs.currentSpeed * (0.8 + Math.random() * 0.4),
-        type: type,
-        power: attrs.currentPower,
-        texture: ballTextures[type],
-        target: (type === 'sniper') ? null : undefined,
-        hitCooldown: 0,
-        life: attrs.duration,
-        trailColor: (type === 'fireball') ? 'rgba(255, 100, 0, 0.15)' : 'rgba(255, 255, 255, 0.1)',
-      };
-      if (type === 'scatterGenerated') {
-        ball.radius = 5;
-        const parentAttrs = ballAttributes['scatter'];
-        ball.power = parentAttrs.currentPower / parentAttrs.spawnPowerDivider;
-        ball.texture = ballTextures['scatterGenerated'];
-        ball.life = Infinity;
-      }
-      balls.push(ball);
-    };
-
-    function handleBrickCollision(ball, brick, brickIndex) {
-      playSound('hit');
-      createParticles(ball.x, ball.y, 3, brick.color);
-      const damage = ball.power;
-      const healthBeforeHit = brick.health;
-      brick.health -= damage;
-      let destroyed = false;
-      let removeBallAfterHit = false;
-
-      if (ball.type === 'scatterGenerated') {
-        removeBallAfterHit = true;
-      }
-
-      if (brick.health <= 0.001) {
-        createParticles(brick.x, brick.y, 15, brick.color);
-        money += brick.maxHealth;
-        bricks.splice(brickIndex, 1);
-        destroyed = true;
-        saveGame();
-      }
-
-      if (ball.type === 'wrecking' && destroyed && damage >= healthBeforeHit) {
-        ball.hitCooldown = 5;
-        return false;
-      }
-
-      if (!removeBallAfterHit) {
-        const dx = ball.x - brick.x;
-        const dy = ball.y - brick.y;
-        const width = (ball.radius + brick.width / 2);
-        const height = (ball.radius + brick.height / 2);
-        const crossWidth = width * dy;
-        const crossHeight = height * dx;
-        if(Math.abs(crossWidth) > Math.abs(crossHeight)){
-          ball.speedY = -ball.speedY;
-          ball.y += Math.sign(ball.speedY) * 2;
-        } else {
-          ball.speedX = -ball.speedX;
-          ball.x += Math.sign(ball.speedX) * 2;
-        }
-        ball.hitCooldown = 5;
-      }
-
-      if (ball.type === 'fireball') {
-        const splashRadius = 60;
-        const splashPower = ballAttributes.fireball.splashPower;
-        for (let i = bricks.length - 1; i >= 0; i--) {
-          if (!bricks[i] || i === brickIndex) continue;
-          const b = bricks[i];
-          const dist = Math.hypot(b.x - brick.x, b.y - brick.y);
-          if (dist < splashRadius) {
-            b.health -= splashPower;
-            if (b.health <= 0.001) {
-              createParticles(b.x, b.y, 10, b.color);
-              money += b.maxHealth;
-              bricks.splice(i, 1);
-            }
-          }
-        }
-      }
-
-      if (ball.type === 'scatter') {
-        const parentAttrs = ballAttributes.scatter;
-        for (let i = 0; i < parentAttrs.spawnCount; i++) {
-          const spawnedBallState = {
-            type: 'scatterGenerated',
-            x: ball.x + (Math.random() - 0.5) * 10,
-            y: ball.y + (Math.random() - 0.5) * 10,
-            radius: 5,
-            power: parentAttrs.currentPower / parentAttrs.spawnPowerDivider,
-            speedX: (Math.random() - 0.5) * ballAttributes.scatterGenerated.currentSpeed * 2,
-            speedY: (Math.random() - 0.5) * ballAttributes.scatterGenerated.currentSpeed * 2,
-            texture: ballTextures['scatterGenerated'],
-            life: Infinity,
-            id: ballIdCounter++,
-            hitCooldown: 5
-          };
-          balls.push(spawnedBallState);
-        }
-      }
-
-      if (ball.type === 'sniper') {
-        if (brick === ball.target && destroyed) {
-          ball.target = getNearestBrick(ball.x, ball.y);
-        }
-      }
-      return removeBallAfterHit;
-    }
-
-    function getNearestBrick(x, y) {
-      let nearestBrick = null;
-      let minDistanceSq = Infinity;
-      bricks.forEach(brick => {
-        const dx = x - brick.x;
-        const dy = y - brick.y;
-        const distanceSq = dx * dx + dy * dy;
-        if (distanceSq < minDistanceSq) {
-          minDistanceSq = distanceSq;
-          nearestBrick = brick;
-        }
-      });
-      return nearestBrick;
-    }
-
-    function redirectBallToTarget(ball) {
-      if (ball.target && bricks.some(b => b.id === ball.target.id)) {
-        const dx = ball.target.x - ball.x;
-        const dy = ball.target.y - ball.y;
-        if (dx === 0 && dy === 0) return;
-        const angle = Math.atan2(dy, dx);
-        const currentSpeed = Math.hypot(ball.speedX, ball.speedY);
-        const speedToUse = currentSpeed > 0.1 ? currentSpeed : ballAttributes.sniper.currentSpeed;
-        ball.speedX = speedToUse * Math.cos(angle);
-        ball.speedY = speedToUse * Math.sin(angle);
-      } else {
-        ball.target = getNearestBrick(ball.x, ball.y);
-        if (ball.target) {
-          redirectBallToTarget(ball);
-        } else {
-          ball.target = null;
-        }
-      }
-    }
-
-    const updateBalls = () => {
-      for (let i = balls.length - 1; i >= 0; i--) {
-        if (!balls[i]) continue;
-        const ball = balls[i];
-        if (ball.hitCooldown > 0) ball.hitCooldown--;
-
-        if (ball.type === 'sniper') {
-          if (!ball.target || !bricks.some(b => b.id === ball.target.id)) {
-            ball.target = getNearestBrick(ball.x, ball.y);
-          }
-        }
-
-        ball.x += ball.speedX;
-        ball.y += ball.speedY;
-
-        let bounced = false;
-        if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
-          ball.speedX *= -1;
-          ball.x = (ball.x - ball.radius < 0) ? ball.radius : canvas.width - ball.radius;
-          bounced = true;
-        }
-        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-          ball.speedY *= -1;
-          ball.y = (ball.y - ball.radius < 0) ? ball.radius : canvas.height - ball.radius;
-          bounced = true;
-        }
-
-        if (bounced && ball.type === 'sniper') {
-          redirectBallToTarget(ball);
-        }
-
-        let removeBall = false;
-        if (ball.hitCooldown <= 0) {
-          for (let j = bricks.length - 1; j >= 0; j--) {
-            if (!bricks[j]) continue;
-            const brick = bricks[j];
-            if (ball.x + ball.radius > brick.x - brick.width / 2 &&
-                ball.x - ball.radius < brick.x + brick.width / 2 &&
-                ball.y + ball.radius > brick.y - brick.height / 2 &&
-                ball.y - ball.radius < brick.y + brick.height / 2) {
-              removeBall = handleBrickCollision(ball, brick, j);
-              if (removeBall) break;
-              break;
-            }
-          }
-        }
-        if (removeBall) {
-          balls.splice(i, 1);
-          continue;
-        }
-      }
-    };
-
-    const updateUI = () => {
-      document.getElementById('money').textContent = formatMoney(money);
-      document.getElementById('level').textContent = level;
-
-      for (const type in ballPrices) {
-        let buttonId = `${type}Ball`;
-        if (type === 'sniper') {
-          buttonId = `${type}BallBall`;
-        }
-        const button = document.getElementById(buttonId);
-        const priceElement = document.getElementById(`${type}Price`);
-
-        if (button && priceElement) {
-          priceElement.textContent = formatMoney(ballPrices[type]);
-          if (money >= ballPrices[type]) button.classList.remove('disabled');
-          else button.classList.add('disabled');
-        } else {
-          if (!button) console.warn(`Button element not found for ID: ${buttonId} (type: ${type})`);
-          if (!priceElement) console.warn(`Price element not found for ID: ${type}Price`);
-        }
-      }
-
-      const upgradeMenu = document.getElementById('upgradeMenu');
-      if (upgradeMenu && upgradeMenu.classList.contains('visible')) {
-        const upgradeButtons = upgradeMenu.querySelectorAll('.upgradeSection button[data-cost]');
-        upgradeButtons.forEach(button => {
-          const cost = parseInt(button.dataset.cost);
-          if (money >= cost) button.classList.remove('disabled');
-          else button.classList.add('disabled');
-          button.textContent = `Upgrade (${formatMoney(cost)})`;
+        const initialUpgradeCosts = {};
+        document.querySelectorAll('#upgradeMenu button[data-cost]').forEach(btn => {
+            initialUpgradeCosts[btn.id] = btn.dataset.cost;
         });
-      }
-    };
 
-    let lastTimestamp = 0;
-    function gameLoop(timestamp) {
-      if (gameIsOver) return;
-      const deltaTime = timestamp - lastTimestamp;
-      lastTimestamp = timestamp;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const brickRows = 9;
+        const brickCols = 9;
+        const brickPadding = 5;
+        const brickTopOffset = 50;
+        const brickLeftOffset = 50;
+        const availableWidth = canvas.width - (2 * brickLeftOffset);
+        const brickWidth = (availableWidth / brickCols) - brickPadding;
+        const brickHeight = 35;
+        const brickColors = ['#ff1140', '#ff822a', '#ffc62a', '#41ff5b', '#2aff94', '#2ae6ff', '#2a74ff', '#7f2aff', '#ff41bd'];
+        const ballTextures = {
+            'basic': loadImage('textures/basicball.png'),
+            'fireball': loadImage('textures/fireball.png'),
+            'sniper': loadImage('textures/sniperball.png'),
+            'scatter': loadImage('textures/scatterball.png'),
+            'wrecking': loadImage('textures/wreckingball.png'),
+            'scatterGenerated': loadImage('textures/scatter.png')
+         };
+        const hitSounds = [ new Audio('sounds/hit1.mp3'), new Audio('sounds/hit2.mp3'), new Audio('sounds/hit3.mp3') ];
+        hitSounds.forEach(sound => { sound.volume = 0.5; });
+        const tapSound = new Audio('sounds/tap.mp3');
+        tapSound.volume = 0.5;
 
-      updateBalls();
-      updateParticles();
+        function loadImage(src) {
+            const img = new Image();
+            img.src = src;
+            img.onerror = () => console.error(`Failed to load image: ${src}`);
+            return img;
+        }
 
-      if (!levelIsCleared && bricks.length === 0 && level >= 1) {
-        levelIsCleared = true;
-        level++;
-        particles = [];
-        createLevel();
-        money += level * 100;
+        function playSound(soundName) {
+            let soundToPlay = null;
+            if (soundName === 'hit') {
+                const randomIndex = Math.floor(Math.random() * hitSounds.length);
+                soundToPlay = hitSounds[randomIndex];
+            } else if (soundName === 'tap') {
+                soundToPlay = tapSound;
+            }
+
+            if (soundToPlay) {
+                soundToPlay.currentTime = 0;
+                soundToPlay.play()
+            }
+        }
+
+        function formatMoney(amount) {
+            if (amount >= 1e9) return `$${(amount / 1e9).toFixed(2)}B`;
+            if (amount >= 1e6) return `$${(amount / 1e6).toFixed(2)}M`;
+            if (amount >= 1e3) return `$${(amount / 1e3).toFixed(2)}K`;
+            return `$${Math.floor(amount)}`;
+        }
+
+        function saveGame() {
+            const upgradeCosts = {};
+            document.querySelectorAll('#upgradeMenu button[data-cost]').forEach(btn => {
+                upgradeCosts[btn.id] = btn.dataset.cost;
+            });
+            const gameState = {
+                money, level, clickPower, ballPrices, ballAttributes, ballIdCounter, upgradeCosts,
+                balls: balls.map(ball => ({
+                    id: ball.id, x: ball.x, y: ball.y, speedX: ball.speedX, speedY: ball.speedY,
+                    radius: ball.radius, type: ball.type, power: ball.power, hitCooldown: ball.hitCooldown,
+                    target: (ball.target ? ball.target.id : null)
+                })),
+                bricks: bricks.map(brick => ({
+                    x: brick.x, y: brick.y, width: brick.width, height: brick.height,
+                    health: brick.health, maxHealth: brick.maxHealth, id: brick.id, color: brick.color
+                }))
+            };
+            try {
+                const jsonString = JSON.stringify(gameState);
+                const encodedString = btoa(jsonString);
+                localStorage.setItem('cometbricGameState', encodedString);
+            } catch (e) {
+                console.error("Error saving game state:", e);
+            }
+        }
+
+        function loadGame(dataString = null) {
+            const base64String = dataString || localStorage.getItem('cometbricGameState');
+            let stateIsValid = false;
+            let loadedStateSuccessfully = false;
+            if (base64String) {
+                try {
+                    const jsonString = atob(base64String);
+                    const state = JSON.parse(jsonString);
+                    if (state && typeof state.money === 'number' && typeof state.level === 'number' && state.ballPrices && state.ballAttributes) {
+                        money = state.money;
+                        level = state.level;
+                        clickPower = state.clickPower !== undefined ? state.clickPower : 1;
+                        ballPrices = state.ballPrices;
+                        ballAttributes = state.ballAttributes;
+                        ballIdCounter = state.ballIdCounter || 0;
+                        if (state.upgradeCosts) {
+                            document.querySelectorAll('#upgradeMenu button[data-cost]').forEach(btn => {
+                                btn.dataset.cost = state.upgradeCosts[btn.id] || initialUpgradeCosts[btn.id] || '0';
+                            });
+                        } else {
+                            document.querySelectorAll('#upgradeMenu button[data-cost]').forEach(btn => {
+                                btn.dataset.cost = initialUpgradeCosts[btn.id] || '0';
+                            });
+                        }
+                        if (state.bricks && state.bricks.length > 0) {
+                            bricks = state.bricks;
+                        } else {
+                            createLevel();
+                        }
+                        if (state.balls) {
+                            balls = state.balls.map(b => {
+                                const targetBrick = b.target ? bricks.find(br => br.id === b.target) : null;
+                                return { ...b, texture: ballTextures[b.type], target: targetBrick };
+                            });
+                        } else {
+                            balls = [];
+                        }
+                        stateIsValid = true;
+                        loadedStateSuccessfully = true;
+                        console.log("Game Loaded.");
+                        if(dataString) {
+                             localStorage.setItem('cometbricGameState', base64String);
+                        }
+                    } else {
+                        console.error("Loaded state missing essential properties.");
+                    }
+                } catch (e) {
+                    console.error("Failed to decode/parse or apply game state:", e);
+                }
+            }
+            if (!stateIsValid && !dataString) {
+                 createLevel();
+            }
+            updateUI();
+            return loadedStateSuccessfully;
+        }
+
+        function resetGame() {
+            money = 0;
+            level = 1;
+            clickPower = 1;
+            ballPrices = { 'basic': 25, 'fireball': 500, 'sniper': 7500, 'scatter': 50000, 'wrecking': 650000 };
+            ballAttributes = { 'basic': { baseSpeed: 3, basePower: 1, currentSpeed: 3, currentPower: 1 }, 'fireball': { baseSpeed: 3, basePower: 2, currentSpeed: 3, currentPower: 2, splashPower: 1 }, 'sniper': { baseSpeed: 5, basePower: 5, currentSpeed: 5, currentPower: 5, target: null }, 'scatter': { baseSpeed: 3, basePower: 3, currentSpeed: 3, currentPower: 3, spawnCount: 2, spawnPowerDivider: 2 }, 'wrecking': { baseSpeed: 0.7, basePower: 50, currentSpeed: 0.7, currentPower: 50 }, 'scatterGenerated': { baseSpeed: 4, basePower: 1, currentSpeed: 4, currentPower: 1, duration: Infinity } };
+            ballIdCounter = 0;
+            balls = [];
+            particles = [];
+            document.querySelectorAll('#upgradeMenu button[data-cost]').forEach(btn => {
+                btn.dataset.cost = initialUpgradeCosts[btn.id] || '0';
+            });
+            createLevel();
+            updateUI();
+            console.log("Game reset to default state.");
+        }
+
+        const createLevel = () => {
+            bricks = [];
+            levelIsCleared = false;
+            const startX = brickLeftOffset + brickPadding / 2 + brickWidth / 2;
+            const startY = brickTopOffset + brickPadding / 2 + brickHeight / 2;
+            const colorIndex = (level - 1) % brickColors.length;
+            for (let r = 0; r < brickRows; r++) {
+                for (let c = 0; c < brickCols; c++) {
+                    let health = level;
+                    bricks.push({
+                        x: startX + c * (brickWidth + brickPadding), y: startY + r * (brickHeight + brickPadding),
+                        width: brickWidth, height: brickHeight, health: health, maxHealth: health,
+                        id: `brick-${r}-${c}`, color: brickColors[colorIndex]
+                    });
+                }
+            }
+        };
+
+        const drawBricks = () => {
+            bricks.forEach(brick => {
+                const healthRatio = Math.max(0, brick.health / brick.maxHealth);
+                ctx.beginPath();
+                if (ctx.roundRect) { ctx.roundRect(brick.x - brick.width / 2, brick.y - brick.height / 2, brick.width, brick.height, 5); }
+                else { ctx.rect(brick.x - brick.width / 2, brick.y - brick.height / 2, brick.width, brick.height); }
+                ctx.globalAlpha = 0.3 + 0.7 * healthRatio; ctx.fillStyle = brick.color; ctx.fill(); ctx.globalAlpha = 1.0;
+                ctx.strokeStyle = brick.color; ctx.lineWidth = 2; ctx.stroke(); ctx.closePath();
+                ctx.font = '16px Poppins'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
+                ctx.fillText(Math.ceil(brick.health), brick.x, brick.y);
+                ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+            });
+        };
+
+        const drawBalls = () => {
+            balls.forEach(ball => {
+                ctx.fillStyle = ball.trailColor || 'rgba(255, 255, 255, 0.1)';
+                ctx.beginPath();
+                ctx.arc(ball.x - ball.speedX, ball.y - ball.speedY, ball.radius * 1.2, 0, Math.PI * 2);
+                ctx.fill();
+                if (ball.texture && ball.texture.complete && ball.texture.naturalWidth > 0) {
+                    ctx.drawImage(ball.texture, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
+                } else {
+                    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); ctx.fill();
+                }
+            });
+        };
+
+        function createParticles(x, y, count, color) {
+            for (let i = 0; i < count; i++) {
+                const p = { x: x, y: y, size: Math.random() * 3 + 1, speedX: Math.random() * 4 - 2, speedY: Math.random() * 4 - 2, life: Math.random() * 50 + 30, color: color || '#ffffff', };
+                p.initialLife = p.life; particles.push(p);
+            }
+        }
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i]; p.x += p.speedX; p.y += p.speedY; p.life--; p.speedY += 0.05;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.life / p.initialLife); ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        const createBall = (type) => {
+            if (!ballAttributes[type] || !ballTextures[type]) return;
+            const attrs = ballAttributes[type];
+            const ball = {
+                id: ballIdCounter++, x: canvas.width / 2, y: canvas.height - 50, radius: (type === 'wrecking') ? 12 : 8,
+                speedX: (Math.random() - 0.5) * attrs.currentSpeed * 1.5, speedY: -attrs.currentSpeed * (0.8 + Math.random() * 0.4),
+                type: type, power: attrs.currentPower, texture: ballTextures[type], target: (type === 'sniper') ? null : undefined,
+                hitCooldown: 0, life: Infinity, trailColor: (type === 'fireball') ? 'rgba(255, 100, 0, 0.15)' : 'rgba(255, 255, 255, 0.1)',
+            };
+            if (type === 'scatterGenerated') {
+                ball.radius = 5; const parentAttrs = ballAttributes['scatter'];
+                ball.power = parentAttrs.currentPower / parentAttrs.spawnPowerDivider;
+                ball.texture = ballTextures['scatterGenerated']; ball.life = Infinity;
+            }
+            balls.push(ball);
+        };
+
+        function handleBrickCollision(ball, brick, brickIndex) {
+            playSound('hit');
+            createParticles(ball.x, ball.y, 3, brick.color);
+            const damage = ball.power;
+            const healthBeforeHit = brick.health;
+            brick.health -= damage;
+            saveGame(); // Save on every hit
+            let destroyed = false;
+            let removeBallAfterHit = (ball.type === 'scatterGenerated');
+            if (brick.health <= 0.001) {
+                createParticles(brick.x, brick.y, 15, brick.color);
+                money += brick.maxHealth;
+                bricks.splice(brickIndex, 1);
+                destroyed = true;
+                // saveGame() was already called above
+            }
+            if (ball.type === 'wrecking' && destroyed && damage >= healthBeforeHit) {
+                ball.hitCooldown = 5; return false;
+            }
+            if (!removeBallAfterHit) {
+                const dx = ball.x - brick.x; const dy = ball.y - brick.y;
+                const width = (ball.radius + brick.width / 2); const height = (ball.radius + brick.height / 2);
+                const crossWidth = width * dy; const crossHeight = height * dx;
+                if(Math.abs(crossWidth) > Math.abs(crossHeight)){ ball.speedY = -ball.speedY; ball.y += Math.sign(ball.speedY) * 2; }
+                else { ball.speedX = -ball.speedX; ball.x += Math.sign(ball.speedX) * 2; }
+                ball.hitCooldown = 5;
+            }
+            if (ball.type === 'fireball') {
+                const splashRadius = 60; const splashPower = ballAttributes.fireball.splashPower;
+                for (let i = bricks.length - 1; i >= 0; i--) {
+                    if (!bricks[i] || i === brickIndex) continue;
+                    const b = bricks[i]; const dist = Math.hypot(b.x - brick.x, b.y - brick.y);
+                    if (dist < splashRadius) {
+                        b.health -= splashPower;
+                        if (b.health <= 0.001) { createParticles(b.x, b.y, 10, b.color); money += b.maxHealth; bricks.splice(i, 1); }
+                    }
+                }
+            }
+            if (ball.type === 'scatter' && !removeBallAfterHit) {
+                const parentAttrs = ballAttributes.scatter;
+                for (let i = 0; i < parentAttrs.spawnCount; i++) {
+                    const spawnedBallState = {
+                        type: 'scatterGenerated', x: ball.x + (Math.random() - 0.5) * 10, y: ball.y + (Math.random() - 0.5) * 10, radius: 5,
+                        power: parentAttrs.currentPower / parentAttrs.spawnPowerDivider,
+                        speedX: (Math.random() - 0.5) * ballAttributes.scatterGenerated.currentSpeed * 2, speedY: (Math.random() - 0.5) * ballAttributes.scatterGenerated.currentSpeed * 2,
+                        texture: ballTextures['scatterGenerated'], life: Infinity, id: ballIdCounter++, hitCooldown: 5
+                    };
+                    balls.push(spawnedBallState);
+                }
+            }
+            if (ball.type === 'sniper') {
+                if (brick === ball.target && destroyed) { ball.target = getNearestBrick(ball.x, ball.y); }
+            }
+            return removeBallAfterHit;
+        }
+
+        function getNearestBrick(x, y) {
+            let nearestBrick = null; let minDistanceSq = Infinity;
+            bricks.forEach(brick => { const dx = x - brick.x; const dy = y - brick.y; const distanceSq = dx * dx + dy * dy; if (distanceSq < minDistanceSq) { minDistanceSq = distanceSq; nearestBrick = brick; } });
+            return nearestBrick;
+        }
+
+        function redirectBallToTarget(ball) {
+            if (ball.target && bricks.some(b => b.id === ball.target.id)) {
+                const dx = ball.target.x - ball.x; const dy = ball.target.y - ball.y; if (dx === 0 && dy === 0) return;
+                const angle = Math.atan2(dy, dx); const currentSpeed = Math.hypot(ball.speedX, ball.speedY);
+                const speedToUse = currentSpeed > 0.1 ? currentSpeed : ballAttributes.sniper.currentSpeed;
+                ball.speedX = speedToUse * Math.cos(angle); ball.speedY = speedToUse * Math.sin(angle);
+            } else {
+                ball.target = getNearestBrick(ball.x, ball.y); if (ball.target) { redirectBallToTarget(ball); } else { ball.target = null; }
+            }
+        }
+
+        const updateBalls = () => {
+            for (let i = balls.length - 1; i >= 0; i--) {
+                if (!balls[i]) continue; const ball = balls[i];
+                if (ball.hitCooldown > 0) ball.hitCooldown--;
+                if (ball.type === 'sniper') { if (!ball.target || !bricks.some(b => b.id === ball.target.id)) { ball.target = getNearestBrick(ball.x, ball.y); } }
+                ball.x += ball.speedX; ball.y += ball.speedY;
+                let bounced = false;
+                if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) { ball.speedX *= -1; ball.x = (ball.x - ball.radius < 0) ? ball.radius : canvas.width - ball.radius; bounced = true; }
+                if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) { ball.speedY *= -1; ball.y = (ball.y - ball.radius < 0) ? ball.radius : canvas.height - ball.radius; bounced = true; }
+                if (bounced && ball.type === 'sniper') { redirectBallToTarget(ball); }
+                let removeBall = false;
+                if (ball.hitCooldown <= 0) {
+                    for (let j = bricks.length - 1; j >= 0; j--) {
+                        if (!bricks[j]) continue; const brick = bricks[j];
+                        if (ball.x + ball.radius > brick.x - brick.width / 2 && ball.x - ball.radius < brick.x + brick.width / 2 && ball.y + ball.radius > brick.y - brick.height / 2 && ball.y - ball.radius < brick.y + brick.height / 2) {
+                            removeBall = handleBrickCollision(ball, brick, j); if (removeBall) break; break;
+                        }
+                    }
+                }
+                if (removeBall) { balls.splice(i, 1); continue; }
+            }
+        };
+
+        const updateUI = () => {
+            document.getElementById('money').textContent = formatMoney(money);
+            document.getElementById('level').textContent = level;
+            for (const type in ballPrices) {
+                let buttonId = `${type}Ball`;
+                if (type === 'sniper') { buttonId = `${type}BallBall`; }
+                const button = document.getElementById(buttonId);
+                const priceElement = document.getElementById(`${type}Price`);
+                if (button && priceElement) {
+                    priceElement.textContent = formatMoney(ballPrices[type]);
+                    if (money >= ballPrices[type]) { button.classList.remove('disabled'); } else { button.classList.add('disabled'); }
+                } else {
+                    // Errors handled elsewhere
+                }
+            }
+            const upgradeMenu = document.getElementById('upgradeMenu');
+            if (upgradeMenu && upgradeMenu.classList.contains('visible')) {
+                const upgradeButtons = upgradeMenu.querySelectorAll('.upgradeSection button[data-cost]');
+                upgradeButtons.forEach(button => {
+                    const cost = parseInt(button.dataset.cost);
+                    const ballType = button.dataset.ball;
+                    const stat = button.dataset.stat;
+                    const valueSpan = button.closest('.upgradeSection').querySelector('.upgrade-values');
+                    if (money >= cost) { button.classList.remove('disabled'); } else { button.classList.add('disabled'); }
+                    button.textContent = `Upgrade (${formatMoney(cost)})`;
+                    if (valueSpan && upgradeIncrements[ballType] && upgradeIncrements[ballType][stat] !== undefined) {
+                        let currentValue = 0;
+                        const increment = upgradeIncrements[ballType][stat];
+                        if (ballType === 'click') {
+                            currentValue = clickPower;
+                        } else if (ballAttributes[ballType]) {
+                            const capStat = stat.charAt(0).toUpperCase() + stat.slice(1);
+                            currentValue = ballAttributes[ballType]['current' + capStat];
+                        }
+                        const nextValue = currentValue + increment;
+                        const format = (val) => (val === undefined || Number.isNaN(val)) ? '?' : (Number.isInteger(val) ? val : val.toFixed(1));
+                        valueSpan.textContent = `(${format(currentValue)} -> ${format(nextValue)})`;
+                    } else if (valueSpan) {
+                        valueSpan.textContent = '';
+                    }
+                });
+            }
+        };
+
+        let lastTimestamp = 0;
+        function gameLoop(timestamp) {
+            if (gameIsOver) return;
+            const deltaTime = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updateBalls();
+            updateParticles();
+            if (!levelIsCleared && bricks.length === 0 && level >= 1) {
+                levelIsCleared = true; level++; particles = []; createLevel(); money += level * 100;
+                updateUI(); saveGame(); console.log(`Starting Level ${level}`);
+            }
+            drawBricks(); drawBalls(); drawParticles();
+            updateUI();
+            requestAnimationFrame(gameLoop);
+        };
+
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
+            const mouseX = (event.clientX - rect.left) * scaleX; const mouseY = (event.clientY - rect.top) * scaleY;
+            let clickedBrick = null; let clickedBrickIndex = -1;
+            for (let i = bricks.length - 1; i >= 0; i--) {
+                const brick = bricks[i];
+                if (mouseX > brick.x - brick.width / 2 && mouseX < brick.x + brick.width / 2 && mouseY > brick.y - brick.height / 2 && mouseY < brick.y + brick.height / 2) {
+                    clickedBrick = brick; clickedBrickIndex = i; break;
+                }
+            }
+            if (clickedBrick) {
+                playSound('hit'); clickedBrick.health -= clickPower; createParticles(mouseX, mouseY, 2, '#fff');
+                if (clickedBrick.health <= 0) {
+                    createParticles(clickedBrick.x, clickedBrick.y, 10, clickedBrick.color);
+                    money += clickedBrick.maxHealth; bricks.splice(clickedBrickIndex, 1); saveGame();
+                } else {
+                     saveGame();
+                }
+            }
+        });
+
+        document.querySelectorAll('#buyButtons .buyButton').forEach(button => {
+            button.addEventListener('click', () => {
+                playSound('tap');
+                let ballType = button.id;
+                if (ballType.endsWith('BallBall')) { ballType = ballType.slice(0, -8); }
+                else if (ballType.endsWith('Ball')) { ballType = ballType.slice(0, -4); }
+                if (ballPrices[ballType] !== undefined && money >= ballPrices[ballType]) {
+                    money -= ballPrices[ballType]; ballPrices[ballType] = Math.ceil(ballPrices[ballType] * priceIncreaseMultiplier);
+                    createBall(ballType); updateUI(); saveGame();
+                } else {
+                    if (money < ballPrices[ballType]) {
+                        console.log('Attempting to shake buy button:', button.id);
+                        button.classList.add('shake');
+                        setTimeout(() => button.classList.remove('shake'), 400);
+                    }
+                }
+            });
+        });
+
+        const upgradeMenu = document.getElementById('upgradeMenu');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const upgradeButton = document.getElementById('upgrades');
+        const settingsButton = document.getElementById('settingsButton');
+        const closeUpgradeButton = document.getElementById('closeUpgradeMenu');
+        const closeSettingsButton = document.getElementById('closeSettingsMenu');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const loadModal = document.getElementById('loadModal');
+        const wipeModal1 = document.getElementById('wipeModal1');
+        const wipeModal2 = document.getElementById('wipeModal2');
+        const wipeModal3 = document.getElementById('wipeModal3');
+        const loadDataInput = document.getElementById('loadDataInput');
+        const loadStatus = document.getElementById('loadStatus');
+        const validateLoadButton = document.getElementById('validateLoadButton');
+        const cancelLoadButton = document.getElementById('cancelLoadButton');
+        const exportSaveButton = document.getElementById('exportSaveButton');
+        const exportDataTextArea = document.getElementById('exportData');
+        const exportStatus = document.getElementById('exportStatus');
+        const wipeSaveTrigger = document.getElementById('wipeSaveTrigger');
+        const wipeStatus = document.getElementById('wipeStatus');
+        const wipeConfirmInput = document.getElementById('wipeConfirmInput');
+        const confirmWipeButton = document.getElementById('confirmWipeButton');
+
+        function showModal(modalElement) {
+            modalOverlay.classList.add('visible');
+            modalElement.style.display = 'block';
+            setTimeout(() => { modalElement.style.opacity = 1; }, 10);
+        }
+        function hideModal(modalElement) {
+            modalElement.style.opacity = 0;
+            setTimeout(() => {
+                modalElement.style.display = 'none';
+                const anyVisiblePopup = document.querySelector('.popup-modal[style*="display: block"]');
+                 if (!anyVisiblePopup) {
+                     modalOverlay.classList.remove('visible');
+                 }
+            }, 300);
+        }
+        function hideAllWipeModals() {
+            hideModal(wipeModal1);
+            hideModal(wipeModal2);
+            hideModal(wipeModal3);
+        }
+
+        upgradeButton.addEventListener('click', () => { upgradeMenu.classList.add('visible'); settingsMenu.classList.remove('visible'); updateUI(); });
+        settingsButton.addEventListener('click', () => { settingsMenu.classList.add('visible'); upgradeMenu.classList.remove('visible'); exportDataTextArea.value = ''; exportStatus.textContent = ''; wipeStatus.textContent = ''; updateUI(); });
+        closeUpgradeButton.addEventListener('click', () => { upgradeMenu.classList.remove('visible'); });
+        closeSettingsButton.addEventListener('click', () => { settingsMenu.classList.remove('visible'); });
+
+        document.getElementById('loadSaveTrigger').addEventListener('click', () => { loadDataInput.value = ''; loadStatus.textContent = ''; validateLoadButton.disabled = true; validateLoadButton.classList.add('disabled'); showModal(loadModal); });
+        cancelLoadButton.addEventListener('click', () => hideModal(loadModal));
+        validateLoadButton.addEventListener('click', () => {
+            const pastedData = loadDataInput.value.trim();
+            loadStatus.textContent = '';
+            if (pastedData) {
+                const success = loadGame(pastedData);
+                if (success) {
+                    loadStatus.textContent = "Loaded successfully!";
+                    setTimeout(() => { hideModal(loadModal); }, 1000);
+                } else {
+                    loadStatus.textContent = "Invalid code.";
+                    validateLoadButton.disabled = true;
+                    validateLoadButton.classList.add('disabled');
+                }
+            } else {
+                loadStatus.textContent = "Paste data first.";
+                validateLoadButton.disabled = true;
+                validateLoadButton.classList.add('disabled');
+             }
+        });
+        loadDataInput.addEventListener('input', () => {
+            const isEmpty = (loadDataInput.value.trim() === '');
+            validateLoadButton.disabled = isEmpty;
+            if(isEmpty) { validateLoadButton.classList.add('disabled'); } else { validateLoadButton.classList.remove('disabled'); }
+            loadStatus.textContent = '';
+        });
+
+        exportSaveButton.addEventListener('click', () => {
+            const data = localStorage.getItem('cometbricGameState');
+            exportStatus.textContent = '';
+            if(data){
+                exportDataTextArea.value = data;
+                exportDataTextArea.select();
+                try {
+                    navigator.clipboard.writeText(data).then(() => {
+                        exportStatus.textContent = 'Copied to clipboard!';
+                    }).catch(err => {
+                        exportStatus.textContent = 'Auto-copy failed.';
+                        console.error('Failed to copy save data: ', err);
+                    });
+                } catch(e) {
+                    exportStatus.textContent = 'Auto-copy failed. Select manually.';
+                    console.warn("Clipboard API unavailable.");
+                }
+            } else {
+                exportDataTextArea.value = 'No save data found.';
+            }
+        });
+
+        wipeSaveTrigger.addEventListener('click', () => { wipeStatus.textContent = ''; showModal(wipeModal1); });
+        document.getElementById('confirmWipe1').addEventListener('click', () => { hideModal(wipeModal1); showModal(wipeModal2); });
+        document.getElementById('cancelWipe1').addEventListener('click', () => { hideModal(wipeModal1); wipeStatus.textContent = ""; });
+        document.getElementById('confirmWipe2').addEventListener('click', () => { hideModal(wipeModal2); wipeConfirmInput.value = ''; document.getElementById('wipeModalStatus').textContent = ''; confirmWipeButton.disabled = true; confirmWipeButton.classList.add('disabled'); showModal(wipeModal3); });
+        document.getElementById('cancelWipe2').addEventListener('click', () => { hideModal(wipeModal2); wipeStatus.textContent = ""; });
+        wipeConfirmInput.addEventListener('input', () => {
+            const currentInput = wipeConfirmInput.value.trim().toLowerCase();
+            const isMatch = (currentInput === "wipe it please");
+            confirmWipeButton.disabled = !isMatch;
+            if(isMatch) { confirmWipeButton.classList.remove('disabled'); } else { confirmWipeButton.classList.add('disabled'); }
+            document.getElementById('wipeModalStatus').textContent = '';
+        });
+        confirmWipeButton.addEventListener('click', () => {
+            if(confirmWipeButton.disabled) return;
+            localStorage.removeItem('cometbricGameState');
+            resetGame();
+            hideAllWipeModals();
+            wipeStatus.textContent = "Save data wiped.";
+            setTimeout(() => { wipeStatus.textContent = ''; settingsMenu.classList.remove('visible'); }, 2000);
+        });
+        document.querySelectorAll('.cancel-button').forEach(btn => { btn.addEventListener('click', () => { hideAllWipeModals(); hideModal(loadModal); wipeStatus.textContent = ""; }) });
+
+        upgradeMenu.querySelectorAll('.upgradeSection button[data-cost]').forEach(button => {
+            button.addEventListener('click', () => {
+                const cost = parseInt(button.dataset.cost);
+                const ballType = button.dataset.ball;
+                const stat = button.dataset.stat;
+                if (money >= cost && upgradeIncrements[ballType] && upgradeIncrements[ballType][stat] !== undefined) {
+                    money -= cost;
+                    const increment = upgradeIncrements[ballType][stat];
+                    if (ballType === 'click') {
+                        if (stat === 'power') { clickPower += increment; }
+                    } else if (ballAttributes[ballType]) {
+                        if (stat === 'power') {
+                            ballAttributes[ballType].currentPower += increment;
+                            balls.forEach(b => { if(b.type === ballType) b.power = ballAttributes[ballType].currentPower; });
+                            if(ballType === 'scatter') { ballAttributes.scatterGenerated.currentPower = ballAttributes.scatter.currentPower / ballAttributes.scatter.spawnPowerDivider; }
+                        } else if (stat === 'speed') {
+                            const oldSpeed = ballAttributes[ballType].currentSpeed;
+                            ballAttributes[ballType].currentSpeed += increment;
+                            balls.forEach(b => { if(b.type === ballType) { const speedRatio = oldSpeed > 0 ? ballAttributes[ballType].currentSpeed / oldSpeed : 1; b.speedX *= speedRatio; b.speedY *= speedRatio; } });
+                        }
+                    }
+                    const newCost = Math.ceil(cost * upgradeCostMultiplier);
+                    button.dataset.cost = newCost;
+                    updateUI();
+                    saveGame();
+                } else {
+                    if (money < cost) {
+                        console.log('Attempting to shake upgrade:', button.id);
+                        button.classList.add('shake');
+                        setTimeout(() => button.classList.remove('shake'), 400);
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                tapSound.currentTime = 0;
+                tapSound.play().catch(e => {});
+            });
+        });
+
+        loadGame();
         updateUI();
-        saveGame();
-        console.log(`Starting Level ${level}`);
-      }
-
-      drawBricks();
-      drawBalls();
-      drawParticles();
-      updateUI();
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    canvas.addEventListener('click', (event) => {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const mouseX = (event.clientX - rect.left) * scaleX;
-      const mouseY = (event.clientY - rect.top) * scaleY;
-      let clickedBrick = null;
-      let clickedBrickIndex = -1;
-      for (let i = bricks.length - 1; i >= 0; i--) {
-        const brick = bricks[i];
-        if (mouseX > brick.x - brick.width / 2 &&
-            mouseX < brick.x + brick.width / 2 &&
-            mouseY > brick.y - brick.height / 2 &&
-            mouseY < brick.y + brick.height / 2) {
-          clickedBrick = brick;
-          clickedBrickIndex = i;
-          break;
-        }
-      }
-      if (clickedBrick) {
-        playSound('hit');
-        clickedBrick.health -= 1;
-        createParticles(mouseX, mouseY, 2, '#fff');
-        if (clickedBrick.health <= 0) {
-          createParticles(clickedBrick.x, clickedBrick.y, 10, clickedBrick.color);
-          money += clickedBrick.maxHealth;
-          bricks.splice(clickedBrickIndex, 1);
-          saveGame();
-        }
-      }
-    });
-
-    document.querySelectorAll('#buyButtons .buyButton').forEach(button => {
-      button.addEventListener('click', () => {
-        let ballType = button.id;
-        if (ballType.endsWith('BallBall')) { ballType = ballType.slice(0, -8); }
-        else if (ballType.endsWith('Ball')) { ballType = ballType.slice(0, -4); }
-
-        if (ballPrices[ballType] !== undefined && money >= ballPrices[ballType]) {
-          money -= ballPrices[ballType];
-          ballPrices[ballType] = Math.ceil(ballPrices[ballType] * priceIncreaseMultiplier);
-          createBall(ballType);
-          updateUI();
-          saveGame();
-        } else {
-          if (money < ballPrices[ballType]) {
-            button.classList.add('shake');
-            setTimeout(() => button.classList.remove('shake'), 300);
-          }
-        }
-      });
-    });
-
-    const upgradeMenu = document.getElementById('upgradeMenu');
-    const upgradeButton = document.getElementById('upgrades');
-    const closeUpgradeButton = document.getElementById('closeUpgradeMenu');
-    upgradeButton.addEventListener('click', () => {
-      tapSound.currentTime = 0;
-      tapSound.play().catch(e => {});
-      upgradeMenu.classList.add('visible');
-      updateUI();
-    });
-    closeUpgradeButton.addEventListener('click', () => {
-      tapSound.currentTime = 0;
-      tapSound.play().catch(e => {});
-      upgradeMenu.classList.remove('visible');
-    });
-    // Add explicit tap sound call at the beginning of upgrade button events.
-    upgradeMenu.querySelectorAll('.upgradeSection button[data-cost]').forEach(button => {
-      button.addEventListener('click', () => {
-        tapSound.currentTime = 0;
-        tapSound.play().catch(e => {});
-        const cost = parseInt(button.dataset.cost);
-        const ballType = button.dataset.ball;
-        const stat = button.dataset.stat;
-        if (money >= cost && ballAttributes[ballType] && upgradeIncrements[ballType] && upgradeIncrements[ballType][stat]) {
-          money -= cost;
-          const increment = upgradeIncrements[ballType][stat];
-          if (stat === 'power') {
-            ballAttributes[ballType].currentPower += increment;
-            balls.forEach(b => { if(b.type === ballType) b.power = ballAttributes[ballType].currentPower; });
-            if(ballType === 'scatter')
-              ballAttributes.scatterGenerated.currentPower = ballAttributes.scatter.currentPower / ballAttributes.scatter.spawnPowerDivider;
-          } else if (stat === 'speed') {
-            const oldSpeed = ballAttributes[ballType].currentSpeed;
-            ballAttributes[ballType].currentSpeed += increment;
-            balls.forEach(b => { if(b.type === ballType) {
-              const speedRatio = oldSpeed > 0 ? ballAttributes[ballType].currentSpeed / oldSpeed : 1;
-              b.speedX *= speedRatio;
-              b.speedY *= speedRatio;
-            }});
-          }
-          const newCost = Math.ceil(cost * 1.5);
-          button.dataset.cost = newCost;
-          updateUI();
-          saveGame();
-        } else {
-          if (money < cost) {
-            button.classList.add('shake');
-            setTimeout(() => button.classList.remove('shake'), 300);
-          }
-        }
-      });
-    });
-
-    // Global listener for any button click to play tap sound.
-    document.querySelectorAll('button').forEach(button => {
-      button.addEventListener('click', () => {
-        tapSound.currentTime = 0;
-        tapSound.play().catch(e => {});
-      });
-    });
-
-    loadGame();
-    if (bricks.length === 0) {
-      createLevel();
-    }
-    updateUI();
-    requestAnimationFrame(gameLoop);
-
-    window.addEventListener('beforeunload', saveGame);
-  </script>
+        setInterval(saveGame, 3000);
+        requestAnimationFrame(gameLoop);
+    </script>
 </body>
 </html>
