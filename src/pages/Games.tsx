@@ -1,18 +1,8 @@
-import Cometbrick from "../assets/games/Cometbrick/index.html?url"
 import CometbrickThumbnail from "../assets/thumb/Cometbrick.png";
-
-import Defrag from "../assets/games/Defrag/index.html?url"
 import DefragThumbnail from "../assets/thumb/Defr4g.png";
-
-import Lightsim from "../assets/games/lightsim/lightsim.html?url"
 import LightsimThumbnail from "../assets/thumb/Lightsim.png";
-
-import RunningGame from "../assets/games/Running Game/index.html?url"
-
-import Terram from "../assets/games/Terram/index.html?url"
+import RunningGameThumbnail from "../assets/thumb/Running Game.png";
 import TerramThumbnail from "../assets/thumb/Terram.png";
-
-import TrigCafe from "../assets/games/Trig's Cafe/index.html?url"
 import TrigCafeThumbnail from "../assets/thumb/Trigs Cafe.png";
 
 import Card from "../components/Card";
@@ -39,7 +29,7 @@ export default function Games() {
             <Card title="Cometbrick" description="bounce balls on bricks" thumbnail={CometbrickThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL(Cometbrick);
+                        setWindowURL("games/Cometbrick/index.html");
                         setWindowTitle("Cometbrick");
                     }} />
                     <FaArrowDown />
@@ -48,7 +38,7 @@ export default function Games() {
             <Card title="Defr4g" description="defragment like it's 2001" thumbnail={DefragThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL(Defrag);
+                        setWindowURL("games/Defrag/index.html");
                         setWindowTitle("Defrag");
                     }} />
                     <FaArrowDown />
@@ -57,16 +47,16 @@ export default function Games() {
             <Card title="Lightsim" description="the worst light ray simulation you've ever seen" thumbnail={LightsimThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL(Lightsim);
+                        setWindowURL("games/lightsim/lightsim.html");
                         setWindowTitle("Lightsim");
                     }} />
                     <FaArrowDown />
                 </div>
             } />
-            <Card title="Running Game" description="chrome dino? where are you?" thumbnail="" footer={
+            <Card title="Running Game" description="chrome dino? where are you?" thumbnail={RunningGameThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL(RunningGame);
+                        setWindowURL("games/Running%20Game/index.html");
                         setWindowTitle("Running Game");
                     }} />
                     <FaArrowDown />
@@ -75,7 +65,7 @@ export default function Games() {
             <Card title="Terram" description="didn't know you could make terraria so bad" thumbnail={TerramThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL(Terram);
+                        setWindowURL("games/Terram/index.html");
                         setWindowTitle("Terram");
                     }} />
                     <FaArrowDown />
@@ -84,7 +74,7 @@ export default function Games() {
             <Card title="Trig's Cafe" description="a cafe that crashes a lot for some reason" thumbnail={TrigCafeThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL(TrigCafe);
+                        setWindowURL("games/Trig's%20Cafe/index.html");
                         setWindowTitle("Trig's Cafe");
                     }} />
                     <FaArrowDown />
