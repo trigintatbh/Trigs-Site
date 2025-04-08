@@ -55,7 +55,7 @@ body {
 }
 
 .games {
-  @apply place-items-center grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-5 gap-y-5;
+  @apply mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-5 gap-5 xl:gap-15;
 }
 
 .games--window {
@@ -91,7 +91,7 @@ body {
 }
 
 .card {
-  @apply p-5 pb-0 bg-card h-50 w-50 rounded-lg z-0;
+  @apply p-5 pb-0 bg-card h-50 w-50 lg:h-75 lg:w-75 rounded-lg z-0;
 }
 
 .card--title {
