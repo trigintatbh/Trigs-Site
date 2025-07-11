@@ -16,7 +16,7 @@
       --shadow-light:rgba(255,255,255,0.25);
       --shadow-dark:rgba(0,0,0,0.1);
       --slot-size:80px;
-      --current-win-color: rgb(255,0,0); /* Initialize with a color */
+      --current-win-color: rgb(255,0,0); 
     }
     *{
         box-sizing: border-box;
@@ -90,9 +90,9 @@
       overflow:hidden;
       position:relative;
     }
-    /* New style for borders between reels */
+
     .reel-border {
-        border-right: 4px solid #ffab233b; /* Gold border */
+        border-right: 4px solid #ffab233b; 
     }
     .reel-track{
       position:absolute;
@@ -121,7 +121,7 @@
     }
 
     .symbol-content img {
-        max-width: 70%; /* Adjust as needed to fit symbols */
+        max-width: 70%; 
         max-height: 70%;
         object-fit: contain;
     }
@@ -144,7 +144,7 @@
     .spin-button:hover{transform:translateY(-3px);}
 
     .winning-symbol {
-      border: 4px solid var(--current-win-color); /* Use the CSS variable for border color */
+      border: 4px solid var(--current-win-color); 
       border-radius: 1rem;
       position: relative;
       z-index: 5;
@@ -152,7 +152,7 @@
     }
 
     .winning-symbol .symbol-content img {
-        animation: circular-true-move 1s infinite linear; /* Apply the animation */
+        animation: circular-true-move 1s infinite linear; 
     }
 
 @keyframes rgb-border-glow {
@@ -305,7 +305,6 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-      // Define symbol identifiers and their image paths
       const symbolIdentifiers = ['cherry', 'lemon', 'watermelon', 'bell', 'diamond', 'clover', 'seven'];
       const symbolImageMap = {
           'cherry': 'media/textures/symbols/cherry.png',
@@ -317,7 +316,6 @@
           'seven': 'media/textures/symbols/7.png'
       };
 
-      // Update weightMap with new symbol identifiers
       const weightMap = {
           'cherry': 10,
           'lemon': 10,
@@ -353,7 +351,6 @@
       const durations=[0.8,0.95,1.0,1.15,1.45];
       const delays=[0,0.1,0.2,0.3,0.4];
 
-      // Audio elements
       const audio = {
           startRound: new Audio('media/audio/slot-machine/start-round.mp3'),
           ticks: [
@@ -372,31 +369,23 @@
           ]
       };
 
-      // Function to calculate jackpot chance based on luck (exponential)
       function calculateJackpotChance(currentLuck) {
-          // Base 0.1% chance, reaching 0.5% at luck 5
-          // Formula: base_chance * (target_multiplier)^(current_luck / target_luck_level)
-          // 0.005 = 0.001 * multiplier^(5) => multiplier = (0.005/0.001)^(1/5) approx 1.3797
-          const baseChance = 0.001; // 0.1%
+
+          const baseChance = 0.001; 
           const multiplierBase = 1.3797;
-          return baseChance * Math.pow(multiplierBase, currentLuck);
+          return baseChance * Math.pow(multiplierBase, currentLuck / 5);
       }
 
-      // Function to calculate jackpot variation chance based on luck (exponential, decreasing)
       function calculateJackpotVariationChance(currentLuck) {
-          // Base 30% chance, reaching 20% at luck 5
-          // Formula: base_chance * (target_ratio)^(current_luck / target_luck_level)
-          // 0.20 = 0.30 * multiplier^(5) => multiplier = (0.20/0.30)^(1/5) approx 0.922
-          const baseChance = 0.30; // 30%
-          const multiplierBase = 0.922;
+
+          const baseChance = 0.45; 
+          const multiplierBase = 0.972;
           return baseChance * Math.pow(multiplierBase, currentLuck);
       }
 
-      // Function to calculate forced combo chance based on luck (exponential, increasing)
       function calculateForcedComboChance(currentLuck) {
-          // Example: 10% chance at luck 0, increasing to 20% at luck 5
-          // 0.20 = 0.10 * multiplier^(5) => multiplier = (0.20/0.10)^(1/5) = 2^(1/5) approx 1.1487
-          const baseChance = 0.10; // 10%
+
+          const baseChance = 0.10; 
           const multiplierBase = 1.1487;
           return baseChance * Math.pow(multiplierBase, currentLuck);
       }
@@ -407,8 +396,9 @@
           reelsReadyForCheck = 0;
 
           const boardElements = [];
-          reels.forEach((track) => {
+          reels.forEach((track, colIdx) => {
               const reelSymbols = [];
+
               reelSymbols.push(track.children[0].firstChild);
               reelSymbols.push(track.children[1].firstChild);
               reelSymbols.push(track.children[2].firstChild);
@@ -426,7 +416,6 @@
 
           const areSymbolsIdentical = (...symbolContentElements) => {
               if (symbolContentElements.length === 0 || !symbolContentElements[0]) return false;
-              // Compare data-symbol attribute for image-based symbols
               const firstSymbolId = symbolContentElements[0].dataset.symbol;
               return symbolContentElements.every(el => el && el.dataset.symbol === firstSymbolId);
           };
@@ -439,7 +428,6 @@
               return elements;
           };
 
-          // Check for Jackpot on the final board state
           const firstSymbolContentElementOnBoard = transposedBoard[0][0];
           if (firstSymbolContentElementOnBoard) {
               let currentBoardIsJackpot = true;
@@ -469,28 +457,27 @@
               }
           }
 
-          // Check for Horizontal Wins (3, 4, or 5 in a row)
           for (let r = 0; r < rowsVisible; r++) {
               for (let c = 0; c <= nReels - 3; c++) {
                   const s1 = transposedBoard[r][c];
                   const s2 = transposedBoard[r][c+1];
                   const s3 = transposedBoard[r][c+2];
 
-                  if (areSymbolsIdentical(s1, s2, s3)) {
+                  if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
                       let winValue = weightMap[s1.dataset.symbol] * 1;
                       let currentSymbols = [s1, s2, s3];
                       let length = 3;
 
                       if (c <= nReels - 4) {
                           const s4 = transposedBoard[r][c+3];
-                          if (areSymbolsIdentical(s1, s4)) {
+                          if (s4 && areSymbolsIdentical(s1, s4)) {
                               winValue += weightMap[s1.dataset.symbol] * 1;
                               currentSymbols.push(s4);
                               length = 4;
 
                               if (c <= nReels - 5) {
                                   const s5 = transposedBoard[r][c+4];
-                                  if (areSymbolsIdentical(s1, s5)) {
+                                  if (s5 && areSymbolsIdentical(s1, s5)) {
                                       winValue += weightMap[s1.dataset.symbol] * 1;
                                       currentSymbols.push(s5);
                                       length = 5;
@@ -508,12 +495,11 @@
               }
           }
 
-          // Check for Vertical Wins (3 in a column)
           for (let c = 0; c < nReels; c++) {
               const s1 = transposedBoard[0][c];
               const s2 = transposedBoard[1][c];
               const s3 = transposedBoard[2][c];
-              if (areSymbolsIdentical(s1, s2, s3)) {
+              if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
                   allPotentialWins.push({
                       type: 'vertical',
                       value: weightMap[s1.dataset.symbol] * 0.3,
@@ -523,13 +509,11 @@
               }
           }
 
-          // Check for Diagonal Wins (3 in a diagonal)
-          // Down-right diagonals
           for (let c = 0; c <= nReels - 3; c++) {
               const s1 = transposedBoard[0][c];
               const s2 = transposedBoard[1][c+1];
               const s3 = transposedBoard[2][c+2];
-              if (areSymbolsIdentical(s1, s2, s3)) {
+              if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
                   allPotentialWins.push({
                       type: 'diagonal-down-right',
                       value: weightMap[s1.dataset.symbol] * 0.3,
@@ -539,12 +523,11 @@
               }
           }
 
-          // Down-left diagonals
           for (let c = 2; c < nReels; c++) {
               const s1 = transposedBoard[0][c];
               const s2 = transposedBoard[1][c-1];
               const s3 = transposedBoard[2][c-2];
-              if (areSymbolsIdentical(s1, s2, s3)) {
+              if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
                   allPotentialWins.push({
                       type: 'diagonal-down-left',
                       value: weightMap[s1.dataset.symbol] * 0.3,
@@ -554,33 +537,43 @@
               }
           }
 
-          // Sort wins by value (descending)
           allPotentialWins.sort((a, b) => b.value - a.value);
 
           let finalTotalWin = 0;
           const finalWinningCombos = [];
-          const coveredSymbolElements = new Set();
+          const coveredSymbolsMap = new Map(); 
+          let nextComboId = 0;
 
           for (const win of allPotentialWins) {
-              let isFullyOverlapping = true;
+              let isFullyCovered = true;
+              const overlappingComboIDs = new Set();
+
               for (const symbolEl of win.symbols) {
-                  if (!coveredSymbolElements.has(symbolEl)) {
-                      isFullyOverlapping = false;
-                      break;
+                  if (coveredSymbolsMap.has(symbolEl)) {
+                      overlappingComboIDs.add(coveredSymbolsMap.get(symbolEl));
+                  } else {
+                      isFullyCovered = false;
                   }
               }
 
-              if (!isFullyOverlapping) {
+              const shouldSkipWin = isFullyCovered && overlappingComboIDs.size === 1;
+
+              if (!shouldSkipWin) {
                   finalTotalWin += win.value;
                   finalWinningCombos.push(win.symbols);
-                  win.symbols.forEach(symbolEl => coveredSymbolElements.add(symbolEl));
+
+                  const currentComboId = nextComboId++;
+
+                  win.symbols.forEach(symbolEl => {
+                      if (!coveredSymbolsMap.has(symbolEl)) {
+                           coveredSymbolsMap.set(symbolEl, currentComboId);
+                      }
+                  });
               }
           }
 
           finalTotalWin *= moneyMultiplier;
           finalTotalWin = Math.round(finalTotalWin);
-
-          console.log('Final Total win:', finalTotalWin, 'Final Winning Combos count:', finalWinningCombos.length);
 
           const comboDisplayDuration = 800;
           const delayBetweenCombos = 150;
@@ -591,12 +584,12 @@
           const displayNextCombo = () => {
               if (currentComboIndex < finalWinningCombos.length) {
                   const currentCombo = finalWinningCombos[currentComboIndex];
-                  console.log(`Displaying Combo ${currentComboIndex + 1}:`, currentCombo.map(el => el.querySelector('.symbol-content').dataset.symbol));
 
-                  // Determine which combo sound to play
                   const soundIndex = Math.min(currentComboIndex, audio.combos.length - 1);
-                  if (audio.combos[soundIndex]) {
-                      audio.combos[soundIndex].play();
+                  const soundToPlay = audio.combos[soundIndex];
+                  if (soundToPlay) {
+                      soundToPlay.currentTime = 0; 
+                      soundToPlay.play();
                   }
 
                   document.querySelectorAll('.winning-symbol').forEach(el => {
@@ -618,10 +611,11 @@
                       setTimeout(displayNextCombo, delayBetweenCombos);
                   }, comboDisplayDuration);
               } else {
-                  console.log('All combos displayed. Showing total cash.');
                   money += finalTotalWin;
-                  centralWinDisplay.innerHTML = `TOTAL<br><span class="win-amount">${finalTotalWin}</span>`;
-                  centralWinDisplay.classList.add('show');
+                  if (finalTotalWin > 0) {
+                    centralWinDisplay.innerHTML = `TOTAL<br><span class="win-amount">${finalTotalWin}</span>`;
+                    centralWinDisplay.classList.add('show');
+                  }
                   updateUI();
 
                   document.querySelectorAll('.winning-symbol').forEach(el => {
@@ -638,7 +632,7 @@
                           isSpinning = false;
                           spinBtn.disabled = false;
                       }, 500);
-                  }, 1000);
+                  }, finalTotalWin > 0 ? 1000 : 0);
               }
           };
 
@@ -662,7 +656,7 @@
         }
 
         track.addEventListener('transitionend',(e)=>{
-            if (e.propertyName === 'transform' && e.elapsedTime > 0.15) { // Adjusted heuristic for shorter anims
+            if (e.propertyName === 'transform' && e.elapsedTime > 0.15) { 
                 const spinCount = parseInt(track.dataset.spinCount);
 
                 for(let k=0; k<spinCount; k++) {
@@ -676,54 +670,48 @@
 
                 void track.offsetWidth;
 
-                const overshootAmount = 3; // From user input
+                const overshootAmount = 3;
 
-                track.style.transition = `transform 0.05s ease-out`; // From user input
+                track.style.transition = `transform 0.05s ease-out`;
                 track.style.transform = `translateY(${overshootAmount}px)`;
 
                 setTimeout(() => {
-                    track.style.transition = `transform 0.1s ease-in`; // From user input
+                    track.style.transition = `transform 0.1s ease-in`;
                     track.style.transform = `translateY(0px)`;
-                }, 50); // Matches overshoot transition duration
+                }, 50);
 
                 setTimeout(() => {
                     track.style.transition = 'none';
                     reelsReadyForCheck++;
-                    // Play the corresponding tick sound
-                    if (audio.ticks[i]) { // Use the loop index 'i' for the reel's tick sound
+                    if (audio.ticks[i]) {
                         audio.ticks[i].play();
                     }
                     if (reelsReadyForCheck === nReels) {
                         handleSpinEndAndCheckWins();
                     }
-                }, 150); // 50ms (overshoot) + 100ms (snap-back)
+                }, 150);
             }
         });
       }
 
       function buildInitial(track){
-        const buf=10;
+        track.innerHTML=''; 
+        for(let i=0; i < rowsVisible; i++) {
+            const sId = weighted[Math.floor(Math.random()*weighted.length)];
+            const el=document.createElement('div');
+            el.className='symbol';
+            const contentEl = document.createElement('div');
+            contentEl.className = 'symbol-content';
+            contentEl.dataset.symbol = sId; 
 
-        const initialSymbolsCount = rowsVisible + buf;
-        const arr=[];
-        for(let i=0;i<initialSymbolsCount;i++) arr.push(weighted[Math.floor(Math.random()*weighted.length)]);
-        track.innerHTML='';
-        arr.forEach(sId => { // sId is now the string identifier
-          const el=document.createElement('div');
-          el.className='symbol';
-          const contentEl = document.createElement('div');
-          contentEl.className = 'symbol-content';
-          contentEl.dataset.symbol = sId; // Store the symbol identifier
+            const img = document.createElement('img');
+            img.src = symbolImageMap[sId]; 
+            img.alt = sId;
+            contentEl.appendChild(img);
 
-          const img = document.createElement('img');
-          img.src = symbolImageMap[sId]; // Get image path from map
-          img.alt = sId;
-          contentEl.appendChild(img);
-
-          el.appendChild(contentEl);
-          track.appendChild(el);
-        });
-
+            el.appendChild(contentEl);
+            track.appendChild(el);
+        }
         track.style.transform=`translateY(0)`;
       }
 
@@ -743,11 +731,24 @@
         },d);
       }
 
+      function isBoardAJackpot(board) {
+          if (!board || !board[0] || !board[0][0]) return false;
+          const firstSymbol = board[0][0];
+          for (let c = 0; c < nReels; c++) {
+              for (let r = 0; r < rowsVisible; r++) {
+                  if (board[c][r] !== firstSymbol) {
+                      return false;
+                  }
+              }
+          }
+          return true;
+      }
+
       spinBtn.addEventListener('click',()=>{
         if(isSpinning) return;
         if(money<cost) return showMessage('No $$');
 
-        audio.startRound.play(); // Play start-round sound
+        audio.startRound.play(); 
 
         isSpinning = true;
         spinBtn.disabled = true;
@@ -759,7 +760,7 @@
         });
         root.style.animation = 'none';
         root.style.setProperty('--current-win-color', 'transparent');
-        
+
         reelsReadyForCheck = 0;
 
         money-=cost;
@@ -787,12 +788,44 @@
             }
         }
 
+        if (isJackpotForced && isBoardAJackpot(landingSymbolsMatrix)) {
+            const jackpotVariationChance = calculateJackpotVariationChance(luck); 
+            if (Math.random() < jackpotVariationChance) {
+                const numChanges = Math.floor(Math.random() * 3) + 1; 
+                console.log(`Jackpot Variation triggered! Breaking up accidental jackpot with ${numChanges} change(s). Chance: ${jackpotVariationChance.toFixed(4)}`);
+
+                const originalSymbol = landingSymbolsMatrix[0][0];
+                const allPositions = [];
+                for (let r = 0; r < rowsVisible; r++) {
+                    for (let c = 0; c < nReels; c++) {
+                        allPositions.push({ r, c });
+                    }
+                }
+
+                for (let i = allPositions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
+                }
+
+                for (let i = 0; i < numChanges; i++) {
+                    const pos = allPositions[i];
+                    let newSymbol;
+                    do {
+                        newSymbol = weighted[Math.floor(Math.random() * weighted.length)];
+                    } while (newSymbol === originalSymbol); 
+
+                    console.log(`  - Changing symbol at reel ${pos.c}, row ${pos.r} from ${originalSymbol} to ${newSymbol}`);
+                    landingSymbolsMatrix[pos.c][pos.r] = newSymbol;
+                }
+            }
+        }
+
         if (!isJackpotForced) {
             const forcedComboChance = calculateForcedComboChance(luck);
             if (Math.random() < forcedComboChance) {
                 console.log(`Forced Combo triggered! Chance: ${forcedComboChance.toFixed(4)}`);
                 const randomRow = Math.floor(Math.random() * rowsVisible);
-                const randomCol = Math.floor(Math.random() * (nReels - 2));
+                const randomCol = Math.floor(Math.random() * (nReels - 2)); 
 
                 const forcedSymbol = symbolIdentifiers[Math.floor(Math.random() * symbolIdentifiers.length)];
 
@@ -802,67 +835,23 @@
             }
         }
 
-        let wouldBePerfectJackpot = true;
-        let potentialJackpotSymbol = null;
-        if (landingSymbolsMatrix[0][0]) {
-            potentialJackpotSymbol = landingSymbolsMatrix[0][0];
-            for (let c = 0; c < nReels; c++) {
-                for (let r = 0; r < rowsVisible; r++) {
-                    if (landingSymbolsMatrix[c][r] !== potentialJackpotSymbol) {
-                        wouldBePerfectJackpot = false;
-                        break;
-                    }
-                }
-                if (!wouldBePerfectJackpot) break;
-            }
-        } else {
-            wouldBePerfectJackpot = false;
-        }
-
-        if (wouldBePerfectJackpot) {
-            const jackpotVariationChance = calculateJackpotVariationChance(luck);
-            if (Math.random() < jackpotVariationChance) {
-                console.log(`Jackpot Variation triggered! Chance: ${jackpotVariationChance.toFixed(4)}`);
-                let changedSymbolsCount = 0;
-                const maxChanges = Math.floor(Math.random() * 3) + 1;
-                const allLandingPositions = [];
-                for (let c = 0; c < nReels; c++) {
-                    for (let r = 0; r < rowsVisible; r++) {
-                        allLandingPositions.push({ c, r });
-                    }
-                }
-                for (let i = allLandingPositions.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [allLandingPositions[i], allLandingPositions[j]] = [allLandingPositions[j], allLandingPositions[i]];
-                }
-
-                for (let i = 0; i < maxChanges && i < allLandingPositions.length; i++) {
-                    const { c, r } = allLandingPositions[i];
-                    let newSymbol = symbolIdentifiers[Math.floor(Math.random() * symbolIdentifiers.length)];
-                    while (newSymbol === potentialJackpotSymbol) {
-                        newSymbol = symbolIdentifiers[Math.floor(Math.random() * symbolIdentifiers.length)];
-                    }
-                    landingSymbolsMatrix[c][r] = newSymbol;
-                    changedSymbolsCount++;
-                }
-                console.log(`Changed ${changedSymbolsCount} symbols for jackpot variation.`);
-            }
-        }
-
         reels.forEach((track,idx)=>{
-          const spinCount=Math.floor(Math.random()*5)+6;
-          track.dataset.spinCount=spinCount;
+
+          const spinCount=Math.floor(Math.random()*5)+15; 
+
+          const totalTravel = spinCount + rowsVisible;
+          track.dataset.spinCount = totalTravel; 
 
           for(let j=0;j<spinCount;j++){
             const el=document.createElement('div');
             el.className='symbol';
             const contentEl = document.createElement('div');
             contentEl.className = 'symbol-content';
-            const sId = weighted[Math.floor(Math.random()*weighted.length)]; // Get random identifier
-            contentEl.dataset.symbol = sId; // Store identifier
+            const sId = weighted[Math.floor(Math.random()*weighted.length)];
+            contentEl.dataset.symbol = sId;
 
             const img = document.createElement('img');
-            img.src = symbolImageMap[sId]; // Set image path
+            img.src = symbolImageMap[sId];
             img.alt = sId;
             contentEl.appendChild(img);
 
@@ -875,11 +864,11 @@
               el.className='symbol';
               const contentEl = document.createElement('div');
               contentEl.className = 'symbol-content';
-              const sId = landingSymbolsMatrix[idx][r]; // Get pre-determined identifier
-              contentEl.dataset.symbol = sId; // Store identifier
+              const sId = landingSymbolsMatrix[idx][r];
+              contentEl.dataset.symbol = sId;
 
               const img = document.createElement('img');
-              img.src = symbolImageMap[sId]; // Set image path
+              img.src = symbolImageMap[sId];
               img.alt = sId;
               contentEl.appendChild(img);
 
@@ -888,7 +877,7 @@
           }
 
           track.style.transition=`transform ${durations[idx]}s cubic-bezier(0.2,0,0.3,1) ${delays[idx]}s`;
-          track.style.transform=`translateY(calc(-1 * var(--slot-size) * (${spinCount})))`;
+          track.style.transform=`translateY(calc(-1 * var(--slot-size) * (${totalTravel})))`;
         });
       });
     });
