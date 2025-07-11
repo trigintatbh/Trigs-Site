@@ -4,6 +4,7 @@ import LightsimThumbnail from "../assets/thumb/Lightsim.png";
 import RunningGameThumbnail from "../assets/thumb/Running Game.png";
 import TerramThumbnail from "../assets/thumb/Terram.png";
 import TrigCafeThumbnail from "../assets/thumb/Trigs Cafe.png";
+import SlotzThumbnail from "../assets/thumb/Slotz.png";
 
 import Card from "../components/Card";
 import { FaArrowDown, FaPlay } from "react-icons/fa";
@@ -80,7 +81,7 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
             } />
-            <Card title='Slotz' description="LETS GO GAMBLING" thumbnail={LightsimThumbnail} footer={
+            <Card title='Slotz' description="LETS GO GAMBLING" thumbnail={SlotzThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
                         setWindowURL("games/Slotz/index.html");
