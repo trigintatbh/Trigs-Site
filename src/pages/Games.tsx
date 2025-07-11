@@ -80,6 +80,15 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
             } />
+            <Card title='Slotz' description="LETS GO GAMBLING" thumbnail={LightsimThumbnail} footer={
+                <div className="flex gap-2">
+                    <FaPlay onClick={() => {
+                        setWindowURL("games/Slotz/index.html");
+                        setWindowTitle("Slotz");
+                    }} />
+                    <FaArrowDown />
+                </div>
+            } />
         </div>
     )
 }
