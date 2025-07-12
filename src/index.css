@@ -3,8 +3,8 @@
 @theme {
   --color-background: #111114;
   --color-card: #27272e;
-  --color-border: #32323a;
-  --color-primary: #9500ff;
+  --color-border: #1b1b20;
+  --color-primary: #26262e;
 }
 
 @font-face {
@@ -66,28 +66,34 @@ body {
 .games--window--bar {
   width: 100%;
   height: 28px;
-  background-color: rgb(13, 13, 13);
+  background: linear-gradient(to bottom, #2b03ae 0%, #542ac0 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
   user-select: none;
   font-size: medium;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
 }
 
 .games--window--bar svg {
   cursor: pointer;
   height: 100%;
-  width: 24px;
+  width: 26px;
   font-size: large;
 }
 
 .games--window--bar svg:hover {
   background-color: rgb(245, 20, 80);
+  border-top-right-radius: 0.5rem;
 }
 
 .games--window iframe {
   width: 100%;
   height: 100%;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  margin-bottom: 3px;
 }
 
 .card {
@@ -112,6 +118,12 @@ body {
 
 .card--footer {
   @apply mt-3 pt-2;
+  position: absolute; /* Change from 'absolute' to 'absolute' but remove `top: 95%` */
+  bottom: 0;         /* Pin to the bottom */
+  left: -5%;           /* Stretch from left */
+  right: 0;          /* Stretch to right */
+  padding: 1rem;     /* Add some padding for spacing, adjust as needed */
+  box-sizing: border-box; /* Ensures padding is included within the width */
 }
 
 * {

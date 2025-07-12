@@ -9,13 +9,13 @@ export default function About() {
             <span className="text-neutral-300!">Heya, it's me, Triginta! You can call me Trig though.</span>
         </div><div className="flex flex-col items-center gap-4">
                 <img src={am2} className="w-96 h-96" />
-                <span className="text-neutral-300!">I make games, I draw, and I exist!</span>
+                <span className="text-neutral-300!">I make games, I draw, I exist, and I desperately need to get a better description!</span>
             </div></><div className="flex flex-col items-center gap-4">
                 <img src={am3} className="w-96 h-96" />
                 <span className="text-neutral-300!">So, uh, yeah. That's it. Go play the games, I know that's what you're after.</span>
             </div></><div className="flex flex-col items-center gap-4">
                 <img src={am1} className="w-96 h-96" />
-                <span className="text-neutral-300!">Or you're after me. That'd be cool. But yeah that's all BYE</span>
+                <span className="text-neutral-300!">Or you're after me. That'd be cool. But yeah that's all. Shoo now.</span>
             </div></>
     )
 }
