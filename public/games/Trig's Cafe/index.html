@@ -654,72 +654,87 @@ function addFoodDragListeners() {
             dragImage.style.zIndex = '1000';
             document.body.appendChild(dragImage);
             document.addEventListener("mousemove", updateDragImagePosition);
-            document.addEventListener("mouseup", (e) => {
-                if (isDragging) {
-                    isDragging = false;
-                    document.body.removeChild(dragImage);
-                    document.removeEventListener("mousemove", updateDragImagePosition);
-                    const customerEl = document.elementFromPoint(e.clientX, e.clientY);
-                    if (customerEl && customerEl.classList.contains("customerAvatar")) {
-                        const slotEl = customerEl.closest(".customerSlot");
-                        const bubbleEl = slotEl.querySelector(".speechBubble");
-                        let requestedFoods = JSON.parse(bubbleEl.dataset.request);
-                        let remaining = parseInt(bubbleEl.dataset.remaining);
-                        const draggedFood = plates[initialPlateIndex].foodType;
-                        const foodIndex = requestedFoods.findIndex(item => item.includes(draggedFood));
-                        if (foodIndex !== -1 && remaining > 0) {
-                            const requestedFoodImgSrc = requestedFoods[foodIndex].match(/src="([^"]+)"/)[1];
-                            if (draggedFood === requestedFoodImgSrc) {
-                                const [food, currentQuantity] = requestedFoods[foodIndex].split(" x ");
-                                let newQuantity = parseInt(currentQuantity) - 1;
-                                incomingMoney += Math.floor(plates[initialPlateIndex].basePrice * (plates[initialPlateIndex].level ** 1.98));
-                                if (newQuantity > 0) {
-                                    requestedFoods[foodIndex] = `${food} x ${newQuantity}`;
-                                } else {
-                                    requestedFoods.splice(foodIndex, 1);
-                                }
-                                remaining--;
-                                bubbleEl.dataset.remaining = remaining;
-                                bubbleEl.dataset.request = JSON.stringify(requestedFoods);
-                                if (remaining === 0) {
-                                    const earnedAmount = incomingMoney;
-                                    bubbleEl.innerHTML = `Thanks!<br><br>$${earnedAmount}`;
-                                    playSfx("media/audio/sfx/collect.mp3");
-                                    setTimeout(() => {
-                                        updateMoney(money + incomingMoney);
-                                    }, 500);
-                                    setTimeout(() => {
-                                        bubbleEl.style.transition = "opacity 0.5s ease-in-out";
-                                        bubbleEl.style.opacity = 0;
-                                        const avatarEl = slotEl.querySelector(".customerAvatar");
-                                        avatarEl.style.transition = "opacity 0.5s ease-in-out";
-                                        avatarEl.style.opacity = 0;
-                                        setTimeout(() => {
-                                            bubbleEl.style.display = "none";
-                                            avatarEl.style.display = "none";
-                                            bubbleEl.style.opacity = 1;
-                                            avatarEl.style.opacity = 1;
-                                            incomingMoney = 0;
-                                        }, 500);
-                                        removeCustomer(slotEl);
-                                    }, 1500);
-                                } else {
-                                    bubbleEl.innerHTML = requestedFoods.map(food => `<div>${food}</div>`).join('');
-                                    playSfx("media/audio/sfx/pop2.mp3");
-                                }
-                                plates[initialPlateIndex].count -= 1;
-                                requestAnimationFrame(renderPlates);
-                            }
-                        }
-                    }
-                }
-            });
+            document.addEventListener("mouseup", onMouseUp); // Use a named function for clarity
         });
 
         function updateDragImagePosition(e) {
             if (isDragging && dragImage) {
                 dragImage.style.left = `${e.clientX - 40}px`;
                 dragImage.style.top = `${e.clientY - 40}px`;
+            }
+        }
+
+        function onMouseUp(e) {
+            if (isDragging) {
+                isDragging = false;
+                document.body.removeChild(dragImage);
+                document.removeEventListener("mousemove", updateDragImagePosition);
+                document.removeEventListener("mouseup", onMouseUp); // Clean up listener
+
+                const customerEl = document.elementFromPoint(e.clientX, e.clientY);
+                if (customerEl && customerEl.classList.contains("customerAvatar")) {
+                    const slotEl = customerEl.closest(".customerSlot");
+                    const bubbleEl = slotEl.querySelector(".speechBubble");
+
+                    // CRASH FIX: Initialize incoming money on the customer's bubble if it's not there
+                    if (!bubbleEl.dataset.incomingMoney) {
+                        bubbleEl.dataset.incomingMoney = "0";
+                    }
+
+                    let requestedFoods = JSON.parse(bubbleEl.dataset.request);
+                    let remaining = parseInt(bubbleEl.dataset.remaining);
+                    const draggedFood = plates[initialPlateIndex].foodType;
+                    const foodIndex = requestedFoods.findIndex(item => item.includes(draggedFood));
+
+                    if (foodIndex !== -1 && remaining > 0) {
+                        const requestedFoodImgSrc = requestedFoods[foodIndex].match(/src="([^"]+)"/)[1];
+                        if (draggedFood === requestedFoodImgSrc) {
+                            const [food, currentQuantity] = requestedFoods[foodIndex].split(" x ");
+                            let newQuantity = parseInt(currentQuantity) - 1;
+
+                            // CRASH FIX: Add earnings to the bubble's specific kitty
+                            let currentIncoming = parseFloat(bubbleEl.dataset.incomingMoney);
+                            currentIncoming += Math.floor(plates[initialPlateIndex].basePrice * (plates[initialPlateIndex].level ** 1.98));
+                            bubbleEl.dataset.incomingMoney = currentIncoming;
+
+                            if (newQuantity > 0) {
+                                requestedFoods[foodIndex] = `${food} x ${newQuantity}`;
+                            } else {
+                                requestedFoods.splice(foodIndex, 1);
+                            }
+                            remaining--;
+                            bubbleEl.dataset.remaining = remaining;
+                            bubbleEl.dataset.request = JSON.stringify(requestedFoods);
+
+                            if (remaining === 0) {
+                                const earnedAmount = parseFloat(bubbleEl.dataset.incomingMoney);
+                                bubbleEl.innerHTML = `Thanks!<br><br>$${earnedAmount}`;
+                                playSfx("media/audio/sfx/collect.mp3");
+
+                                // CRASH FIX: Add the final amount from the bubble to the main money
+                                setTimeout(() => {
+                                    updateMoney(money + earnedAmount);
+                                }, 500);
+
+                                setTimeout(() => {
+                                    bubbleEl.style.transition = "opacity 0.5s ease-in-out";
+                                    bubbleEl.style.opacity = 0;
+                                    const avatarEl = slotEl.querySelector(".customerAvatar");
+                                    avatarEl.style.transition = "opacity 0.5s ease-in-out";
+                                    avatarEl.style.opacity = 0;
+                                    setTimeout(() => {
+                                        removeCustomer(slotEl); // removeCustomer handles the rest of the cleanup
+                                    }, 500);
+                                }, 1500);
+                            } else {
+                                bubbleEl.innerHTML = requestedFoods.map(food => `<div>${food}</div>`).join('');
+                                playSfx("media/audio/sfx/pop2.mp3");
+                            }
+                            plates[initialPlateIndex].count -= 1;
+                            requestAnimationFrame(renderPlates);
+                        }
+                    }
+                }
             }
         }
     });
@@ -732,13 +747,13 @@ let plates = [
     { index: 3, foodType: "media/images/food/milk.png", foodName: "Milk", count: 0, level: 1, locked: true, costToUnlock: 800, basePrice: 125 },
     { index: 4, foodType: "media/images/food/yogurt.png", foodName: "Yogurt", count: 0, level: 1, locked: true, costToUnlock: 1800, basePrice: 275 },
     { index: 5, foodType: "media/images/food/coffee.png", foodName: "Coffee", count: 0, level: 1, locked: true, costToUnlock: 3000, basePrice: 520 },
-    { index: 5, foodType: "media/images/food/waffle.png", foodName: "Waffle", count: 0, level: 1, locked: true, costToUnlock: 7500, basePrice: 650 },
-    { index: 6, foodType: "media/images/food/fries.png", foodName: "Fries", count: 0, level: 1, locked: true, costToUnlock: 17000, basePrice: 1100 },
-    { index: 7, foodType: "media/images/food/bacon.png", foodName: "Bacon", count: 0, level: 1, locked: true, costToUnlock: 30000, basePrice: 1650 },
-    { index: 8, foodType: "media/images/food/pizza.png", foodName: "Pizza", count: 0, level: 1, locked: true, costToUnlock: 70000, basePrice: 3000 },
-    { index: 9, foodType: "media/images/food/burger.png", foodName: "Burger", count: 0, level: 1, locked: true, costToUnlock: 200000, basePrice: 7000 },
-    { index: 10, foodType: "media/images/food/ice_cream.png", foodName: "Ice Cream", count: 0, level: 1, locked: true, costToUnlock: 1000000, basePrice: 20000 },
-    { index: 11, foodType: "media/images/food/cake.png", foodName: "Cake", count: 0, level: 1, locked: true, costToUnlock: 5000000, basePrice: 70000 }
+    { index: 6, foodType: "media/images/food/waffle.png", foodName: "Waffle", count: 0, level: 1, locked: true, costToUnlock: 7500, basePrice: 650 },
+    { index: 7, foodType: "media/images/food/fries.png", foodName: "Fries", count: 0, level: 1, locked: true, costToUnlock: 17000, basePrice: 1100 },
+    { index: 8, foodType: "media/images/food/bacon.png", foodName: "Bacon", count: 0, level: 1, locked: true, costToUnlock: 30000, basePrice: 1650 },
+    { index: 9, foodType: "media/images/food/pizza.png", foodName: "Pizza", count: 0, level: 1, locked: true, costToUnlock: 70000, basePrice: 3000 },
+    { index: 10, foodType: "media/images/food/burger.png", foodName: "Burger", count: 0, level: 1, locked: true, costToUnlock: 200000, basePrice: 7000 },
+    { index: 11, foodType: "media/images/food/ice_cream.png", foodName: "Ice Cream", count: 0, level: 1, locked: true, costToUnlock: 1000000, basePrice: 20000 },
+    { index: 12, foodType: "media/images/food/cake.png", foodName: "Cake", count: 0, level: 1, locked: true, costToUnlock: 5000000, basePrice: 70000 }
 ];
 
 renderPlates();
@@ -841,6 +856,10 @@ function serveCustomer(plateIndex, bubbleEl, slotEl, dropHandler) {
 function removeCustomer(slotEl) {
     const avatar = slotEl.querySelector(".customerAvatar");
     const bubble = slotEl.querySelector(".speechBubble");
+
+    // CRASH FIX: Immediately mark the slot so spawnCustomer won't use it
+    slotEl.dataset.occupied = "removing";
+
     console.log("Customer removed from slot:", slotEl);
     if (avatar) {
         avatar.style.display = "none";
@@ -851,10 +870,12 @@ function removeCustomer(slotEl) {
         bubble.innerHTML = "";
         bubble.dataset.request = "";
         bubble.dataset.remaining = "";
+        // CRASH FIX: Clean up the money tracker
+        bubble.dataset.incomingMoney = "0";
     }
-    setTimeout(() => {
-        slotEl.dataset.occupied = "false";
-    }, 10);
+
+    // After animations and cleanup are done, finally free the slot
+    slotEl.dataset.occupied = "false";
 }
 
 function spawnCustomer() {
@@ -862,15 +883,20 @@ function spawnCustomer() {
     const customerSlots = document.querySelectorAll(".customerSlot");
     const freeSlots = [];
     customerSlots.forEach(slot => {
-        if (slot.dataset.occupied !== "true") {
+        // CRASH FIX: Ensure the slot is not occupied or in the process of being cleared
+        if (slot.dataset.occupied !== "true" && slot.dataset.occupied !== "removing") {
             freeSlots.push(slot);
         }
     });
+
     if (freeSlots.length === 0) return;
     const slotEl = freeSlots[Math.floor(Math.random() * freeSlots.length)];
     slotEl.dataset.occupied = "true";
     const avatarEl = slotEl.querySelector(".customerAvatar");
     const bubbleEl = slotEl.querySelector(".speechBubble");
+    
+    // CRASH FIX: Reset bubble data on spawn
+    bubbleEl.dataset.incomingMoney = "0";
 
     if (Math.random() < 0.001) {
         avatarEl.src = "media/images/customers/finn.png";
@@ -890,13 +916,15 @@ function spawnCustomer() {
 
     const unlockedPlates = plates.filter(p => !p.locked);
     const orderFoods = [];
-    const orderQuantities = [];
     let totalOrderQuantity = 0;
 
     let numberOfFoods = Math.floor(Math.random() * 3) + 1;
     if (unlockedPlates.length === 1) {
         numberOfFoods = 1;
+    } else if (unlockedPlates.length < numberOfFoods) {
+        numberOfFoods = unlockedPlates.length;
     }
+
 
     const chosenFoods = new Set();
     for (let i = 0; i < numberOfFoods; i++) {
@@ -905,36 +933,22 @@ function spawnCustomer() {
         do {
             chosen = unlockedPlates[Math.floor(Math.random() * unlockedPlates.length)];
             orderQuantity = Math.floor(Math.random() * 3) + 1;
-        } while (chosenFoods.has(chosen));
-        chosenFoods.add(chosen);
+        } while (chosenFoods.has(chosen.foodName)); // Use foodName to ensure unique food types
+        chosenFoods.add(chosen.foodName);
 
-        const foodImg = document.createElement('img');
-        foodImg.src = chosen.foodType;
-        foodImg.alt = chosen.foodType;
-        foodImg.style.width = '30px';
-        foodImg.style.height = '30px';
-        foodImg.style.verticalAlign = 'middle';
+        const foodHtml = `<img src="${chosen.foodType}" alt="${chosen.foodName}" style="width: 30px; height: 30px; vertical-align: middle;"> x ${orderQuantity}`;
 
-        const quantityText = document.createTextNode(` x ${orderQuantity}`);
-        const imageAndCountSpan = document.createElement('span');
-        imageAndCountSpan.appendChild(foodImg);
-        imageAndCountSpan.appendChild(quantityText);
-        const foodContainer = document.createElement('div');
-        foodContainer.appendChild(imageAndCountSpan);
-
-        orderFoods.push(foodContainer);
-        orderQuantities.push(orderQuantity);
+        orderFoods.push(foodHtml);
         totalOrderQuantity += orderQuantity;
     }
 
-    bubbleEl.innerHTML = '';
-    orderFoods.forEach(food => bubbleEl.appendChild(food));
-    bubbleEl.dataset.request = JSON.stringify(orderFoods.map(food => food.innerHTML));
+    bubbleEl.innerHTML = orderFoods.map(food => `<div>${food}</div>`).join('');
+    bubbleEl.dataset.request = JSON.stringify(orderFoods);
     bubbleEl.dataset.remaining = totalOrderQuantity;
 
     avatarEl.classList.add("slide-down");
 
-    clearTimeout(customerTimeout); 
+    clearTimeout(customerTimeout);
     customerTimeout = setTimeout(() => {
         avatarEl.classList.remove("slide-down");
 
@@ -950,18 +964,6 @@ function spawnCustomer() {
 
         }, 500);
     }, 1000);
-
-    const dropHandler = (e) => {
-        e.preventDefault();
-        const requested = bubbleEl.dataset.request;
-        const draggedFood = e.dataTransfer.getData("foodType");
-        const plateIndex = Number(e.dataTransfer.getData("plateIndex"));
-        if (draggedFood === requested) {
-            serveCustomer(plateIndex, bubbleEl, slotEl, dropHandler);
-        }
-    };
-    avatarEl.addEventListener("dragover", dragOverHandler);
-    avatarEl.addEventListener("drop", dropHandler);
 }
 
 let customerTimeout;
