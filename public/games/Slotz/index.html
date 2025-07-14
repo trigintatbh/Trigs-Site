@@ -3,77 +3,121 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="media/textures/symbols/7.png">
   <title>Slotz</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
     :root {
-      --bg-start:#001a4d;
-      --bg-end:#0056b3;
-      --glass-bg:rgba(0,0,0,0.15);
-      --glass-border:rgba(255,255,255,0.3);
-      --text:#fff;
-      --accent:#4d94ff;
-      --shadow-light:rgba(255,255,255,0.25);
-      --shadow-dark:rgba(0,0,0,0.1);
-      --slot-size:80px;
-      --current-win-color: rgb(255,0,0); 
+      --bg-start: #000000;
+      --bg-end: #111114;
+      --glass-bg: rgba(0, 0, 0, 0.15);
+      --glass-border: rgba(255, 255, 255, 0.3);
+      --text: #fff;
+      --accent: #4d94ff;
+      --shadow-light: rgba(255, 255, 255, 0.25);
+      --shadow-dark: rgba(0, 0, 0, 0.1);
+      --slot-size: 80px;
+      --current-win-color: rgb(255, 0, 0);
+      --rarity-common: #ededed;
+      --rarity-uncommon: #48ed6e;
+      --rarity-rare: #2646ff;
+      --rarity-epic: #6839df;
+      --rarity-legendary: #ffb81f;
+
     }
-    *{
-        box-sizing: border-box;
-        font-family: 'Inter', sans-serif;
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
-    body{
-      margin:0;
-      height:100vh;
-      background:radial-gradient(circle at top left,var(--bg-end),var(--bg-start));
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      font-family:'Inter',sans-serif;
-      color:var(--text);
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: radial-gradient(circle at top left, var(--bg-end), var(--bg-start));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      position: relative;
     }
-    .glass-card{
-      width:90vw;
-      max-width:900px;
-      background:var(--glass-bg);
-      backdrop-filter:blur(20px);
-      -webkit-backdrop-filter:blur(20px);
-      border-radius:20px;
-      border:1px solid var(--glass-border);
-      box-shadow:0 8px 32px rgba(0,0,0,0.1),inset 0 1px 1px var(--shadow-light),inset 0 -1px 1px rgba(255,255,255,0.1),inset 0 0 20px 5px rgba(255,255,255,0.05);
-      position:relative;
-      overflow:hidden;
-      padding:2rem;
-      display:flex;
-      flex-direction:column;
-      gap:1.5rem;
-      align-items:center;
+
+    .game-container {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      transform: scale(1.2);
+      transform-origin: center;
     }
-    .info-display{
-      display:flex;
-      justify-content:space-between;
-      width:100%;
-      font-size:1.2rem;
-      font-weight:600;
+
+    .glass-card {
+      width: 25vw;
+      max-width: 900px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 1px var(--shadow-light), inset 0 -1px 1px rgba(255, 255, 255, 0.1), inset 0 0 20px 5px rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      align-items: center;
+      height: 34rem;
+      justify-content: center;
     }
-    #message-box{
-      text-align:center;
-      font-weight:600;
-      color:var(--accent);
-      min-height:1.5rem;
-      opacity:0;
-      transition:opacity .3s;
+
+    .info-display {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .currency-display {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .currency-icon {
+      height: 1.2em;
+
+      vertical-align: middle;
+    }
+
+    #message-box {
+      text-align: center;
+      font-weight: 600;
+      color: var(--accent);
+      min-height: 1.5rem;
+      opacity: 0;
+      transition: opacity .3s;
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       font-size: 3rem;
-      text-shadow: 0 0 10px rgba(255,255,255,0.5);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
       pointer-events: none;
       z-index: 10;
     }
-    .reels{
-      display:flex;
+
+    .reels {
+      display: flex;
       position: relative;
       padding-top: 1rem;
       padding-bottom: 1rem;
@@ -83,35 +127,50 @@
       outline: 4px solid #ffab23;
       border-radius: 1rem;
     }
-    .reel{
-      width:var(--slot-size);
-      height:calc(var(--slot-size)*3.04);
-      border:2px inset rgba(0,0,0,0.1);
-      overflow:hidden;
-      position:relative;
+
+    .reel {
+      width: var(--slot-size);
+      height: calc(var(--slot-size) * 3.04);
+      border: 2px inset rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      position: relative;
     }
 
     .reel-border {
-        border-right: 4px solid #ffab233b; 
+      border-right: 4px solid #ffab233b;
     }
-    .reel-track{
-      position:absolute;
-      top:0;
-      left:0;
-      width:100%;
-      transform:translateY(0);
+
+    .reels.off .reel-border {
+      border-right: 4px solid rgba(255, 171, 35, 0);
     }
-    .symbol{
-      width:100%;
-      height:var(--slot-size);
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      font-size:2rem;
+
+    .reel-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      transform: translateY(0);
+    }
+
+    .symbol {
+      width: 100%;
+      height: var(--slot-size);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
       box-sizing: border-box;
       border: 4px solid transparent;
       overflow: hidden;
     }
+
+    .reels.off .symbol {
+      opacity: 0;
+
+      box-shadow: none;
+
+    }
+
     .symbol-content {
       display: flex;
       justify-content: center;
@@ -121,30 +180,33 @@
     }
 
     .symbol-content img {
-        max-width: 70%; 
-        max-height: 70%;
-        object-fit: contain;
+      max-width: 70%;
+      max-height: 70%;
+      object-fit: contain;
     }
 
-    .spin-button{
-      background:rgba(255,255,255,0.1);
-      border:1px solid var(--glass-border);
-      padding:.8rem 2rem;
-      border-radius:50px;
-      font-size:1.2rem;
-      font-weight:600;
-      color:var(--text);
-      cursor:pointer;
-      backdrop-filter:blur(5px);
-      -webkit-backdrop-filter:blur(5px);
-      box-shadow:inset 0 2px 2px var(--shadow-light),inset 0 -2px 2px var(--shadow-dark),0 10px 20px var(--shadow-dark);
-      transition:transform .2s;
-      margin-top:1rem;
+    .spin-button {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      padding: .8rem 2rem;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      box-shadow: inset 0 2px 2px var(--shadow-light), inset 0 -2px 2px var(--shadow-dark), 0 10px 20px var(--shadow-dark);
+      transition: transform .2s;
+      margin-top: 1rem;
     }
-    .spin-button:hover{transform:translateY(-3px);}
+
+    .spin-button:hover {
+      transform: translateY(-3px);
+    }
 
     .winning-symbol {
-      border: 4px solid var(--current-win-color); 
+      border: 4px solid var(--current-win-color);
       border-radius: 1rem;
       position: relative;
       z-index: 5;
@@ -152,119 +214,317 @@
     }
 
     .winning-symbol .symbol-content img {
-        animation: circular-true-move 1s infinite linear; 
+      animation: circular-true-move 1s infinite linear;
     }
 
-@keyframes rgb-border-glow {
-    0%{ --current-win-color: rgb(255,0,0); }
-    8%{ --current-win-color: rgb(255,127,0); }
-    16%{ --current-win-color: rgb(255,255,0); }
-    25%{ --current-win-color: rgb(127,255,0); }
-    33%{ --current-win-color: rgb(0,255,0); }
-    41%{ --current-win-color: rgb(0,255,127); }
-    50%{ --current-win-color: rgb(0,255,255); }
-    58%{ --current-win-color: rgb(0,127,255); }
-    66%{ --current-win-color: rgb(0,0,255); }
-    75%{ --current-win-color: rgb(127,0,255); }
-    83%{ --current-win-color: rgb(255,0,255); }
-    91%{ --current-win-color: rgb(255,0,127); }
-    100%{ --current-win-color: rgb(255,0,0); }
-}
+    .debt-section {
+      text-align: center;
+      width: 400px;
+      gap: 1rem;
+    }
 
-@keyframes rainbow-text{
-		100%,0%{
-			color: rgb(255,0,0);
-		}
-		8%{
-			color: rgb(255,127,0);
-		}
-		16%{
-			color: rgb(255,255,0);
-		}
-		25%{
-			color: rgb(127,255,0);
-		}
-		33%{
-			color: rgb(0,255,0);
-		}
-		41%{
-			color: rgb(0,255,127);
-		}
-		50%{
-			color: rgb(0,255,255);
-		}
-		58%{
-			color: rgb(0,127,255);
-		}
-		66%{
-			color: rgb(0,0,255);
-		}
-		75%{
-			color: rgb(127,0,255);
-		}
-		83%{
-			color: rgb(255,0,255);
-		}
-		91%{
-			color: rgb(255,0,127);
-		}
-}
+    .debt-section #pay-debt-button {
+      background-color: #dc3545;
 
-@keyframes rainbow-text-2 {
-  0%, 100% {
-    color: rgb(255, 0, 0);
-    text-shadow: -4px -4px 0 rgb(128,0,0), 4px -4px 0 rgb(128,0,0), -4px 4px 0 rgb(128,0,0), 4px 4px 0 rgb(128,0,0), -4px 0 0 rgb(128,0,0), 4px 0 0 rgb(128,0,0), 0 -4px 0 rgb(128,0,0), 0 4px 0 rgb(128,0,0);
-  }
-  8% {
-    color: rgb(255, 127, 0);
-    text-shadow: -4px -4px 0 rgb(128,64,0), 4px -4px 0 rgb(128,64,0), -4px 4px 0 rgb(128,64,0), 4px 4px 0 rgb(128,64,0), -4px 0 0 rgb(128,64,0), 4px 0 0 rgb(128,64,0), 0 -4px 0 rgb(128,64,0), 0 4px 0 rgb(128,64,0);
-  }
-  16% {
-    color: rgb(255, 255, 0);
-    text-shadow: -4px -4px 0 rgb(128,128,0), 4px -4px 0 rgb(128,128,0), -4px 4px 0 rgb(128,128,0), 4px 4px 0 rgb(128,128,0), -4px 0 0 rgb(128,128,0), 4px 0 0 rgb(128,128,0), 0 -4px 0 rgb(128,128,0), 0 4px 0 rgb(128,128,0);
-  }
-  25% {
-    color: rgb(127, 255, 0);
-    text-shadow: -4px -4px 0 rgb(64,128,0), 4px -4px 0 rgb(64,128,0), -4px 4px 0 rgb(64,128,0), 4px 4px 0 rgb(64,128,0), -4px 0 0 rgb(64,128,0), 4px 0 0 rgb(64,128,0), 0 -4px 0 rgb(64,128,0), 0 4px 0 rgb(64,128,0);
-  }
-  33% {
-    color: rgb(0, 255, 0);
-    text-shadow: -4px -4px 0 rgb(0,128,0), 4px -4px 0 rgb(0,128,0), -4px 4px 0 rgb(0,128,0), 4px 4px 0 rgb(0,128,0), -4px 0 0 rgb(0,128,0), 4px 0 0 rgb(0,128,0), 0 -4px 0 rgb(0,128,0), 0 4px 0 rgb(0,128,0);
-  }
-  41% {
-    color: rgb(0, 255, 127);
-    text-shadow: -4px -4px 0 rgb(0,128,64), 4px -4px 0 rgb(0,128,64), -4px 4px 0 rgb(0,128,64), 4px 4px 0 rgb(0,128,64), -4px 0 0 rgb(0,128,64), 4px 0 0 rgb(0,128,64), 0 -4px 0 rgb(0,128,64), 0 4px 0 rgb(0,128,64);
-  }
-  50% {
-    color: rgb(0, 255, 255);
-    text-shadow: -4px -4px 0 rgb(0,128,128), 4px -4px 0 rgb(0,128,128), -4px 4px 0 rgb(0,128,128), 4px 4px 0 rgb(0,128,128), -4px 0 0 rgb(0,128,128), 4px 0 0 rgb(0,128,128), 0 -4px 0 rgb(0,128,128), 0 4px 0 rgb(0,128,128);
-  }
-  58% {
-    color: rgb(0, 127, 255);
-    text-shadow: -4px -4px 0 rgb(0,64,128), 4px -4px 0 rgb(0,64,128), -4px 4px 0 rgb(0,64,128), 4px 4px 0 rgb(0,64,128), -4px 0 0 rgb(0,64,128), 4px 0 0 rgb(0,64,128), 0 -4px 0 rgb(0,64,128), 0 4px 0 rgb(0,64,128);
-  }
-  66% {
-    color: rgb(0, 0, 255);
-    text-shadow: -4px -4px 0 rgb(0,0,128), 4px -4px 0 rgb(0,0,128), -4px 4px 0 rgb(0,0,128), 4px 4px 0 rgb(0,0,128), -4px 0 0 rgb(0,0,128), 4px 0 0 rgb(0,0,128), 0 -4px 0 rgb(0,0,128), 0 4px 0 rgb(0,0,128);
-  }
-  75% {
-    color: rgb(127, 0, 255);
-    text-shadow: -4px -4px 0 rgb(64,0,128), 4px -4px 0 rgb(64,0,128), -4px 4px 0 rgb(64,0,128), 4px 4px 0 rgb(64,0,128), -4px 0 0 rgb(64,0,128), 4px 0 0 rgb(64,0,128), 0 -4px 0 rgb(64,0,128), 0 4px 0 rgb(64,0,128);
-  }
-  83% {
-    color: rgb(255, 0, 255);
-    text-shadow: -4px -4px 0 rgb(128,0,128), 4px -4px 0 rgb(128,0,128), -4px 4px 0 rgb(128,0,128), 4px 4px 0 rgb(128,0,128), -4px 0 0 rgb(128,0,128), 4px 0 0 rgb(128,0,128), 0 -4px 0 rgb(128,0,128), 0 4px 0 rgb(128,0,128);
-  }
-  91% {
-    color: rgb(255, 0, 127);
-    text-shadow: -4px -4px 0 rgb(128,0,64), 4px -4px 0 rgb(128,0,64), 4px 4px 0 rgb(128,0,64), 4px 4px 0 rgb(128,0,64), -4px 0 0 rgb(128,0,64), 4px 0 0 rgb(128,0,64), 0 -4px 0 rgb(128,0,64), 0 4px 0 rgb(128,0,64);
-  }
-}
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
 
-@keyframes circular-true-move {
-  0%   { transform: rotate(0deg) translateX(4px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(4px) rotate(-360deg); }
-}
+    .debt-section #pay-debt-button:hover {
+      background-color: #9d1724;
+    }
+
+    .artifact-store {
+      width: 400px;
+      padding: 1rem;
+    }
+
+    .artifact {
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+
+      align-items: center;
+      gap: 5px;
+      position: relative;
+    }
+
+    .artifact.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .artifact-icon {
+      font-size: 2em;
+    }
+
+    .artifact-name {
+      font-weight: bold;
+    }
+
+    .artifact-name.common {
+      color: var(--rarity-common);
+    }
+
+    .artifact-name.uncommon {
+      color: var(--rarity-uncommon);
+    }
+
+    .artifact-name.rare {
+      color: var(--rarity-rare);
+    }
+
+    .artifact-name.epic {
+      color: var(--rarity-epic);
+    }
+
+    .artifact-name.legendary {
+      color: var(--rarity-legendary);
+    }
+
+    .artifact-price {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9em;
+    }
+
+    .artifact-price img {
+      height: 1em;
+
+      vertical-align: middle;
+    }
+
+    .artifact-tooltip {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      color: white;
+      font-size: 0.9em;
+      width: 200px;
+      text-align: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.03s;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .owned-artifacts {
+      margin-top: 1rem;
+    }
+
+    .owned-artifact-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+
+    .owned-artifact-item .artifact-icon {
+      font-size: 1.5em;
+    }
+
+    .owned-artifact-item .artifact-name {
+      font-size: 1em;
+    }
+
+    @keyframes rgb-border-glow {
+      0% {
+        --current-win-color: rgb(255, 0, 0);
+      }
+
+      8% {
+        --current-win-color: rgb(255, 127, 0);
+      }
+
+      16% {
+        --current-win-color: rgb(255, 255, 0);
+      }
+
+      25% {
+        --current-win-color: rgb(127, 255, 0);
+      }
+
+      33% {
+        --current-win-color: rgb(0, 255, 0);
+      }
+
+      41% {
+        --current-win-color: rgb(0, 255, 127);
+      }
+
+      50% {
+        --current-win-color: rgb(0, 255, 255);
+      }
+
+      58% {
+        --current-win-color: rgb(0, 127, 255);
+      }
+
+      66% {
+        --current-win-color: rgb(0, 0, 255);
+      }
+
+      75% {
+        --current-win-color: rgb(127, 0, 255);
+      }
+
+      83% {
+        --current-win-color: rgb(255, 0, 255);
+      }
+
+      91% {
+        --current-win-color: rgb(255, 0, 127);
+      }
+
+      100% {
+        --current-win-color: rgb(255, 0, 0);
+      }
+    }
+
+    @keyframes rainbow-text {
+      100%,
+      0% {
+        color: rgb(255, 0, 0);
+      }
+
+      8% {
+        color: rgb(255, 127, 0);
+      }
+
+      16% {
+        color: rgb(255, 255, 0);
+      }
+
+      25% {
+        color: rgb(127, 255, 0);
+      }
+
+      33% {
+        color: rgb(0, 255, 0);
+      }
+
+      41% {
+        color: rgb(0, 255, 127);
+      }
+
+      50% {
+        color: rgb(0, 255, 255);
+      }
+
+      58% {
+        color: rgb(0, 127, 255);
+      }
+
+      66% {
+        color: rgb(0, 0, 255);
+      }
+
+      75% {
+        color: rgb(127, 0, 255);
+      }
+
+      83% {
+        color: rgb(255, 0, 255);
+      }
+
+      91% {
+        color: rgb(255, 0, 127);
+      }
+    }
+
+    @keyframes rainbow-text-2 {
+      0%,
+      100% {
+        color: rgb(255, 0, 0);
+        text-shadow: -4px -4px 0 rgb(128, 0, 0), 4px -4px 0 rgb(128, 0, 0), -4px 4px 0 rgb(128, 0, 0), 4px 4px 0 rgb(128, 0, 0), -4px 0 0 rgb(128, 0, 0), 4px 0 0 rgb(128, 0, 0), 0 -4px 0 rgb(128, 0, 0), 0 4px 0 rgb(128, 0, 0);
+      }
+
+      8% {
+        color: rgb(255, 127, 0);
+        text-shadow: -4px -4px 0 rgb(128, 64, 0), 4px -4px 0 rgb(128, 64, 0), -4px 4px 0 rgb(128, 64, 0), 4px 4px 0 rgb(128, 64, 0), -4px 0 0 rgb(128, 64, 0), 4px 0 0 rgb(128, 64, 0), 0 -4px 0 rgb(128, 64, 0), 0 4px 0 rgb(128, 64, 0);
+      }
+
+      16% {
+        color: rgb(255, 255, 0);
+        text-shadow: -4px -4px 0 rgb(128, 128, 0), 4px -4px 0 rgb(128, 128, 0), -4px 4px 0 rgb(128, 128, 0), 4px 4px 0 rgb(128, 128, 0), -4px 0 0 rgb(128, 128, 0), 4px 0 0 rgb(128, 128, 0), 0 -4px 0 rgb(128, 128, 0), 0 4px 0 rgb(128, 128, 0);
+      }
+
+      25% {
+        color: rgb(127, 255, 0);
+        text-shadow: -4px -4px 0 rgb(64, 128, 0), 4px -4px 0 rgb(64, 128, 0), -4px 4px 0 rgb(64, 128, 0), 4px 4px 0 rgb(64, 128, 0), -4px 0 0 rgb(64, 128, 0), 4px 0 0 rgb(64, 128, 0), 0 -4px 0 rgb(64, 128, 0), 0 4px 0 rgb(64, 128, 0);
+      }
+
+      33% {
+        color: rgb(0, 255, 0);
+        text-shadow: -4px -4px 0 rgb(0, 128, 0), 4px -4px 0 rgb(0, 128, 0), -4px 4px 0 rgb(0, 128, 0), 4px 4px 0 rgb(0, 128, 0), -4px 0 0 rgb(0, 128, 0), 4px 0 0 rgb(0, 128, 0), 0 -4px 0 rgb(0, 128, 0), 0 4px 0 rgb(0, 128, 0);
+      }
+
+      41% {
+        color: rgb(0, 255, 127);
+        text-shadow: -4px -4px 0 rgb(0, 128, 64), 4px -4px 0 rgb(0, 128, 64), -4px 4px 0 rgb(0, 128, 64), 4px 4px 0 rgb(0, 128, 64), -4px 0 0 rgb(0, 128, 64), 4px 0 0 rgb(0, 128, 64), 0 -4px 0 rgb(0, 128, 64), 0 4px 0 rgb(0, 128, 64);
+      }
+
+      50% {
+        color: rgb(0, 255, 255);
+        text-shadow: -4px -4px 0 rgb(0, 128, 128), 4px -4px 0 rgb(0, 128, 128), -4px 4px 0 rgb(0, 128, 128), 4px 4px 0 rgb(0, 128, 128), -4px 0 0 rgb(0, 128, 128), 4px 0 0 rgb(0, 128, 128), 0 -4px 0 rgb(0, 128, 128), 0 4px 0 rgb(0, 128, 128);
+      }
+
+      58% {
+        color: rgb(0, 127, 255);
+        text-shadow: -4px -4px 0 rgb(0, 64, 128), 4px -4px 0 rgb(0, 64, 128), -4px 4px 0 rgb(0, 64, 128), 4px 4px 0 rgb(0, 64, 128), -4px 0 0 rgb(0, 64, 128), 4px 0 0 rgb(0, 64, 128), 0 -4px 0 rgb(0, 64, 128), 0 4px 0 rgb(0, 64, 128);
+      }
+
+      66% {
+        color: rgb(0, 0, 255);
+        text-shadow: -4px -4px 0 rgb(0, 0, 128), 4px -4px 0 rgb(0, 0, 128), -4px 4px 0 rgb(0, 0, 128), 4px 4px 0 rgb(0, 0, 128), -4px 0 0 rgb(0, 0, 128), 4px 0 0 rgb(0, 0, 128), 0 -4px 0 rgb(0, 0, 128), 0 4px 0 rgb(0, 0, 128);
+      }
+
+      75% {
+        color: rgb(127, 0, 255);
+        text-shadow: -4px -4px 0 rgb(64, 0, 128), 4px -4px 0 rgb(64, 0, 128), -4px 4px 0 rgb(64, 0, 128), 4px 4px 0 rgb(64, 0, 128), -4px 0 0 rgb(64, 0, 128), 4px 0 0 rgb(64, 0, 128), 0 -4px 0 rgb(64, 0, 128), 0 4px 0 rgb(64, 0, 128);
+      }
+
+      83% {
+        color: rgb(255, 0, 255);
+        text-shadow: -4px -4px 0 rgb(128, 0, 128), 4px -4px 0 rgb(128, 0, 128), -4px 4px 0 rgb(128, 0, 128), 4px 4px 0 rgb(128, 0, 128), -4px 0 0 rgb(128, 0, 128), 4px 0 0 rgb(128, 0, 128), 0 -4px 0 rgb(128, 0, 128), 0 4px 0 rgb(128, 0, 128);
+      }
+
+      91% {
+        color: rgb(255, 0, 127);
+        text-shadow: -4px -4px 0 rgb(128, 0, 64),
+        4px -4px 0 rgb(128, 0, 64),
+        -4px 4px 0 rgb(128, 0, 64),
+        4px 4px 0 rgb(128, 0, 64),
+        -4px 0 0 rgb(128, 0, 64),
+        4px 0 0 rgb(128, 0, 64),
+        0 -4px 0 rgb(128, 0, 64),
+        0 4px 0 rgb(128, 0, 64);
+      }
+
+    }
+
+    @keyframes circular-true-move {
+      0% {
+        transform: rotate(0deg) translateX(4px) rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg) translateX(4px) rotate(-360deg);
+      }
+    }
 
     #central-win-display {
       position: absolute;
@@ -288,599 +548,1519 @@
     }
 
     #central-win-display .win-amount {
-        font-size: 6rem;
-        display: block;
+      font-size: 6rem;
+      display: block;
+    }
+
+    #game-over-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      font-size: 2em;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+    }
+
+    #game-over-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #game-over-overlay h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      animation: rainbow-text 3s infinite linear;
+    }
+
+    #game-over-stats p {
+      margin: 10px 0;
+    }
+
+    #game-over-overlay button {
+      margin-top: 30px;
+      padding: 15px 30px;
+      font-size: 1.5em;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #game-over-overlay button:hover {
+      background-color: #337ab7;
+    }
+
+    .dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    }
+
+    .dialog-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .dialog-box {
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 15px;
+      border: 1px solid var(--glass-border);
+      padding: 30px;
+      text-align: center;
+      font-size: 1.5em;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .dialog-box button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .dialog-box button:hover {
+      background-color: #337ab7;
+    }
+
+    .flash-red {
+      animation: flashRed 0.5s infinite alternate;
+    }
+
+    @keyframes flashRed {
+      from {
+        background-color: transparent;
+      }
+
+      to {
+        background-color: rgba(255, 0, 0, 0.3);
+      }
+    }
+
+    .counter {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .counter .digits {
+      display: flex;
+    }
+
+    .counter .digit {
+      width: 1ch;
+      height: 2rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .digit {
+        transition: opacity 0.5s ease;
+    }
+
+    .counter .seq {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: top 0.5s ease-in-out;
+    }
+
+    .counter .seq span {
+      display: block;
+      height: 2rem;
+      line-height: 2rem;
+      text-align: center;
+    }
+
+    .counter .plain {
+      display: none;
+      font-feature-settings: "tnum";
+    }
+
+    .counter.long .digits {
+      display: none;
+    }
+
+    .counter:not(.long) .plain {
+      display: none;
+    }
+
+    .counter.long .plain {
+      display: inline;
+    }
+
+      .positive-text {
+    color: #48ed6e; /* Green color */
+  }
+
+  .negative-text {
+    color: #dc3545; /* Red color */
+  }
+
+  .highlight-text {
+    color: #f0ad4e; /* Orange color */
+  }
+
+  #atm {
+    color: #ff6923; /* Orange color */
+    font-weight: 800;
+    overflow: hidden; /* Ensures borders/lines are contained */
+  }
+
+      .info-item {
+      display: flex; /* Enable flexbox */
+      justify-content: space-between; /* Pushes content to ends */
+      width: 100%; /* Ensure it takes full width of its container */
+      padding: 0.5rem 0; /* Vertical padding */
+      border-bottom: 2px solid #ff6923; /* Line separator */
+    }
+
+    .info-item .label {
+      text-align: left; /* Ensure the label is left-aligned */
+      font-size: small;
+      font-weight: 900;
+    }
+
+    .info-item .value {
+      text-align: right; /* Ensure the value is right-aligned */
+      font-size: 1.2em;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      height: 40px; /* Sufficient height for two lines of text */
+      gap: 0.25rem;
+      flex-wrap: wrap; /* Allow content to wrap if it's too long */
+      justify-content: flex-end; /* Align content to the right when wrapped */
+    }
+
+    /* Style for the interest value to make it look like two lines if the number is tall */
+    #interestDisplay {
+      line-height: 1.2; /* Adjust line height to control spacing for two lines */
+    }
+
+    #cycle-info {
+        border-bottom: 2px solid #ff6923;
+        border-top: 2px solid #ff6923;
+        padding-bottom: 0.5rem;
+        padding-top: 0.5rem;
     }
   </style>
 </head>
 <body>
-  <div class="glass-card">
-    <div class="info-display">
-      <span>Money: $<span id="money">15</span></span>
-      <span>Spins: <span id="spin-count">0</span></span>
-      <span>Luck: <span id="luck-value">0</span></span> </div>
-    <div class="reels" id="reels-container"></div>
-    <div id="message-box">Spin to begin!</div> <div id="central-win-display"></div> <button class="spin-button" id="spin-button">Spin</button>
+<div id="top-counter"
+       style="position:fixed;top:1rem;left:1rem;font-feature-settings:'tnum';font-size:2rem;display:flex;gap:1rem;flex-direction:column;z-index:100;font-weight:500;">
+    <div class="counter" data-type="money">
+      <img src="media/textures/currency.png" class="currency-icon" style="height:1.5em;margin-right:0.25rem">
+      <div class="digits"></div>
+      <span class="plain"></span>
+    </div>
+    <div class="counter" data-type="tickets">
+      <img src="media/textures/lucky-ticket.png" class="currency-icon" style="height:1.5em;margin-right:0.25rem">
+      <div class="digits"></div>
+      <span class="plain"></span>
+    </div>
   </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
+  <div class="game-container">
+  <div class="glass-card debt-section">
+<div id="atm" style="text-align:center; margin-bottom: 0.5rem; width: 100%; background: black; padding: 0.5rem; outline: 4px solid #6d6d6d;">
+        <div id="cycle-info" style="text-align:center; margin-bottom: 0.5rem;">
+  <div id="cycle-label" style="font-size: 1.2rem; font-weight: bold;">Cycle 1</div>
+  <div id="round-label" style="font-size: 0.9rem; opacity: 0.7;">Round 1</div>
+</div>
+<div class="info-item">
+        <span class="label">DEBT:</span>
+        <span class="value" id="debtDisplay"><img src="media/textures/currency.png" class="currency-icon"><p id="debt-amount">75</p></span>
+    </div>
+    <div class="info-item">
+        <span class="label">DEPOSITED:</span>
+        <span class="value" id="debtPaidDisplay"><img src="media/textures/currency.png" class="currency-icon"><p id="debt-paid">30</p></span>
+    </div>
+    <div class="info-item">
+        <span class="label">INTEREST:</span>
+        <span class="value" id="interestDisplay"><p id="interest-percentage">7.5%</p>(<img src="media/textures/currency.png" class="currency-icon"><p id="interest-amount">2</p>)</span>
+    </div>
+</div>
+    <button id="pay-debt-button">Pay</button>
+  </div>
+  <div class="glass-card">
+    <div class="reels" id="reels-container"></div>
+    <div id="message-box"></div>
+    <div id="central-win-display"></div>
+    <button class="spin-button" id="spin-button">Spin</button>
+  </div>
+  <div class="glass-card artifact-store">
+    <h3>Artifact Store</h3>
+    <button id="reroll-artifacts-button">Reroll Artifacts (<img src="media/textures/currency.png"
+                                                                class="currency-icon"> 20)
+    </button>
+    <div id="artifact-list"></div>
+    <div class="owned-artifacts">
+      <h4>Your Artifacts</h4>
+      <div id="owned-artifact-list"></div>
+    </div>
+  </div>
+</div>
 
-      const symbolIdentifiers = ['cherry', 'lemon', 'watermelon', 'bell', 'diamond', 'clover', 'seven'];
-      const symbolImageMap = {
-          'cherry': 'media/textures/symbols/cherry.png',
-          'lemon': 'media/textures/symbols/lemon.png',
-          'watermelon': 'media/textures/symbols/watermelon.png',
-          'bell': 'media/textures/symbols/bell.png',
-          'diamond': 'media/textures/symbols/diamond.png',
-          'clover': 'media/textures/symbols/clover.png',
-          'seven': 'media/textures/symbols/7.png'
-      };
+<div id="artifact-tooltip" class="artifact-tooltip"></div>
 
-      const weightMap = {
-          'cherry': 10,
-          'lemon': 10,
-          'watermelon': 7,
-          'bell': 4,
-          'diamond': 2,
-          'clover': 1,
-          'seven': 0.5
-      };
+<div id="game-over-overlay">
+  <h2>Game Over!</h2>
+  <div id="game-over-stats">
+    <p>Final Round: <span id="final-round"></span></p>
+    <p>Total Money Earned: <img src="media/textures/currency.png" class="currency-icon"> <span
+      id="total-money-earned"></span></p>
+    <p>Total Spins: <span id="total-spins"></span></p>
+    <p>Total Tickets: <img src="media/textures/lucky-ticket.png" class="currency-icon"> <span
+      id="total-tickets"></span></p>
+    <p>Debt Paid: <img src="media/textures/currency.png" class="currency-icon"> <span id="final-debt-paid"></span></p>
+  </div>
+  <button id="retry-button">Retry</button>
+</div>
 
-      const weighted = [];
+<div id="dialog-overlay" class="dialog-overlay">
+  <div class="dialog-box">
+    <p id="dialog-message"></p>
+    <button id="dialog-ok-button" style="display: none;">OK</button>
+    <button id="dialog-deposit-button" style="display: none;">Deposit Now!</button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    const symbolIdentifiers = ['cherry', 'lemon', 'watermelon', 'bell', 'diamond', 'clover', 'seven'];
+    const symbolImageMap = {
+      'cherry': 'media/textures/symbols/cherry.png',
+      'lemon': 'media/textures/symbols/lemon.png',
+      'watermelon': 'media/textures/symbols/watermelon.png',
+      'bell': 'media/textures/symbols/bell.png',
+      'diamond': 'media/textures/symbols/diamond.png',
+      'clover': 'media/textures/symbols/clover.png',
+      'seven': 'media/textures/symbols/7.png'
+    };
+
+    const weightMap = {
+      'cherry': 20,
+      'lemon': 20,
+      'watermelon': 12,
+      'bell': 15,
+      'diamond': 12,
+      'clover': 15,
+      'seven': 7.5
+    };
+
+    const symbolWorth = {
+        'cherry': 2,
+        'lemon': 2,
+        'watermelon': 5,
+        'bell': 3,
+        'diamond': 5,
+        'clover': 3,
+        'seven': 7
+    };
+
+    let weighted = [];
+    const allArtifacts = [
+      {id: 'fakeCoin', name: 'Fake Coin', icon: '🪙', price: 2, rarity: 'common', description: '<highlight Triggers randomly> (20%): <positive +3> <luck> for the current spin.'},
+      {id: 'horseshoe', name: 'Horseshoe', icon: '🧲', price: 2, rarity: 'common', description: 'Increases the chance of luck-based events by <positive 35% (multiplicative)>.'},
+      {id: 'luckyBell', name: 'Lucky Bell', icon: '🔔', price: 2, rarity: 'common', description: 'Doubles the chance of <clover> <bell> appearing.'},
+      {id: 'cherryBoost', name: 'Cherry Boost', icon: '🍒', price: 2, rarity: 'common', description: 'Increases <money> earned from <cherry> by <positive 50%>.'},
+      {id: 'fruitEmblem', name: 'Fruit Emblem', icon: '🍊', price: 4, rarity: 'uncommon', description: '<positive Doubles> the chance for <cherry><lemon><watermelon>, <negative halves> the chance for <bell><diamond><clover><seven>.'},
+      {id: 'luckyCharm', name: 'Lucky Charm', icon: '✨', price: 3, rarity: 'uncommon', description: '<positive +5> <luck>.'},
+      {id: 'moneyMagnet', name: 'Money Magnet', icon: '💰', price: 5, rarity: 'uncommon', description: 'All <money> gains <positive +10%>.'},
+      {id: 'spinMaster', name: 'Spin Master', icon: '🌀', price: 10, rarity: 'rare', description: 'Spins cost <money>0.'}
+    ];
+    let availableArtifacts = [];
+    let ownedArtifacts = [];
+
+    const CENTER_COLORS = {
+      cherry: [200, 30, 50],
+      lemon: [240, 230, 50],
+      watermelon: [150, 20, 20],
+      bell: [250, 225, 0],
+      diamond: [180, 220, 255],
+      clover: [20, 200, 20],
+      seven: [255, 0, 0],
+    };
+
+    function applyStaticGlow(symbolEl) {
+      const id = symbolEl.querySelector('.symbol-content').dataset.symbol;
+      const [r, g, b] = CENTER_COLORS[id] || [255, 215, 0];
+      symbolEl.style.background =
+        `radial-gradient(circle, rgba(${r},${g},${b},0.3) 0%, rgba(${r},${g},${b},0) 70%)`;
+    }
+
+    function updateWeightedSymbols() {
+      weighted = [];
       symbolIdentifiers.forEach(s => {
-          for(let i=0; i < weightMap[s]; i++) weighted.push(s);
+        let weight = weightMap[s];
+        if (ownedArtifacts.some(a => a.id === 'luckyBell')) {
+          if (s === 'clover' || s === 'bell') {
+            weight *= 2;
+          }
+        }
+        if (ownedArtifacts.some(a => a.id === 'fruitEmblem')) {
+          if (s === 'cherry') weight *= 2;
+          if (s === 'lemon') weight *= 2;
+          if (s === 'watermelon') weight *= 2;
+          if (s === 'bell') weight *= 0.5;
+          if (s === 'diamond') weight *= 0.5;
+          if (s === 'clover') weight *= 0.5;
+          if (s === 'seven') weight *= 0.5;
+        }
+        for (let i = 0; i < weight; i++) weighted.push(s);
       });
+    }
 
-      const moneyEl=document.getElementById('money');
-      const spinsEl=document.getElementById('spin-count');
-      const luckEl = document.getElementById('luck-value');
-      const msgBox=document.getElementById('message-box');
-      const centralWinDisplay = document.getElementById('central-win-display');
-      const spinBtn=document.getElementById('spin-button');
-      const container=document.getElementById('reels-container');
-      const root = document.documentElement;
+    updateWeightedSymbols();
 
-      let money=10,spins=0,cost=1; isSpinning=false;
-      let luck = 0;
-      let moneyMultiplier = 1;
-      const nReels=5;
-      const rowsVisible = 3;
-      const reels=[];
-      let reelsReadyForCheck = 0;
+    const moneyEl = document.getElementById('money');
+    const msgBox = document.getElementById('message-box');
+    const centralWinDisplay = document.getElementById('central-win-display');
+    const spinBtn = document.getElementById('spin-button');
+    const container = document.getElementById('reels-container');
+    const root = document.documentElement;
 
-      const durations=[0.8,0.95,1.0,1.15,1.45];
-      const delays=[0,0.1,0.2,0.3,0.4];
+    const ticketEl = document.getElementById('ticket-count');
+    const debtAmountEl = document.getElementById('debt-amount');
+    const debtPaidEl = document.getElementById('debt-paid');
+    const interestEl = document.getElementById('interest-amount');
+    const payDebtBtn = document.getElementById('pay-debt-button');
+    const artifactListEl = document.getElementById('artifact-list');
+    const ownedArtifactListEl = document.getElementById('owned-artifact-list');
+    const rerollArtifactsBtn = document.getElementById('reroll-artifacts-button');
+    const artifactTooltip = document.getElementById('artifact-tooltip');
 
-      const audio = {
-          startRound: new Audio('media/audio/slot-machine/start-round.mp3'),
-          ticks: [
-              new Audio('media/audio/slot-machine/tick1.mp3'),
-              new Audio('media/audio/slot-machine/tick2.mp3'),
-              new Audio('media/audio/slot-machine/tick3.mp3'),
-              new Audio('media/audio/slot-machine/tick4.mp3'),
-              new Audio('media/audio/slot-machine/tick5.mp3')
-          ],
-          combos: [
-              new Audio('media/audio/slot-machine/combo1.mp3'),
-              new Audio('media/audio/slot-machine/combo2.mp3'),
-              new Audio('media/audio/slot-machine/combo3.mp3'),
-              new Audio('media/audio/slot-machine/combo4.mp3'),
-              new Audio('media/audio/slot-machine/combo5.mp3')
-          ]
-      };
+    const gameOverOverlay = document.getElementById('game-over-overlay');
+    const finalRoundEl = document.getElementById('final-round');
+    const totalMoneyEarnedEl = document.getElementById('total-money-earned');
+    const totalSpinsEl = document.getElementById('total-spins');
+    const totalTicketsEl = document.getElementById('total-tickets');
+    const finalDebtPaidEl = document.getElementById('final-debt-paid');
+    const retryButton = document.getElementById('retry-button');
 
-      function calculateJackpotChance(currentLuck) {
+    const dialogOverlay = document.getElementById('dialog-overlay');
+    const dialogMessage = document.getElementById('dialog-message');
+    const dialogOkButton = document.getElementById('dialog-ok-button');
+    const dialogDepositButton = document.getElementById('dialog-deposit-button');
 
-          const baseChance = 0.001; 
-          const multiplierBase = 1.3797;
-          return baseChance * Math.pow(multiplierBase, currentLuck / 5);
+    let money = 13, spins = 0, cost = 1;
+    isSpinning = false;
+    let luck = 0;
+    let moneyMultiplier = 1;
+    let tempLuckBonus = 0;
+    const nReels = 5;
+    const rowsVisible = 3;
+    const reels = [];
+    let reelsReadyForCheck = 0;
+
+    let currentRound = 1;
+    let turnsLeft = 7;
+    let tickets = 2;
+    let debt = 75;
+    let debtPaid = 30;
+    let totalMoneyGainedOverall = 0; 
+
+    const durations = [1.8, 1.95, 2.0, 2.15, 2.45];
+    const delays = [0, 0.1, 0.2, 0.3, 0.4];
+
+    const patterns = {
+        // HOR, VERT, DIAG, HOR-L, and HOR-XL will be checked separately for each row
+        'ZIG': [[0, 0], [1, 1], [2, 0], [3, 1], [4, 0]],
+        'ZAG': [[0, 2], [1, 1], [2, 2], [3, 1], [4, 2]],
+        'ABOVE': [[0, 0], [1, 0], [2, 1], [3, 0], [4, 0]],
+        'BELOW': [[0, 2], [1, 2], [2, 1], [3, 2], [4, 2]],
+        'EYE': [[0, 1], [1, 0], [2, 1], [3, 2], [4, 1]]
+    };
+
+    const patternMultipliers = {
+        'HOR': 1.0,
+        'VERT': 1.0,
+        'DIAG': 1.0,
+        'HOR-L': 2.0,
+        'HOR-XL': 3.0,
+        'ZIG': 4.0,
+        'ZAG': 4.0,
+        'ABOVE': 7.0,
+        'BELOW': 7.0,
+        'EYE': 8.0,
+        'JACKPOT': 10.0
+    };
+
+    const audio = {
+      lever: new Audio('media/audio/slot-machine/lever.mp3'),
+      startRound: new Audio('media/audio/slot-machine/start-round.mp3'),
+      anticipation: new Audio('media/audio/slot-machine/anticipation.mp3'),
+      rollingLoop: new Audio('media/audio/slot-machine/rolling-ticks.mp3'),
+      ticks: [
+        new Audio('media/audio/slot-machine/tick1.mp3'),
+        new Audio('media/audio/slot-machine/tick2.mp3'),
+        new Audio('media/audio/slot-machine/tick3.mp3'),
+        new Audio('media/audio/slot-machine/tick4.mp3'),
+        new Audio('media/audio/slot-machine/tick5.mp3')
+      ],
+      combos: [
+        new Audio('media/audio/slot-machine/combo1.mp3'),
+        new Audio('media/audio/slot-machine/combo2.mp3'),
+        new Audio('media/audio/slot-machine/combo3.mp3'),
+        new Audio('media/audio/slot-machine/combo4.mp3'),
+        new Audio('media/audio/slot-machine/combo5.mp3')
+      ],
+      purchase: new Audio('media/audio/shop/purchase.mp3')
+    };
+
+    audio.anticipation.volume = 0.3;
+    audio.rollingLoop.volume = 1;
+    audio.anticipation.loop = true;
+
+    function calculateJackpotChance(currentLuck) {
+      const baseChance = 0.001;
+      const multiplierBase = 6.4797;
+      let chance = baseChance * Math.pow(multiplierBase, currentLuck / 5);
+      if (ownedArtifacts.some(a => a.id === 'horseshoe')) {
+        chance *= 1.35;
       }
+      return chance;
+    }
 
-      function calculateJackpotVariationChance(currentLuck) {
-
-          const baseChance = 0.45; 
-          const multiplierBase = 0.972;
-          return baseChance * Math.pow(multiplierBase, currentLuck);
+    function calculateJackpotVariationChance(currentLuck) {
+      const baseChance = 0.45;
+      const multiplierBase = 0.982;
+      let chance = baseChance * Math.pow(multiplierBase, currentLuck);
+      if (ownedArtifacts.some(a => a.id === 'horseshoe')) {
+        chance *= 1.35;
       }
+      return chance;
+    }
 
-      function calculateForcedComboChance(currentLuck) {
-
-          const baseChance = 0.10; 
-          const multiplierBase = 1.1487;
-          return baseChance * Math.pow(multiplierBase, currentLuck);
+    function calculateForcedComboChance(currentLuck) {
+      const baseChance = 0.35;
+      const multiplierBase = 1.2487;
+      let chance = baseChance * Math.pow(multiplierBase, currentLuck);
+      if (ownedArtifacts.some(a => a.id === 'horseshoe')) {
+        chance *= 1.35;
       }
+      return chance;
+    }
 
-      let winAnimationInterval;
+    let winAnimationInterval;
 
-      function handleSpinEndAndCheckWins() {
-          reelsReadyForCheck = 0;
+    function handleSpinEndAndCheckWins() {
+    reelsReadyForCheck = 0;
 
-          const boardElements = [];
-          reels.forEach((track, colIdx) => {
-              const reelSymbols = [];
+    audio.rollingLoop.pause();
 
-              reelSymbols.push(track.children[0].firstChild);
-              reelSymbols.push(track.children[1].firstChild);
-              reelSymbols.push(track.children[2].firstChild);
-              boardElements.push(reelSymbols);
-          });
+    const boardElements = [];
+    reels.forEach((track, colIdx) => {
+        const reelSymbols = [];
+        // The symbols are the first three children of the track after the spin
+        reelSymbols.push(track.children[0].firstChild);
+        reelSymbols.push(track.children[1].firstChild);
+        reelSymbols.push(track.children[2].firstChild);
+        boardElements.push(reelSymbols);
+    });
 
-          const transposedBoard = Array(rowsVisible).fill(0).map(() => Array(nReels).fill(null));
-          for (let col = 0; col < nReels; col++) {
-              for (let row = 0; row < rowsVisible; row++) {
-                  transposedBoard[row][col] = boardElements[col][row];
-              }
-          }
-
-          let allPotentialWins = [];
-
-          const areSymbolsIdentical = (...symbolContentElements) => {
-              if (symbolContentElements.length === 0 || !symbolContentElements[0]) return false;
-              const firstSymbolId = symbolContentElements[0].dataset.symbol;
-              return symbolContentElements.every(el => el && el.dataset.symbol === firstSymbolId);
-          };
-
-          const getSymbolElements = (...symbolContentElements) => {
-              const elements = [];
-              symbolContentElements.forEach(contentEl => {
-                  if (contentEl && contentEl.parentNode) elements.push(contentEl.parentNode);
-              });
-              return elements;
-          };
-
-          const firstSymbolContentElementOnBoard = transposedBoard[0][0];
-          if (firstSymbolContentElementOnBoard) {
-              let currentBoardIsJackpot = true;
-              const jackpotSymbolId = firstSymbolContentElementOnBoard.dataset.symbol;
-              for (let r = 0; r < rowsVisible; r++) {
-                  for (let c = 0; c < nReels; c++) {
-                      if (!transposedBoard[r][c] || transposedBoard[r][c].dataset.symbol !== jackpotSymbolId) {
-                          currentBoardIsJackpot = false;
-                          break;
-                      }
-                  }
-                  if (!currentBoardIsJackpot) break;
-              }
-
-              if (currentBoardIsJackpot) {
-                  const jackpotComboSymbols = [];
-                  for (let r = 0; r < rowsVisible; r++) {
-                      for (let c = 0; c < nReels; c++) {
-                          jackpotComboSymbols.push(transposedBoard[r][c]);
-                      }
-                  }
-                  allPotentialWins.push({
-                      type: 'jackpot',
-                      value: 500,
-                      symbols: getSymbolElements(...jackpotComboSymbols)
-                  });
-              }
-          }
-
-          for (let r = 0; r < rowsVisible; r++) {
-              for (let c = 0; c <= nReels - 3; c++) {
-                  const s1 = transposedBoard[r][c];
-                  const s2 = transposedBoard[r][c+1];
-                  const s3 = transposedBoard[r][c+2];
-
-                  if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
-                      let winValue = weightMap[s1.dataset.symbol] * 1;
-                      let currentSymbols = [s1, s2, s3];
-                      let length = 3;
-
-                      if (c <= nReels - 4) {
-                          const s4 = transposedBoard[r][c+3];
-                          if (s4 && areSymbolsIdentical(s1, s4)) {
-                              winValue += weightMap[s1.dataset.symbol] * 1;
-                              currentSymbols.push(s4);
-                              length = 4;
-
-                              if (c <= nReels - 5) {
-                                  const s5 = transposedBoard[r][c+4];
-                                  if (s5 && areSymbolsIdentical(s1, s5)) {
-                                      winValue += weightMap[s1.dataset.symbol] * 1;
-                                      currentSymbols.push(s5);
-                                      length = 5;
-                                  }
-                              }
-                          }
-                      }
-                      allPotentialWins.push({
-                          type: 'horizontal',
-                          value: winValue,
-                          symbols: getSymbolElements(...currentSymbols),
-                          length: length
-                      });
-                  }
-              }
-          }
-
-          for (let c = 0; c < nReels; c++) {
-              const s1 = transposedBoard[0][c];
-              const s2 = transposedBoard[1][c];
-              const s3 = transposedBoard[2][c];
-              if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
-                  allPotentialWins.push({
-                      type: 'vertical',
-                      value: weightMap[s1.dataset.symbol] * 0.3,
-                      symbols: getSymbolElements(s1, s2, s3),
-                      length: 3
-                  });
-              }
-          }
-
-          for (let c = 0; c <= nReels - 3; c++) {
-              const s1 = transposedBoard[0][c];
-              const s2 = transposedBoard[1][c+1];
-              const s3 = transposedBoard[2][c+2];
-              if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
-                  allPotentialWins.push({
-                      type: 'diagonal-down-right',
-                      value: weightMap[s1.dataset.symbol] * 0.3,
-                      symbols: getSymbolElements(s1, s2, s3),
-                      length: 3
-                  });
-              }
-          }
-
-          for (let c = 2; c < nReels; c++) {
-              const s1 = transposedBoard[0][c];
-              const s2 = transposedBoard[1][c-1];
-              const s3 = transposedBoard[2][c-2];
-              if (s1 && s2 && s3 && areSymbolsIdentical(s1, s2, s3)) {
-                  allPotentialWins.push({
-                      type: 'diagonal-down-left',
-                      value: weightMap[s1.dataset.symbol] * 0.3,
-                      symbols: getSymbolElements(s1, s2, s3),
-                      length: 3
-                  });
-              }
-          }
-
-          allPotentialWins.sort((a, b) => b.value - a.value);
-
-          let finalTotalWin = 0;
-          const finalWinningCombos = [];
-          const coveredSymbolsMap = new Map(); 
-          let nextComboId = 0;
-
-          for (const win of allPotentialWins) {
-              let isFullyCovered = true;
-              const overlappingComboIDs = new Set();
-
-              for (const symbolEl of win.symbols) {
-                  if (coveredSymbolsMap.has(symbolEl)) {
-                      overlappingComboIDs.add(coveredSymbolsMap.get(symbolEl));
-                  } else {
-                      isFullyCovered = false;
-                  }
-              }
-
-              const shouldSkipWin = isFullyCovered && overlappingComboIDs.size === 1;
-
-              if (!shouldSkipWin) {
-                  finalTotalWin += win.value;
-                  finalWinningCombos.push(win.symbols);
-
-                  const currentComboId = nextComboId++;
-
-                  win.symbols.forEach(symbolEl => {
-                      if (!coveredSymbolsMap.has(symbolEl)) {
-                           coveredSymbolsMap.set(symbolEl, currentComboId);
-                      }
-                  });
-              }
-          }
-
-          finalTotalWin *= moneyMultiplier;
-          finalTotalWin = Math.round(finalTotalWin);
-
-          const comboDisplayDuration = 800;
-          const delayBetweenCombos = 150;
-
-          let currentComboIndex = 0;
-          let colorAnimationStarted = false;
-
-          const displayNextCombo = () => {
-              if (currentComboIndex < finalWinningCombos.length) {
-                  const currentCombo = finalWinningCombos[currentComboIndex];
-
-                  const soundIndex = Math.min(currentComboIndex, audio.combos.length - 1);
-                  const soundToPlay = audio.combos[soundIndex];
-                  if (soundToPlay) {
-                      soundToPlay.currentTime = 0; 
-                      soundToPlay.play();
-                  }
-
-                  document.querySelectorAll('.winning-symbol').forEach(el => {
-                      el.classList.remove('winning-symbol');
-                  });
-
-                  currentCombo.forEach(symbolEl => {
-                      symbolEl.classList.add('winning-symbol');
-                  });
-
-                  if (!colorAnimationStarted) {
-                      root.style.animation = 'rgb-border-glow 2s infinite linear';
-                      root.style.animationDelay = `-${Math.random() * 2}s`;
-                      colorAnimationStarted = true;
-                  }
-
-                  setTimeout(() => {
-                      currentComboIndex++;
-                      setTimeout(displayNextCombo, delayBetweenCombos);
-                  }, comboDisplayDuration);
-              } else {
-                  money += finalTotalWin;
-                  if (finalTotalWin > 0) {
-                    centralWinDisplay.innerHTML = `TOTAL<br><span class="win-amount">${finalTotalWin}</span>`;
-                    centralWinDisplay.classList.add('show');
-                  }
-                  updateUI();
-
-                  document.querySelectorAll('.winning-symbol').forEach(el => {
-                      el.classList.remove('winning-symbol');
-                  });
-
-                  root.style.animation = 'none';
-                  root.style.setProperty('--current-win-color', 'transparent');
-
-                  setTimeout(() => {
-                      centralWinDisplay.classList.remove('show');
-
-                      setTimeout(() => {
-                          isSpinning = false;
-                          spinBtn.disabled = false;
-                      }, 500);
-                  }, finalTotalWin > 0 ? 1000 : 0);
-              }
-          };
-
-          if (finalWinningCombos.length > 0) {
-              displayNextCombo();
-          } else {
-              updateUI();
-              isSpinning = false;
-              spinBtn.disabled = false;
-          }
-      }
-
-      for(let i=0;i<nReels;i++){
-        const reel=document.createElement('div');reel.className='reel';
-        const track=document.createElement('div');track.className='reel-track';
-        reel.appendChild(track);container.appendChild(reel);
-        reels.push(track);
-
-        if (i < nReels - 1) {
-            reel.classList.add('reel-border');
+    // Transpose the board for easier row-based access. `transposedBoard[row][col]`
+    const transposedBoard = Array(rowsVisible).fill(0).map(() => Array(nReels).fill(null));
+    for (let col = 0; col < nReels; col++) {
+        for (let row = 0; row < rowsVisible; row++) {
+            transposedBoard[row][col] = boardElements[col][row];
         }
+    }
 
-        track.addEventListener('transitionend',(e)=>{
-            if (e.propertyName === 'transform' && e.elapsedTime > 0.15) { 
-                const spinCount = parseInt(track.dataset.spinCount);
+    let allPotentialWins = [];
 
-                for(let k=0; k<spinCount; k++) {
-                    if (track.firstChild) {
-                        track.removeChild(track.firstChild);
-                    }
-                }
+    const getSymbolElementsFromCoords = (coords) => {
+        return coords.map(c => transposedBoard[c[1]][c[0]].parentNode);
+    };
 
-                track.style.transition = 'none';
-                track.style.transform = `translateY(0)`;
-
-                void track.offsetWidth;
-
-                const overshootAmount = 3;
-
-                track.style.transition = `transform 0.05s ease-out`;
-                track.style.transform = `translateY(${overshootAmount}px)`;
-
-                setTimeout(() => {
-                    track.style.transition = `transform 0.1s ease-in`;
-                    track.style.transform = `translateY(0px)`;
-                }, 50);
-
-                setTimeout(() => {
-                    track.style.transition = 'none';
-                    reelsReadyForCheck++;
-                    if (audio.ticks[i]) {
-                        audio.ticks[i].play();
-                    }
-                    if (reelsReadyForCheck === nReels) {
-                        handleSpinEndAndCheckWins();
-                    }
-                }, 150);
-            }
-        });
-      }
-
-      function buildInitial(track){
-        track.innerHTML=''; 
-        for(let i=0; i < rowsVisible; i++) {
-            const sId = weighted[Math.floor(Math.random()*weighted.length)];
-            const el=document.createElement('div');
-            el.className='symbol';
-            const contentEl = document.createElement('div');
-            contentEl.className = 'symbol-content';
-            contentEl.dataset.symbol = sId; 
-
-            const img = document.createElement('img');
-            img.src = symbolImageMap[sId]; 
-            img.alt = sId;
-            contentEl.appendChild(img);
-
-            el.appendChild(contentEl);
-            track.appendChild(el);
-        }
-        track.style.transform=`translateY(0)`;
-      }
-
-      reels.forEach(track=>buildInitial(track));
-
-      function updateUI(){
-        moneyEl.textContent=money;
-        spinsEl.textContent=spins;
-        luckEl.textContent=luck;
-      }
-
-      function showMessage(txt,d=2000){
-        msgBox.textContent=txt;
-        msgBox.style.opacity=1;
-        setTimeout(()=>{
-          if(msgBox.textContent===txt)msgBox.style.opacity=0;
-        },d);
-      }
-
-      function isBoardAJackpot(board) {
-          if (!board || !board[0] || !board[0][0]) return false;
-          const firstSymbol = board[0][0];
-          for (let c = 0; c < nReels; c++) {
-              for (let r = 0; r < rowsVisible; r++) {
-                  if (board[c][r] !== firstSymbol) {
-                      return false;
-                  }
-              }
-          }
-          return true;
-      }
-
-      spinBtn.addEventListener('click',()=>{
-        if(isSpinning) return;
-        if(money<cost) return showMessage('No $$');
-
-        audio.startRound.play(); 
-
-        isSpinning = true;
-        spinBtn.disabled = true;
-        centralWinDisplay.classList.remove('show');
-        msgBox.style.opacity = 0;
-
-        document.querySelectorAll('.winning-symbol').forEach(el => {
-            el.classList.remove('winning-symbol');
-        });
-        root.style.animation = 'none';
-        root.style.setProperty('--current-win-color', 'transparent');
-
-        reelsReadyForCheck = 0;
-
-        money-=cost;
-        spins++;
-        updateUI();
-
-        const landingSymbolsMatrix = Array(nReels).fill(0).map(() => Array(rowsVisible).fill(null));
-        let isJackpotForced = false;
-
-        for (let c = 0; c < nReels; c++) {
-            for (let r = 0; r < rowsVisible; r++) {
-                landingSymbolsMatrix[c][r] = weighted[Math.floor(Math.random() * weighted.length)];
-            }
-        }
-
-        const jackpotChance = calculateJackpotChance(luck);
-        if (Math.random() < jackpotChance) {
-            console.log(`Guaranteed Jackpot triggered! Chance: ${jackpotChance.toFixed(4)}`);
-            isJackpotForced = true;
-            const forcedSymbol = symbolIdentifiers[Math.floor(Math.random() * symbolIdentifiers.length)];
+    // 1. Check for Jackpot (Full Board)
+    const firstSymbolEl = transposedBoard[0][0];
+    if (firstSymbolEl) {
+        const firstSymbolId = firstSymbolEl.dataset.symbol;
+        let isJackpot = true;
+        const jackpotCoords = [];
+        for (let r = 0; r < rowsVisible; r++) {
             for (let c = 0; c < nReels; c++) {
-                for (let r = 0; r < rowsVisible; r++) {
-                    landingSymbolsMatrix[c][r] = forcedSymbol;
+                if (!transposedBoard[r][c] || transposedBoard[r][c].dataset.symbol !== firstSymbolId) {
+                    isJackpot = false;
+                    break;
                 }
+                jackpotCoords.push([c, r]);
             }
+            if (!isJackpot) break;
         }
 
-        if (isJackpotForced && isBoardAJackpot(landingSymbolsMatrix)) {
-            const jackpotVariationChance = calculateJackpotVariationChance(luck); 
-            if (Math.random() < jackpotVariationChance) {
-                const numChanges = Math.floor(Math.random() * 3) + 1; 
-                console.log(`Jackpot Variation triggered! Breaking up accidental jackpot with ${numChanges} change(s). Chance: ${jackpotVariationChance.toFixed(4)}`);
+        if (isJackpot) {
+            allPotentialWins.push({
+                type: 'JACKPOT',
+                value: symbolWorth[firstSymbolId] * patternMultipliers.JACKPOT * 3,
+                symbols: getSymbolElementsFromCoords(jackpotCoords)
+            });
+        }
+    }
 
-                const originalSymbol = landingSymbolsMatrix[0][0];
-                const allPositions = [];
-                for (let r = 0; r < rowsVisible; r++) {
-                    for (let c = 0; c < nReels; c++) {
-                        allPositions.push({ r, c });
+    // 2. Check for fixed 5-symbol patterns (Zig, Zag, etc.)
+    for (const patternName in patterns) {
+        const coords = patterns[patternName];
+        const firstSym = transposedBoard[coords[0][1]][coords[0][0]];
+        if (!firstSym) continue;
+
+        const symbolId = firstSym.dataset.symbol;
+        const isMatch = coords.every(([c, r]) =>
+            transposedBoard[r][c] && transposedBoard[r][c].dataset.symbol === symbolId
+        );
+
+        if (isMatch) {
+            allPotentialWins.push({
+                type: patternName,
+                value: symbolWorth[symbolId] * patternMultipliers[patternName] * 3,
+                symbols: getSymbolElementsFromCoords(coords)
+            });
+        }
+    }
+
+    // 3. Check for Horizontal lines (HOR, HOR-L, HOR-XL)
+    for (let r = 0; r < rowsVisible; r++) {
+        for (let c = 0; c <= nReels - 3; c++) {
+            const s1 = transposedBoard[r][c];
+            if (!s1) continue;
+            const symbolId = s1.dataset.symbol;
+            const s2 = transposedBoard[r][c + 1];
+            const s3 = transposedBoard[r][c + 2];
+
+            if (s2 && s2.dataset.symbol === symbolId && s3 && s3.dataset.symbol === symbolId) {
+                // We have at least a 3-match
+                let len = 3;
+                let winType = 'HOR';
+                const s4 = (c + 3 < nReels) ? transposedBoard[r][c + 3] : null;
+
+                if (s4 && s4.dataset.symbol === symbolId) {
+                    len = 4;
+                    winType = 'HOR-L';
+                    const s5 = (c + 4 < nReels) ? transposedBoard[r][c + 4] : null;
+                    if (s5 && s5.dataset.symbol === symbolId) {
+                        len = 5;
+                        winType = 'HOR-XL';
                     }
                 }
+                
+                const coords = Array.from({ length: len }, (_, i) => [c + i, r]);
+                allPotentialWins.push({
+                    type: winType,
+                    value: symbolWorth[symbolId] * patternMultipliers[winType] * 3,
+                    symbols: getSymbolElementsFromCoords(coords)
+                });
+                // Skip forward to avoid re-checking subsets of this line
+                c += len - 1;
+            }
+        }
+    }
 
-                for (let i = allPositions.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
-                }
+    // 4. Check for Vertical lines (VERT)
+    for (let c = 0; c < nReels; c++) {
+        const s1 = transposedBoard[0][c];
+        if(!s1) continue;
+        const symbolId = s1.dataset.symbol;
+        const s2 = transposedBoard[1][c];
+        const s3 = transposedBoard[2][c];
+        if (s2 && s2.dataset.symbol === symbolId && s3 && s3.dataset.symbol === symbolId) {
+             allPotentialWins.push({
+                type: 'VERT',
+                value: symbolWorth[symbolId] * patternMultipliers.VERT * 3,
+                symbols: getSymbolElementsFromCoords([[c, 0], [c, 1], [c, 2]])
+            });
+        }
+    }
 
-                for (let i = 0; i < numChanges; i++) {
-                    const pos = allPositions[i];
-                    let newSymbol;
-                    do {
-                        newSymbol = weighted[Math.floor(Math.random() * weighted.length)];
-                    } while (newSymbol === originalSymbol); 
-
-                    console.log(`  - Changing symbol at reel ${pos.c}, row ${pos.r} from ${originalSymbol} to ${newSymbol}`);
-                    landingSymbolsMatrix[pos.c][pos.r] = newSymbol;
-                }
+    // 5. Check for Diagonal lines (DIAG)
+    for (let c = 0; c <= nReels - 3; c++) {
+        // Diagonal down-right
+        const s1_dr = transposedBoard[0][c];
+        if (s1_dr) {
+            const symbolId_dr = s1_dr.dataset.symbol;
+            const s2_dr = transposedBoard[1][c+1];
+            const s3_dr = transposedBoard[2][c+2];
+            if(s2_dr && s2_dr.dataset.symbol === symbolId_dr && s3_dr && s3_dr.dataset.symbol === symbolId_dr) {
+                 allPotentialWins.push({
+                    type: 'DIAG',
+                    value: symbolWorth[symbolId_dr] * patternMultipliers.DIAG * 3,
+                    symbols: getSymbolElementsFromCoords([[c,0], [c+1,1], [c+2,2]])
+                });
             }
         }
 
-        if (!isJackpotForced) {
-            const forcedComboChance = calculateForcedComboChance(luck);
-            if (Math.random() < forcedComboChance) {
-                console.log(`Forced Combo triggered! Chance: ${forcedComboChance.toFixed(4)}`);
-                const randomRow = Math.floor(Math.random() * rowsVisible);
-                const randomCol = Math.floor(Math.random() * (nReels - 2)); 
-
-                const forcedSymbol = symbolIdentifiers[Math.floor(Math.random() * symbolIdentifiers.length)];
-
-                landingSymbolsMatrix[randomCol][randomRow] = forcedSymbol;
-                landingSymbolsMatrix[randomCol + 1][randomRow] = forcedSymbol;
-                landingSymbolsMatrix[randomCol + 2][randomRow] = forcedSymbol;
+        // Diagonal up-right
+        const s1_ur = transposedBoard[2][c];
+        if (s1_ur) {
+            const symbolId_ur = s1_ur.dataset.symbol;
+            const s2_ur = transposedBoard[1][c+1];
+            const s3_ur = transposedBoard[0][c+2];
+            if(s2_ur && s2_ur.dataset.symbol === symbolId_ur && s3_ur && s3_ur.dataset.symbol === symbolId_ur) {
+                 allPotentialWins.push({
+                    type: 'DIAG',
+                    value: symbolWorth[symbolId_ur] * patternMultipliers.DIAG * 3,
+                    symbols: getSymbolElementsFromCoords([[c,2], [c+1,1], [c+2,0]])
+                });
             }
         }
+    }
+    
+    // --- Win Resolution and Display Logic ---
+    // Sort wins by value, highest first, to prioritize them
+    allPotentialWins.sort((a, b) => b.value - a.value);
 
-        reels.forEach((track,idx)=>{
+    let finalTotalWin = 0;
+    const finalWinningCombos = [];
+    const coveredSymbols = new Set();
 
-          const spinCount=Math.floor(Math.random()*5)+15; 
+    for (const win of allPotentialWins) {
+        // Check if any symbol in this win is already part of a higher-value win
+        const isOverlapping = win.symbols.some(symbolEl => coveredSymbols.has(symbolEl));
 
-          const totalTravel = spinCount + rowsVisible;
-          track.dataset.spinCount = totalTravel; 
+        if (!isOverlapping) {
+            finalTotalWin += win.value;
+            finalWinningCombos.push(win.symbols);
+            // Add all symbols from this winning combo to the covered set
+            win.symbols.forEach(symbolEl => coveredSymbols.add(symbolEl));
+        }
+    }
+    
+    if (ownedArtifacts.some(a => a.id === 'moneyMagnet')) {
+        finalTotalWin *= 1.10;
+    }
+    // Apply cherry boost after all other calculations
+    let cherryBonus = 0;
+    finalWinningCombos.flat().forEach(symbolEl => {
+        const symbolContent = symbolEl.querySelector('.symbol-content');
+        if (symbolContent && symbolContent.dataset.symbol === 'cherry' && ownedArtifacts.some(a => a.id === 'cherryBoost')) {
+            // Find the original win associated with this symbol to calculate the bonus correctly
+            const originalWin = allPotentialWins.find(win => win.symbols.includes(symbolEl));
+            if(originalWin){
+                 cherryBonus += (symbolWorth.cherry * patternMultipliers[originalWin.type]) * 0.5;
+            }
+        }
+    });
 
-          for(let j=0;j<spinCount;j++){
-            const el=document.createElement('div');
-            el.className='symbol';
-            const contentEl = document.createElement('div');
-            contentEl.className = 'symbol-content';
-            const sId = weighted[Math.floor(Math.random()*weighted.length)];
-            contentEl.dataset.symbol = sId;
+    finalTotalWin += cherryBonus;
+    finalTotalWin = Math.round(finalTotalWin);
 
-            const img = document.createElement('img');
-            img.src = symbolImageMap[sId];
-            img.alt = sId;
-            contentEl.appendChild(img);
+    // --- Animation and UI Update Logic (largely unchanged) ---
+    const comboDisplayDuration = 800;
+    const delayBetweenCombos = 150;
 
-            el.appendChild(contentEl);
-            track.appendChild(el);
+    let currentComboIndex = 0;
+    let colorAnimationStarted = false;
+
+    const displayNextCombo = () => {
+        if (currentComboIndex < finalWinningCombos.length) {
+            const currentCombo = finalWinningCombos[currentComboIndex];
+            const soundIndex = Math.min(currentComboIndex, audio.combos.length - 1);
+            audio.combos[soundIndex]?.play();
+
+            document.querySelectorAll('.winning-symbol').forEach(el => el.classList.remove('winning-symbol'));
+            currentCombo.forEach(symbolEl => symbolEl.classList.add('winning-symbol'));
+
+            if (!colorAnimationStarted) {
+                root.style.animation = 'rgb-border-glow 2s infinite linear';
+                colorAnimationStarted = true;
+            }
+
+            setTimeout(() => {
+                currentComboIndex++;
+                setTimeout(displayNextCombo, delayBetweenCombos);
+            }, comboDisplayDuration);
+
+        } else {
+            // All combos have been displayed
+            money += finalTotalWin;
+            totalMoneyGainedOverall += finalTotalWin;
+            if (finalTotalWin > 0) {
+                centralWinDisplay.innerHTML = `TOTAL<br><span class="win-amount">${finalTotalWin}</span>`;
+                centralWinDisplay.classList.add('show');
+            }
+            if (turnsLeft === 0) {
+                endRound();
+            }
+            updateUI();
+
+            document.querySelectorAll('.winning-symbol').forEach(el => el.classList.remove('winning-symbol'));
+            root.style.animation = 'none';
+
+            setTimeout(() => {
+                centralWinDisplay.classList.remove('show');
+                setTimeout(() => {
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                }, 500);
+            }, finalTotalWin > 0 ? 1000 : 0);
+        }
+    };
+
+    if (finalWinningCombos.length > 0) {
+        displayNextCombo();
+    } else {
+        if (turnsLeft === 0) {
+            endRound();
+        }
+        updateUI();
+        isSpinning = false;
+        spinBtn.disabled = false;
+    }
+}
+
+    for (let i = 0; i < nReels; i++) {
+      const reel = document.createElement('div');
+      reel.className = 'reel';
+      const track = document.createElement('div');
+      track.className = 'reel-track';
+      reel.appendChild(track);
+      container.appendChild(reel);
+      reels.push(track);
+
+      if (i < nReels - 1) {
+        reel.classList.add('reel-border');
+      }
+
+      track.addEventListener('transitionend', (e) => {
+        if (e.propertyName === 'transform' && e.elapsedTime > 0.15) {
+          const spinCount = parseInt(track.dataset.spinCount);
+
+          audio.anticipation.pause();
+
+          for (let k = 0; k < spinCount; k++) {
+            if (track.firstChild) {
+              track.removeChild(track.firstChild);
+            }
           }
 
-          for(let r = 0; r < rowsVisible; r++) {
-              const el=document.createElement('div');
-              el.className='symbol';
-              const contentEl = document.createElement('div');
-              contentEl.className = 'symbol-content';
-              const sId = landingSymbolsMatrix[idx][r];
-              contentEl.dataset.symbol = sId;
+          track.style.transition = 'none';
+          track.style.transform = `translateY(0)`;
 
-              const img = document.createElement('img');
-              img.src = symbolImageMap[sId];
-              img.alt = sId;
-              contentEl.appendChild(img);
+          void track.offsetWidth;
 
-              el.appendChild(contentEl);
-              track.appendChild(el);
+          const overshootAmount = 3;
+
+          track.style.transition = `transform 0.05s ease-out`;
+          track.style.transform = `translateY(${overshootAmount}px)`;
+
+          setTimeout(() => {
+            track.style.transition = `transform 0.1s ease-in`;
+            track.style.transform = `translateY(0px)`;
+          }, 50);
+
+          setTimeout(() => {
+            track.style.transition = 'none';
+            reelsReadyForCheck++;
+            if (audio.ticks[i]) {
+              audio.ticks[i].play();
+            }
+            if (reelsReadyForCheck === nReels) {
+              handleSpinEndAndCheckWins();
+            }
+          }, 150);
+        }
+      });
+    }
+
+    function buildInitial(track) {
+      track.innerHTML = '';
+      for (let i = 0; i < rowsVisible; i++) {
+        const sId = weighted[Math.floor(Math.random() * weighted.length)];
+        const el = document.createElement('div');
+        el.className = 'symbol';
+        const contentEl = document.createElement('div');
+        contentEl.className = 'symbol-content';
+        contentEl.dataset.symbol = sId;
+
+        const img = document.createElement('img');
+        img.src = symbolImageMap[sId];
+        img.alt = sId;
+        contentEl.appendChild(img);
+
+        el.appendChild(contentEl);
+        track.appendChild(el);
+        applyStaticGlow(el);
+      }
+      track.style.transform = `translateY(0)`;
+    }
+
+    reels.forEach(track => buildInitial(track));
+
+    const SUFFIXES = [
+      {v: 1e36, s: 'DDc'},
+      {v: 1e33, s: 'UDc'},
+      {v: 1e30, s: 'Dc'},
+      {v: 1e30, s: 'No'},
+      {v: 1e27, s: 'Oc'},
+      {v: 1e24, s: 'Sp'},
+      {v: 1e21, s: 'Sx'},
+      {v: 1e18, s: 'Qi'},
+      {v: 1e15, s: 'Qa'},
+      {v: 1e12, s: 'T'},
+      {v: 1e9, s: 'B'},
+      {v: 1e6, s: 'M'}
+    ];
+
+    function abbreviate(n) {
+      for (let {v, s} of SUFFIXES) {
+        if (n >= v) {
+          const f = n / v;
+          return (n % v === 0 ? f.toFixed(0) : f.toFixed(2)) + s;
+        }
+      }
+      return String(n);
+    }
+
+    function updateOdometer(type, num) {
+        const ctr   = document.querySelector(`.counter[data-type="${type}"]`);
+        const digs  = ctr.querySelector('.digits');
+        const plain = ctr.querySelector('.plain');
+        const HEIGHT = 2; // rem
+
+        if (num < 1e8) {
+            ctr.classList.remove('long');
+            const s = String(num).padStart(8, '0');
+
+            const oldDigits = Array.from(digs.children);
+            const firstNonZero = s.search(/[^0]/);
+            
+            for (let i = 0; i < 8; i++) {
+            const ch = s[i];
+            const isLeadingZero = (i < firstNonZero || firstNonZero === -1);
+            const opacity = isLeadingZero ? '0.3' : '1';
+
+            let digit = oldDigits[i];
+            let seq;
+
+            if (!digit) {
+                digit = document.createElement('div');
+                digit.className = 'digit';
+
+                seq = document.createElement('div');
+                seq.className = 'seq';
+
+                // build 0-9 × 3
+                for (let j = 0; j < 30; j++) {
+                const span = document.createElement('span');
+                span.textContent = j % 10;
+                seq.appendChild(span);
+                }
+
+                digit.appendChild(seq);
+                digs.appendChild(digit);
+            } else {
+                seq = digit.querySelector('.seq');
+            }
+
+            digit.style.opacity = opacity;
+
+            const prev = parseInt(seq.dataset.current || '0', 10);
+            const curr = parseInt(ch, 10);
+            let delta = curr - prev;
+            if (delta > 5) delta -= 10;
+            if (delta < -5) delta += 10;
+
+            const offset = 10;
+            const start = prev + offset;
+            const end = start + delta;
+
+            seq.dataset.current = ch;
+            seq.style.transition = 'none';
+            seq.style.top = `-${start * HEIGHT}rem`;
+            requestAnimationFrame(() => {
+                seq.style.transition = 'top 0.5s ease-in-out';
+                seq.style.top = `-${end * HEIGHT}rem`;
+            });
+            }
+
+            // remove extras if needed
+            while (digs.children.length > 8) {
+            digs.removeChild(digs.lastChild);
+            }
+
+        } else {
+            ctr.classList.add('long');
+            plain.textContent = abbreviate(num);
+        }
+        }
+
+    function updateUI() {
+      updateOdometer('money', money);
+      updateOdometer('tickets', tickets);
+      debtAmountEl.textContent = debt;
+      debtPaidEl.textContent = debtPaid;
+      interestEl.textContent = Math.floor(debtPaid * 0.075);
+
+      cost = ownedArtifacts.some(a => a.id === 'spinMaster') ? 0 : 1;
+
+      const currentCycle = Math.ceil(currentRound / 3);
+      document.getElementById('cycle-label').textContent = `Cycle ${currentCycle}`;
+      document.getElementById('round-label').textContent = `Round ${(currentRound - 1) % 3 + 1}`;
+    }
+
+    function showMessage(txt, d = 2000) {
+      msgBox.textContent = txt;
+      msgBox.style.opacity = 1;
+      setTimeout(() => {
+        if (msgBox.textContent === txt) msgBox.style.opacity = 0;
+      }, d);
+    }
+
+    function showDialog(message, type = 'ok', onOk = null, onDeposit = null) {
+      dialogMessage.textContent = message;
+      dialogOkButton.style.display = 'none';
+      dialogDepositButton.style.display = 'none';
+      dialogOkButton.onclick = null;
+      dialogDepositButton.onclick = null;
+      dialogOverlay.classList.remove('flash-red');
+
+      if (type === 'ok') {
+        dialogOkButton.style.display = 'block';
+        dialogOkButton.onclick = () => {
+          dialogOverlay.classList.remove('show');
+          if (onOk) onOk();
+        };
+      } else if (type === 'deposit') {
+        dialogDepositButton.style.display = 'block';
+        dialogDepositButton.onclick = () => {
+          dialogOverlay.classList.remove('show');
+          if (onDeposit) onDeposit();
+        };
+      } else if (type === 'game-over-countdown') {
+        dialogOkButton.style.display = 'none'; 
+        dialogDepositButton.style.display = 'none';
+        dialogOverlay.classList.add('flash-red');
+      }
+
+      dialogOverlay.classList.add('show');
+    }
+
+    function isBoardAJackpot(board) {
+      if (!board || !board[0] || !board[0][0]) return false;
+      const firstSymbol = board[0][0];
+      for (let c = 0; c < nReels; c++) {
+        for (let r = 0; r < rowsVisible; r++) {
+          if (board[c][r] !== firstSymbol) {
+            return false;
           }
+        }
+      }
+      return true;
+    }
 
-          track.style.transition=`transform ${durations[idx]}s cubic-bezier(0.2,0,0.3,1) ${delays[idx]}s`;
-          track.style.transform=`translateY(calc(-1 * var(--slot-size) * (${totalTravel})))`;
+    spinBtn.addEventListener('click', () => {
+      if (isSpinning) return;
+      if (money < cost) return showMessage('No $$');
+
+      audio.lever.currentTime = 0;
+      audio.lever.play();
+      audio.anticipation.currentTime = 0;
+      audio.anticipation.play();
+
+      audio.rollingLoop.currentTime = 0;
+      audio.rollingLoop.play();
+
+      if (turnsLeft === 7) {
+        audio.startRound.currentTime = 0;
+        audio.startRound.play();
+        toggleInteractions(true); 
+        container.classList.remove('off'); 
+        reels.forEach(track => {
+          track.innerHTML = ''; 
+          buildInitial(track); 
         });
+
+        if (ownedArtifacts.some(a => a.id === 'luckyCharm')) {
+          luck += 5;
+          showMessage('Lucky Charm activated! +5 Luck!', 1500);
+        }
+      }
+
+      if (ownedArtifacts.some(a => a.id === 'fakeCoin') && Math.random() < 0.2) {
+        tempLuckBonus += 3;
+        showMessage('Fake coin triggered! +3 Luck for this spin!', 1500);
+      }
+
+      isSpinning = true;
+      spinBtn.disabled = true;
+      centralWinDisplay.classList.remove('show');
+      msgBox.style.opacity = 0;
+      turnsLeft--;
+
+      document.querySelectorAll('.winning-symbol').forEach(el => {
+        el.classList.remove('winning-symbol');
+      });
+      root.style.animation = 'none';
+      root.style.setProperty('--current-win-color', 'transparent');
+
+      reelsReadyForCheck = 0;
+
+      money -= cost;
+      spins++;
+      updateUI();
+
+      const landingSymbolsMatrix = Array(nReels).fill(0).map(() => Array(rowsVisible).fill(null));
+      let isJackpotForced = false;
+
+      for (let c = 0; c < nReels; c++) {
+        for (let r = 0; r < rowsVisible; r++) {
+          landingSymbolsMatrix[c][r] = weighted[Math.floor(Math.random() * weighted.length)];
+        }
+      }
+
+      const jackpotChance = calculateJackpotChance(luck + tempLuckBonus);
+      if (Math.random() < jackpotChance) {
+        console.log(`Guaranteed Jackpot triggered! Chance: ${jackpotChance.toFixed(4)}`);
+        isJackpotForced = true;
+        const forcedSymbol = symbolIdentifiers[Math.floor(Math.random() * symbolIdentifiers.length)];
+        for (let c = 0; c < nReels; c++) {
+          for (let r = 0; r < rowsVisible; r++) {
+            landingSymbolsMatrix[c][r] = forcedSymbol;
+          }
+        }
+      }
+
+      if (isJackpotForced && isBoardAJackpot(landingSymbolsMatrix)) {
+        const jackpotVariationChance = calculateJackpotVariationChance(luck + tempLuckBonus);
+        if (Math.random() < jackpotVariationChance) {
+          const numChanges = Math.floor(Math.random() * 3) + 1;
+          console.log(`Jackpot Variation triggered! Breaking up accidental jackpot with ${numChanges} change(s). Chance: ${jackpotVariationChance.toFixed(4)}`);
+
+          const originalSymbol = landingSymbolsMatrix[0][0];
+          const allPositions = [];
+          for (let r = 0; r < rowsVisible; r++) {
+            for (let c = 0; c < nReels; c++) {
+              allPositions.push({r, c});
+            }
+          }
+
+          for (let i = allPositions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
+          }
+
+          for (let i = 0; i < numChanges; i++) {
+            const pos = allPositions[i];
+            let newSymbol;
+            do {
+              newSymbol = weighted[Math.floor(Math.random() * weighted.length)];
+            } while (newSymbol === originalSymbol);
+
+            console.log(`  - Changing symbol at reel ${pos.c}, row ${pos.r} from ${originalSymbol} to ${newSymbol}`);
+            landingSymbolsMatrix[pos.c][pos.r] = newSymbol;
+          }
+        }
+      }
+
+      if (!isJackpotForced) {
+        const forcedComboChance = calculateForcedComboChance(luck + tempLuckBonus);
+        if (Math.random() < forcedComboChance) {
+          console.log(`Forced Combo triggered! Chance: ${forcedComboChance.toFixed(4)}`);
+          const randomRow = Math.floor(Math.random() * rowsVisible);
+          const randomCol = Math.floor(Math.random() * (nReels - 2));
+
+          const forcedSymbol = symbolIdentifiers[Math.floor(Math.random() * symbolIdentifiers.length)];
+
+          landingSymbolsMatrix[randomCol][randomRow] = forcedSymbol;
+          landingSymbolsMatrix[randomCol + 1][randomRow] = forcedSymbol;
+          landingSymbolsMatrix[randomCol + 2][randomRow] = forcedSymbol;
+        }
+      }
+
+      reels.forEach((track, idx) => {
+
+        const spinCount = Math.floor(Math.random() * 15) + 25;
+
+        const totalTravel = spinCount + rowsVisible;
+        track.dataset.spinCount = totalTravel;
+
+        for (let j = 0; j < spinCount; j++) {
+          const el = document.createElement('div');
+          el.className = 'symbol';
+          const contentEl = document.createElement('div');
+          contentEl.className = 'symbol-content';
+          const sId = weighted[Math.floor(Math.random() * weighted.length)];
+          contentEl.dataset.symbol = sId;
+
+          const img = document.createElement('img');
+          img.src = symbolImageMap[sId];
+          img.alt = sId;
+          contentEl.appendChild(img);
+
+          el.appendChild(contentEl);
+          track.appendChild(el);
+          applyStaticGlow(el);
+        }
+
+        for (let r = 0; r < rowsVisible; r++) {
+          const el = document.createElement('div');
+          el.className = 'symbol';
+          const contentEl = document.createElement('div');
+          contentEl.className = 'symbol-content';
+          const sId = landingSymbolsMatrix[idx][r];
+          contentEl.dataset.symbol = sId;
+
+          const img = document.createElement('img');
+          img.src = symbolImageMap[sId];
+          img.alt = sId;
+          contentEl.appendChild(img);
+
+          el.appendChild(contentEl);
+          track.appendChild(el);
+          applyStaticGlow(el);
+        }
+
+        track.style.transition = `transform ${durations[idx]}s cubic-bezier(0.2,0,0.3,1) ${delays[idx]}s`;
+        track.style.transform = `translateY(calc(-1 * var(--slot-size) * (${totalTravel})))`;
       });
     });
-  </script>
+
+    payDebtBtn.addEventListener('click', () => {
+      const remainingDebt = debt - debtPaid;
+      const amountToPay = Math.round(debt / 16);
+
+      if (money > 7) {
+        money -= amountToPay;
+        debtPaid += amountToPay;
+        updateUI();
+
+        if (debtPaid >= debt) {
+          showDialog("Time for the next deadline!", 'ok', () => {
+            advanceDebtCycle();
+          });
+        }
+      } else {
+        showDialog("You still need money to gamble!", 'ok');
+      }
+    });
+
+    function gameOver() {
+      gameOverOverlay.classList.add('show');
+      finalRoundEl.textContent = currentRound;
+      totalMoneyEarnedEl.textContent = totalMoneyGainedOverall;
+      totalSpinsEl.textContent = spins;
+      totalTicketsEl.textContent = tickets;
+      finalDebtPaidEl.textContent = debtPaid;
+      spinBtn.disabled = true;
+      payDebtBtn.disabled = true;
+      rerollArtifactsBtn.disabled = true;
+      document.querySelectorAll('.artifact').forEach(el => el.classList.add('disabled'));
+    }
+
+    retryButton.addEventListener('click', () => {
+      location.reload(); 
+    });
+
+function endRound() {
+  toggleInteractions(false);
+  container.classList.add('off');
+
+  if (currentRound > 1) {
+    if (currentRound % 3 === 2) {
+      // On Round 2, it's just a warning.
+      // We explicitly do NOT call checkDebtConditions here.
+      showDialog("You have 1 round left to deposit your coins! You have been warned!", 'ok', () => {
+        // After the warning, simply continue the round progression.
+        continueRoundProgression();
+      });
+      // Important: Remove the 'return' so continueRoundProgression can be called via the callback
+    } else if (currentRound % 3 === 0) {
+      const remainingDebt = debt - debtPaid;
+      if (money >= remainingDebt) {
+        // On Round 3, if enough money, prompt them to pay.
+        // The actual payment logic should be tied to a UI button, not here.
+        showDialog("Last chance to pay up!", 'ok', () => {
+          // After this dialog, let the player interact with the UI to pay.
+          // Then continue round progression.
+          continueRoundProgression(); // This assumes continueRoundProgression also re-enables interactions or that paying debt will handle it.
+        });
+      } else {
+        // If not enough money on Round 3, it's game over.
+        showDialog("Looks like you don't have enough coins... that's too bad...", 'game-over-countdown');
+        setTimeout(() => {
+          dialogOverlay.classList.remove('flash-red');
+          gameOver();
+        }, 5000);
+      }
+      // Important: Remove the 'return' from this block too.
+    } else {
+      // For any other rounds > 1 that aren't 2 or 3 modulo 3, just continue.
+      continueRoundProgression();
+    }
+  } else {
+    // For currentRound <= 1, just continue normally.
+    continueRoundProgression();
+  }
+}
+
+function advanceDebtCycle() {
+  // pay out interest
+  const interest = Math.floor(debtPaid * 0.075);
+  money += interest;
+
+  // bump up the debt amount
+  debt = Math.floor(debt * 1.5);
+
+  // compute next cycle’s first round:
+  // e.g. if you’re in Round 1–3, next Cycle start is Round 4; if 4–6 → Round 7, etc.
+  const thisCycle   = Math.ceil(currentRound / 3);
+  const nextRound   = thisCycle * 3 + 1;
+  currentRound      = nextRound;
+  turnsLeft         = 7;
+  tickets++;
+  
+  // give feedback
+  showMessage(
+    `Cycle ${thisCycle} over! Starting Round ${currentRound}. You earned a ticket and ${interest} interest!`,
+    2500
+  );
+  
+  updateUI();
+}
+
+
+    function continueRoundProgression() {
+      currentRound++;
+      turnsLeft = 7;
+      tickets++;
+      showMessage(`Round ${currentRound - 1} over! You earned a ticket and ${interestEl.textContent} in interest!`, 2000);
+      updateUI();
+    }
+
+    function toggleInteractions(inRound) {
+      payDebtBtn.disabled = inRound;
+      rerollArtifactsBtn.disabled = inRound;
+      document.querySelectorAll('.artifact').forEach(el => {
+        if (inRound) {
+          el.classList.add('disabled');
+        } else {
+          el.classList.remove('disabled');
+        }
+      });
+    }
+
+    function getRandomArtifacts(num) {
+      const unownedArtifacts = allArtifacts.filter(art => !ownedArtifacts.some(owned => owned.id === art.id));
+      if (unownedArtifacts.length <= num) {
+        return unownedArtifacts; 
+      }
+
+      const shuffled = unownedArtifacts.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, num);
+    }
+
+function processTooltipText(text) {
+    let processedText = text;
+
+    // Replace <money> with currency image
+    processedText = processedText.replace(/<money>/g, '<img src="media/textures/currency.png" class="currency-icon" style="height: 1em;">');
+    // Replace <ticket> with lucky ticket image
+    processedText = processedText.replace(/<ticket>/g, '<img src="media/textures/lucky-ticket.png" class="currency-icon" style="height: 1em;">');
+    // Replace <positive text> with green text
+    processedText = processedText.replace(/<positive(.*?)>/g, '<span class="positive-text">$1</span>');
+    // Replace <negative text> with red text
+    processedText = processedText.replace(/<negative(.*?)>/g, '<span class="negative-text">$1</span>');
+    // Replace <highlight text> with yellow text
+    processedText = processedText.replace(/<highlight(.*?)>/g, '<span class="highlight-text">$1</span>');
+    // Replace <luck> with luck image
+    processedText = processedText.replace(/<luck>/g, '<img src="media/textures/luck.png" class="currency-icon" style="height: 1em;">');
+    // Replace <cherry> with cherry image
+    processedText = processedText.replace(/<cherry>/g, '<img src="media/textures/symbols/cherry.png" class="currency-icon" style="height: 1em;">');
+    // Replace <lemon> with lemon image
+    processedText = processedText.replace(/<lemon>/g, '<img src="media/textures/symbols/lemon.png" class="currency-icon" style="height: 1em;">');
+    // Replace <watermelon> with watermelon image
+    processedText = processedText.replace(/<watermelon>/g, '<img src="media/textures/symbols/watermelon.png" class="currency-icon" style="height: 1em;">');
+    // Replace <bell> with bell image
+    processedText = processedText.replace(/<bell>/g, '<img src="media/textures/symbols/bell.png" class="currency-icon" style="height: 1em;">');
+    // Replace <diamond> with diamond image
+    processedText = processedText.replace(/<diamond>/g, '<img src="media/textures/symbols/diamond.png" class="currency-icon" style="height: 1em;">');
+    // Replace <clover> with clover image
+    processedText = processedText.replace(/<clover>/g, '<img src="media/textures/symbols/clover.png" class="currency-icon" style="height: 1em;">');
+    // Replace <seven> with 7 image
+    processedText = processedText.replace(/<seven>/g, '<img src="media/textures/symbols/7.png" class="currency-icon" style="height: 1em;">');
+
+    return processedText;
+  }
+
+function showArtifactTooltip(artifact, mouseX, mouseY) {
+  artifactTooltip.innerHTML = `
+    <strong class="artifact-name ${artifact.rarity}">${artifact.name}</strong><br>
+    ${processTooltipText(artifact.description)}
+  `;
+
+  artifactTooltip.style.visibility = 'hidden';
+  artifactTooltip.style.opacity = '0';
+  artifactTooltip.style.left = '0px';
+  artifactTooltip.style.top = '0px';
+  artifactTooltip.style.visibility = 'visible';
+  const tooltipRect = artifactTooltip.getBoundingClientRect();
+  artifactTooltip.style.visibility = 'hidden';
+
+  let tooltipX = mouseX + 20;
+  let tooltipY = mouseY + 20;
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  if (tooltipX + tooltipRect.width > viewportWidth - 10) {
+    tooltipX = mouseX - tooltipRect.width - 20;
+  }
+
+  if (tooltipY + tooltipRect.height > viewportHeight - 10) {
+    tooltipY = mouseY - tooltipRect.height - 20;
+  }
+
+  if (tooltipX < 10) {
+    tooltipX = 10;
+  }
+
+  if (tooltipY < 10) {
+    tooltipY = 10;
+  }
+
+  artifactTooltip.style.left = `${tooltipX}px`;
+  artifactTooltip.style.top = `${tooltipY}px`;
+  artifactTooltip.style.opacity = '1';
+  artifactTooltip.style.visibility = 'visible';
+}
+
+function hideArtifactTooltip() {
+  artifactTooltip.style.opacity = '0';
+  artifactTooltip.style.visibility = 'hidden';
+}
+
+function renderArtifacts() {
+  artifactListEl.innerHTML = '';
+  availableArtifacts.forEach(artifact => {
+    const artifactEl = document.createElement('div');
+    artifactEl.className = 'artifact';
+    if (money < artifact.price) {
+      artifactEl.classList.add('disabled');
+    }
+    artifactEl.innerHTML = `
+      <span class="artifact-icon">${artifact.icon}</span>
+      <div class="artifact-price">
+        <img src="media/textures/lucky-ticket.png" class="currency-icon"> ${artifact.price}
+      </div>
+    `;
+
+    artifactEl.addEventListener('click', () => buyArtifact(artifact));
+
+    artifactEl.addEventListener('mouseover', (e) => {
+      showArtifactTooltip(artifact, e.clientX, e.clientY);
+    });
+
+    artifactEl.addEventListener('mousemove', (e) => {
+      showArtifactTooltip(artifact, e.clientX, e.clientY);
+    });
+
+    artifactEl.addEventListener('mouseout', () => {
+      hideArtifactTooltip();
+    });
+
+    artifactListEl.appendChild(artifactEl);
+  });
+
+  ownedArtifactListEl.innerHTML = '';
+  ownedArtifacts.forEach(artifact => {
+    const ownedEl = document.createElement('div');
+    ownedEl.className = 'owned-artifact-item';
+    ownedEl.innerHTML = `<span class="artifact-icon">${artifact.icon}</span><span class="artifact-name ${artifact.rarity}">${artifact.name}</span>`;
+    ownedArtifactListEl.appendChild(ownedEl);
+  });
+  updateWeightedSymbols();
+  updateUI();
+}
+
+    function buyArtifact(artifact) {
+      if (tickets >= artifact.price) {
+        tickets -= artifact.price;
+        ownedArtifacts.push(artifact);
+        availableArtifacts = availableArtifacts.filter(a => a.id !== artifact.id); 
+        renderArtifacts();
+        updateUI();
+        audio.purchase.currentTime = 0;
+        audio.purchase.play();
+        showMessage(`Bought ${artifact.name}!`, 1500);
+      } else {
+        showMessage('Not enough tickets', 1500);
+      }
+    }
+
+    rerollArtifactsBtn.addEventListener('click', () => {
+      const rerollCost = 20;
+      if (money >= rerollCost) {
+        money -= rerollCost;
+        availableArtifacts = getRandomArtifacts(3); 
+        renderArtifacts();
+        updateUI();
+        showMessage('Artifacts rerolled!', 1500);
+      } else {
+        showMessage('Not enough money to reroll (<img src="media/textures/currency.png" class="currency-icon" style="height: 1em;"> 20 needed).', 1500);
+      }
+    });
+
+    document.addEventListener('contextmenu', event => {
+        event.preventDefault();
+    });
+
+    function initializeGame() {
+      money = 13;
+      spins = 0;
+      luck = 0;
+      tempLuckBonus = 0;
+      currentRound = 1;
+      turnsLeft = 7;
+      debt = 75;
+      debtPaid = 30;
+      tickets = 2;
+      totalMoneyGainedOverall = 0;
+      ownedArtifacts = [];
+      availableArtifacts = getRandomArtifacts(3); 
+      reels.forEach(track => {
+        track.innerHTML = ''; 
+      });
+      container.classList.add('off'); 
+      updateUI();
+      renderArtifacts();
+      toggleInteractions(false);
+      gameOverOverlay.classList.remove('show');
+      spinBtn.disabled = false;
+      msgBox.textContent = '';
+      msgBox.style.opacity = 1;
+    }
+
+    initializeGame(); 
+  });
+</script>
 </body>
 </html>

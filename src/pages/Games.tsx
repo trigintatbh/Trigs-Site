@@ -4,6 +4,7 @@ import LightsimThumbnail from "../assets/thumb/Lightsim.png";
 import RunningGameThumbnail from "../assets/thumb/Running Game.png";
 import TerramThumbnail from "../assets/thumb/Terram.png";
 import TrigCafeThumbnail from "../assets/thumb/Trigs Cafe.png";
+import MarmoraThumbnail from "../assets/thumb/Marmora.png";
 import SlotzThumbnail from "../assets/thumb/Slotz.png";
 
 import Card from "../components/Card";
@@ -81,6 +82,15 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
             } />
+            <Card title="Marmora" description="a game about marbles" thumbnail={MarmoraThumbnail} footer={
+                <div className="flex gap-2">
+                    <FaPlay onClick={() => {
+                        setWindowURL("games/Marmora/index.html");
+                        setWindowTitle("Marmora");
+                    }} />
+                    <FaArrowDown />
+                </div>
+                } />
             <Card title='Slotz' description="LETS GO GAMBLING" thumbnail={SlotzThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {

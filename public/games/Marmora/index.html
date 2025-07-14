@@ -1,0 +1,3863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marmora</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet"/>
+    <style>
+
+        :root {
+            --bg-color: #111114;
+            --text-color: #f5f5f5;
+            --canvas-bg: #111114;
+            --primary-color: #8420f8;
+            --primary-text: #f5f5f5;
+            --secondary-color: #1b1b1e;
+            --secondary-text: #c0c0c0;
+            --border-color: #282828;
+            --obstacle-color: #ffffff;
+            --cross-color: #ffffff;
+            --star-color: #ffd100;
+            --error-color: #e4685d;
+            --winner-bg: #00000064;
+        }
+        * {
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+        html, body {
+            width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            position: relative;
+        }
+        button {
+             background-color: var(--secondary-color);
+             border: 1px solid var(--border-color);
+             padding: 8px 12px;
+             color: var(--text-color);
+             border-radius: 5px;
+             cursor: pointer;
+             transition: background-color 0.2s ease, border-color 0.2s ease;
+             font-size: 0.9rem;
+             margin: 2px;
+         }
+         button:hover {
+             background-color: #3a3a3a;
+             border-color: var(--primary-color);
+         }
+         button:disabled {
+             background-color: #282829;
+             color: var(--secondary-text);
+             cursor: not-allowed;
+             border-color: var(--border-color);
+         }
+         button.danger {
+             background-color: var(--error-color);
+             color: var(--primary-text);
+         }
+         button.danger:hover {
+             background-color: #d4584d;
+         }
+         input[type="color"], input[type="text"], input[type="file"], input[type="range"], input[type="checkbox"] {
+             background-color: var(--bg-color);
+             color: var(--text-color);
+             border: 1px solid var(--border-color);
+             padding: 8px;
+             border-radius: 4px;
+             margin: 5px 0;
+         }
+         input[type="color"] { padding: 2px; height: 36px; }
+         input[type="range"] { padding: 0; }
+         input[type="checkbox"] {
+             appearance: none;
+             -webkit-appearance: none;
+             width: 20px;
+             height: 20px;
+             border: 2px solid var(--border-color);
+             border-radius: 4px;
+             cursor: pointer;
+             position: relative;
+             margin-right: 10px;
+             vertical-align: middle;
+         }
+         input[type="checkbox"]::after {
+             content: '';
+             position: absolute;
+             top: 3px;
+             left: 3px;
+             width: 10px;
+             height: 10px;
+             background-color: var(--primary-color);
+             border-radius: 2px;
+             display: none;
+         }
+         input[type="checkbox"]:checked::after {
+             display: block;
+         }
+         input[type="checkbox"]:hover {
+             border-color: var(--primary-color);
+         }
+
+        #messageArea {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        #messageArea.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #messageArea.error {
+            background-color: rgba(228, 104, 93, 0.9);
+            color: var(--primary-text);
+        }
+
+        .screen {
+            display: none;
+            width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            overflow: hidden;
+        }
+        .screen.active {
+            display: flex;
+            z-index: 10;
+        }
+
+         #winnerScreen.active {
+             display: flex;
+         }
+
+         #devLogoScreen {
+            background-color: #000000;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            animation: fadeInScreen 1.5s ease-out forwards;
+         }
+         #devLogoScreen img {
+            max-width: 60%;
+            max-height: 60%;
+            opacity: 0;
+            animation: fadeInLogo 2s ease-in 0.5s forwards;
+         }
+         #devLogoScreen p {
+            margin-top: 30px;
+            font-size: 1.2em;
+            color: var(--secondary-text);
+            opacity: 0;
+            animation: fadeInText 1.5s ease-in 2.5s forwards;
+         }
+         @keyframes fadeInScreen {
+             to { opacity: 1; }
+         }
+         @keyframes fadeInLogo {
+             to { opacity: 1; }
+         }
+         @keyframes fadeInText {
+             to { opacity: 1; }
+         }
+
+         #titleScreen {
+            align-items: center;
+
+            text-align: center;
+
+            background: linear-gradient(45deg, var(--bg-color) 25%, var(--secondary-color) 25%, var(--secondary-color) 50%, var(--bg-color) 50%, var(--bg-color) 75%, var(--secondary-color) 75%, var(--secondary-color) 100%);
+            background-size: 80px 80px;
+            animation: moveStripes 15s linear infinite;
+             position: relative;
+
+        }
+
+        #titleScreenCanvas {
+             position: absolute;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             z-index: 1;
+             pointer-events: none;
+        }
+
+        @keyframes moveStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 100% 100%; }
+        }
+
+        .titleScreenSelection {
+            color: var(--text-color);
+            font-size: 1.7em;
+            text-shadow: rgb(0, 0, 0) 0px 0 7px;
+            transition: color 50ms ease-in-out, font-size 50ms ease-in-out;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            margin: 10px 0;
+            width: auto;
+            padding: 10px 20px;
+            z-index: 2;
+        }
+        .titleScreenSelection:hover {
+            color: var(--primary-color);
+            font-size: 1.74em;
+            text-shadow: #8520f861 0px 0 4px;
+            background: transparent;
+        }
+
+        .splash {
+            position: relative;
+            display: block;
+            margin: -10px auto 20px auto;
+            font-size: 1.4em;
+            color: var(--primary-color);
+            animation: splash 1s infinite ease-in-out;
+            font-weight: 700;
+            text-shadow: #8520f861 0px 0 4px;
+            width: fit-content;
+            transform: rotate(-15deg);
+            left: 120px;
+            bottom: 20px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        @keyframes splash {
+            0%, 100% {font-size: 1.4em}
+            50% {font-size: 1.5em}
+        }
+
+        #selectionScreen, #settingsScreen {
+
+            flex-direction: row;
+
+        }
+        aside#sidebar, aside#settingsSidebar{
+            width: 200px;
+            background: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s;
+            border-right:1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        aside#sidebar.collapsed, aside#settingsSidebar.collapsed{ width: 60px; }
+        .sidebar-icons{
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+        .sidebar-icons button{
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            transition: color 0.2s, background-color 0.2s;
+            width: 100%;
+            justify-content: flex-start;
+            margin: 0; border-radius: 0;
+        }
+        .sidebar-icons button .label{
+            margin-left: 15px;
+            font-size: 0.9rem;
+        }
+        .sidebar-icons button.active, .sidebar-icons button:hover{
+            color: var(--primary-color);
+            background-color: rgba(132, 32, 248, 0.1);
+        }
+        aside#sidebar.collapsed .label, aside#settingsSidebar.collapsed .label{ display: none; }
+        aside#sidebar.collapsed .sidebar-icons button, aside#settingsSidebar.collapsed .sidebar-icons button { justify-content: center; }
+        #collapseBtn, #settingsCollapseBtn{
+            background: transparent;
+            border: none; border-top: 1.5px solid var(--border-color);
+            color: var(--secondary-text);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 15px;
+            align-self: stretch;
+            text-align: center;
+             margin: 0; border-radius: 0;
+        }
+        aside#sidebar.collapsed #collapseBtn i, aside#settingsSidebar.collapsed #settingsCollapseBtn i{ transform: rotate(180deg); }
+        main#mainContent, main#settingsContent{
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+
+            background-image: url('media/images/bg.png');
+            background-repeat: repeat;
+            background-size: 50px 50px;
+            animation: scrollBackground 60s linear infinite;
+        }
+
+        @keyframes scrollBackground {
+            0% { background-position: 0 0; }
+            100% { background-position: 100% 100%; }
+        }
+
+        #tabHeader, #settingsTabHeader{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            flex-shrink: 0;
+            background-color: transparent;
+            z-index: 1;
+            position: sticky;
+            top: 0;
+        }
+        #tabTitle, #settingsTabTitle{
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        #startGameBtnContainer {
+             margin-left: auto;
+             display: flex;
+             align-items: center;
+             gap: 10px;
+        }
+
+         #startGameBtnContainer button {
+             padding: 10px 20px;
+             font-size: 1rem;
+             width: auto;
+             margin: 0;
+         }
+         #startGameBtn:hover {
+             background-color: #6a1bcc;
+         }
+          #startGameBtn:disabled {
+             background-color: #4a4a4e;
+             color: var(--secondary-text);
+             cursor: not-allowed;
+             border-color: var(--border-color);
+         }
+         #tabContentArea, #settingsTabContentArea {
+             flex: 1;
+             overflow-y: auto;
+             display: flex;
+             flex-direction: column;
+         }
+
+        #marbleGrid, #savedMarblesGrid, #savedSetsGrid, #packsGrid {
+            display: grid;
+            width: 100%;
+            gap: 15px;
+            padding-top: 10px;
+        }
+
+        #marbleGrid, #savedMarblesGrid, #savedSetsGrid{
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            justify-content: start;
+        }
+         #packsGrid {
+             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+             justify-content: start;
+         }
+
+         .grid-container-wrapper {
+             flex-shrink: 0;
+         }
+
+        .card {
+             position: relative;
+             background: var(--secondary-color);
+             border: 1px solid var(--border-color);
+             border-radius: 8px;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             cursor: pointer;
+             transition: box-shadow 0.2s, border-color 0.2s;
+             padding: 10px;
+             min-height: 100px;
+             flex-direction: column;
+             text-align: center;
+             overflow: hidden;
+         }
+         .card:hover{
+             box-shadow: 0 0 8px var(--primary-color);
+             border-color: var(--primary-color);
+         }
+        .marble-card {
+            width: 100px;
+            height: 120px;
+            justify-content: space-between;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        .marble-swatch-container {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 5px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-color);
+            flex-shrink: 0;
+        }
+        .marble-swatch-container img {
+             width: 100%; height: 100%; object-fit: cover;
+        }
+         .marble-name {
+             font-size: 0.8rem;
+             width: 100%;
+             white-space: nowrap;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             color: var(--secondary-text);
+         }
+        .overlay{
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: opacity 0.2s ease;
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            gap: 10px;
+        }
+
+        .marble-card:hover .overlay,
+        body.modifier-held .marble-card:hover .overlay {
+             opacity: 1;
+             pointer-events: auto;
+        }
+
+        .overlay i{
+            font-size: 20px;
+            color: #fff;
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.2s;
+            display: none;
+        }
+        .overlay i:hover { color: var(--primary-color); }
+        .overlay i.danger:hover { color: var(--error-color); }
+
+        .add-card{
+            width: 100px;
+            height: 120px;
+            border: 2px dashed var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-text);
+            font-size: 36px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.3);
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .add-card:hover {
+             color: var(--primary-color);
+             border-color: var(--primary-color);
+        }
+         .add-card-text {
+             display: none;
+             font-size: 0.8rem;
+             margin-top: 5px;
+         }
+        .pack-card, .saved-config-card, .saved-marble-card {
+             position: relative;
+             flex-direction: column;
+             align-items: center;
+             justify-content: center;
+             text-align: center;
+             padding: 15px;
+             min-height: 80px;
+             background-color:rgba(0, 0, 0, 0.3);
+         }
+         .pack-card i, .saved-config-card i, .saved-marble-card i {
+             font-size: 1.5rem;
+             margin-bottom: 10px;
+             color: var(--primary-color);
+         }
+         .pack-card-name, .saved-config-name, .saved-marble-name {
+             font-weight: bold;
+             margin-bottom: 5px;
+             font-size: 1rem;
+         }
+         .pack-card-desc, .saved-config-details, .saved-marble-details {
+             font-size: 0.8rem;
+             color: var(--secondary-text);
+         }
+         .saved-marble-card .marble-swatch-container {
+             width: 50px; height: 50px;
+             margin-bottom: 5px;
+         }
+
+         .saved-marble-card .actions-div button {
+             padding: 2px;
+             font-size: 0.7rem;
+             margin: 0 1px;
+             display: inline-flex;
+             align-items: center;
+             justify-content: center;
+             width: 20px;
+             height: 20px;
+             background-color: transparent;
+             border: none;
+         }
+         .saved-marble-card .actions-div button:hover {
+             background-color: rgba(255, 255, 255, 0.1);
+         }
+
+         .saved-marble-card .actions-div button.danger {
+             position: static;
+             top: auto;
+             right: auto;
+             padding: 2px;
+             font-size: 0.7rem;
+             background-color: transparent;
+             border: none;
+             color: var(--error-color);
+         }
+         .saved-marble-card .actions-div button.danger:hover {
+             background-color: rgba(228, 104, 93, 0.2);
+         }
+
+         .saved-config-card .danger {
+             position: absolute;
+             top: 4px;
+             right: 4px;
+             padding: 2px 5px;
+             font-size: 0.7rem;
+             background: none;
+             border: none;
+             color: var(--error-color);
+         }
+         .saved-config-card .danger:hover {
+             background-color: rgba(228, 104, 93, 0.2);
+         }
+
+         .saved-section h3 {
+             font-size: 1.2rem;
+             margin-top: 20px;
+             margin-bottom: 10px;
+             border-bottom: 1.5px solid var(--border-color);
+             padding-bottom: 5px;
+         }
+
+         .saved-section .grid-container-wrapper {
+              margin-top: 10px;
+         }
+
+        #modalOverlay{
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        #modalOverlay.active { display: flex; }
+        #modal{
+            position: relative;
+            background: var(--secondary-color);
+            padding: 30px;
+            border-radius: 8px;
+            min-width: 350px;
+            max-width: 90%;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        #modal h3 { margin-bottom: 20px; text-align: center; }
+        #modalClose{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: var(--secondary-text);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+         #modalClose:hover { color: var(--text-color); }
+         .modal-content {
+             display: flex;
+             flex-direction: column;
+             gap: 15px;
+         }
+         .modal-content label {
+             font-size: 0.9rem;
+             color: var(--secondary-text);
+             margin-bottom: -10px;
+         }
+         .modal-content input[type="text"],
+         .modal-content input[type="color"],
+         .modal-content input[type="file"] {
+             width: 100%;
+         }
+         .modal-content input[type="color"] {
+             padding: 2px;
+             height: 36px;
+         }
+         .modal-actions {
+             margin-top: 25px;
+             display: flex;
+             justify-content: flex-end;
+             gap: 10px;
+         }
+
+        #gameScreen {
+
+            justify-content: flex-start;
+            z-index: 5;
+        }
+        #gameCanvas {
+            width: 100%; height: 100%; display: block;
+            background-color: var(--canvas-bg);
+        }
+        #gameUiOverlay {
+            position: absolute; top: 10px; left: 10px;
+            display: flex; gap: 10px; padding: 5px;
+            background: transparent;
+            border-radius: 5px;
+            z-index: 20;
+        }
+        #gameUiOverlay button {
+             background: transparent;
+             border: none;
+             color: var(--text-color);
+             width: 40px; height: 40px;
+             font-size: 1.2rem;
+             padding: 0; margin: 0;
+             display: flex; align-items: center; justify-content: center;
+         }
+         #gameUiOverlay button:hover {
+             background-color: rgba(255,255,255,0.1);
+         }
+         #winnerDisplay {
+            color: var(--star-color);
+            font-weight: bold;
+            padding: 0 10px;
+            align-self: center;
+        }
+
+        #winnerScreen {
+
+            background-color: var(--winner-bg);
+            z-index: 30;
+            display: none;
+            flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+         #winnerHeading {
+             color: var(--text-color);
+             font-size: 2.5rem;
+             text-shadow: 0 0 10px rgba(0,0,0,0.5);
+             margin-bottom: 20px;
+         }
+        #winnerMarbleDisplay {
+            width: 200px; height: 200px; border-radius: 50%;
+            background-color: var(--canvas-bg); overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px #00000063;
+        }
+         #winnerMarbleDisplay img {
+             width: 100%; height: 100%; object-fit: cover;
+         }
+        #winnerScreenControls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+         #winnerScreenControls button {
+             width: 200px;
+             padding: 12px 20px;
+             font-size: 1rem;
+             text-align: center;
+         }
+         button.primary {
+             background-color: var(--primary-color);
+             color: var(--primary-text);
+             border: none;
+         }
+         button.primary:hover {
+             background-color: #6a1bcc;
+         }
+
+        #loadingIndicator {
+             color: var(--primary-color);
+             margin: 10px 0;
+             font-style: italic;
+         }
+         .hidden { display: none !important; }
+         #imageLoadingStatus {
+             font-size: 0.8rem;
+             color: var(--secondary-text);
+             margin-left: 10px;
+         }
+
+         #titleScreenLogo {
+            animation: rotate 5s infinite ease-in-out;
+            z-index: 2;
+         }
+
+         @keyframes rotate {
+            0%, 100% {transform: rotate(-1deg);}
+            50% {transform: rotate(1deg);}
+        }
+
+         #settingsScreen {
+             flex-direction: row;
+         }
+         aside#settingsSidebar {
+             width: 200px;
+             background: var(--secondary-color);
+             display: flex;
+             flex-direction: column;
+             transition: width 0.3s;
+             border-right: 1px solid var(--border-color);
+             flex-shrink: 0;
+         }
+         aside#settingsSidebar.collapsed {
+             width: 60px;
+         }
+         aside#settingsSidebar.collapsed .label {
+             display: none;
+         }
+         aside#settingsSidebar.collapsed .sidebar-icons button {
+             justify-content: center;
+         }
+         #settingsCollapseBtn {
+             background: transparent;
+             border: none;
+             border-top: 1.5px solid var(--border-color);
+             color: var(--secondary-text);
+             font-size: 18px;
+             cursor: pointer;
+             padding: 15px;
+             align-self: stretch;
+             text-align: center;
+             margin: 0;
+             border-radius: 0;
+         }
+         aside#settingsSidebar.collapsed #settingsCollapseBtn i {
+             transform: rotate(180deg);
+         }
+         main#settingsContent {
+             flex: 1;
+             padding: 20px;
+             overflow-y: auto;
+             display: flex;
+             flex-direction: column;
+             background-image: url('media/images/bg.png');
+             background-repeat: repeat;
+             background-size: 50px 50px;
+             animation: scrollBackground 60s linear infinite;
+         }
+         #settingsTabHeader {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             margin-bottom: 15px;
+             padding-bottom: 10px;
+             flex-shrink: 0;
+             background-color: transparent;
+             z-index: 1;
+             position: sticky;
+             top: 0;
+         }
+         #settingsTabTitle {
+             font-size: 1.5rem;
+             margin: 0;
+         }
+         #settingsTabContentArea {
+             flex: 1;
+             overflow-y: auto;
+             display: flex;
+             flex-direction: column;
+         }
+         .settings-section {
+             margin-bottom: 20px;
+             padding-bottom: 15px;
+             border-bottom: 1px solid var(--border-color);
+         }
+         .settings-section h3 {
+             font-size: 1.2rem;
+             margin-bottom: 10px;
+         }
+         .settings-item {
+             display: flex;
+             align-items: center;
+             margin-bottom: 10px;
+         }
+         .settings-item label {
+             flex-basis: 150px;
+             margin-right: 15px;
+             font-size: 1rem;
+             color: var(--text-color);
+         }
+         .settings-item input[type="range"] {
+             flex-grow: 1;
+             -webkit-appearance: none;
+             appearance: none;
+             height: 8px;
+             background: var(--border-color);
+             outline: none;
+             opacity: 0.7;
+             transition: opacity .2s;
+             border-radius: 4px;
+         }
+         .settings-item input[type="range"]:hover {
+             opacity: 1;
+         }
+         .settings-item input[type="range"]::-webkit-slider-thumb {
+             -webkit-appearance: none;
+             appearance: none;
+             width: 18px;
+             height: 18px;
+             background: var(--primary-color);
+             cursor: pointer;
+             border-radius: 50%;
+             border: 1px solid var(--primary-text);
+         }
+         .settings-item input[type="range"]::-moz-range-thumb {
+             width: 18px;
+             height: 18px;
+             background: var(--primary-color);
+             cursor: pointer;
+             border-radius: 50%;
+             border: 1px solid var(--primary-text);
+         }
+         .settings-value {
+             margin-left: 15px;
+             min-width: 30px;
+             text-align: right;
+         }
+
+         .title-content-container {
+             position: relative;
+             z-index: 2;
+             margin-top: 20px;
+         }
+
+         /* New styles for mode selection screen */
+         #modeSelectionScreen {
+             align-items: center;
+             justify-content: center;
+             padding: 20px;
+             text-align: center;
+         }
+         #modeSelectionScreen h2 {
+             font-size: 2rem;
+             margin-bottom: 30px;
+         }
+         .mode-option {
+             background-color: var(--secondary-color);
+             border: 1px solid var(--border-color);
+             border-radius: 8px;
+             padding: 20px;
+             margin-bottom: 20px;
+             cursor: pointer;
+             transition: box-shadow 0.2s, border-color 0.2s;
+             width: 80%;
+             max-width: 500px;
+             text-align: left;
+         }
+         .mode-option:hover {
+             box-shadow: 0 0 8px var(--primary-color);
+             border-color: var(--primary-color);
+         }
+         .mode-option h3 {
+             font-size: 1.3rem;
+             margin-bottom: 10px;
+             color: var(--primary-color);
+         }
+         .mode-option p {
+             font-size: 1rem;
+             color: var(--secondary-text);
+         }
+         #modeSelectionControls {
+             margin-top: 30px;
+             display: flex;
+             gap: 20px;
+         }
+         /* End new styles */
+
+
+    </style>
+</head>
+<body>
+    <div id="messageArea"></div>
+
+    <audio id="titleMusic" src="media/audio/music/menu1.mp3" loop></audio>
+    <audio id="selectionMusic" src="media/audio/music/menu2.mp3"></audio>
+    <audio id="tickSound" src="media/audio/ui/tick.mp3"></audio>
+    <audio id="selectSound" src="media/audio/ui/select.mp3"></audio>
+     <audio id="raceStartSound" src="media/audio/racestart.mp3"></audio>
+    <audio id="winSound" src="media/audio/win.mp3"></audio>
+
+    <div id="devLogoScreen" class="screen active">
+        <img src="media/images/devlogo.png" alt="Developer Logo">
+        <p>Click anywhere to continue</p>
+    </div>
+    <div id="titleScreen" class="screen">
+        <canvas id="titleScreenCanvas"></canvas>
+        <div class="title-content-container"> <img src="media/images/logo.png" id="titleScreenLogo" alt="Marmora Logo" style="max-width: 30%; height: auto; margin-top: 30px; margin-bottom: -35px; filter: drop-shadow(0 0 0.75rem rgb(0, 0, 0));">
+            <div class="splash" id="title-splash">No splash found</div>
+        </div>
+        <div style="flex-direction: column; height: 30%; display: flex; z-index: 2;">
+            <button id="goToSelectionBtn" class="titleScreenSelection" style="margin-bottom: -15px">New Race</button>
+            <button id="goToSettingsBtn" class="titleScreenSelection">Settings</button>
+        </div>
+    </div>
+
+    <div id="selectionScreen" class="screen">
+        <aside id="sidebar">
+            <div class="sidebar-icons">
+                <button id="marblesTab" class="active" title="Manage current marbles"><i class="fa-solid fa-droplet"></i><span class="label">Marbles</span></button>
+                <button id="savedTab" title="Load saved marble sets"><i class="fa-solid fa-bookmark"></i><span class="label">Saved</span></button>
+                <button id="packsTab" title="Add preset marble packs"><i class="fa-solid fa-box"></i><span class="label">Packs</span></button>
+            </div>
+            <button id="collapseBtn" title="Toggle Sidebar"><i class="fa-solid fa-chevron-left"></i></button>
+        </aside>
+        <main id="mainContent">
+            <div id="tabHeader">
+                 <h2 id="tabTitle">Marbles</h2>
+                 <div id="startGameBtnContainer">
+                     <button id="backToTitleFromSelectionBtn" class="secondary">Back to Title</button>
+                     <button id="goToModeSelectionBtn" disabled>Next</button>
+                     <span id="imageLoadingStatus"></span>
+                 </div>
+            </div>
+            <div id="tabContentArea">
+                 <div id="marbleGridContainer" class="grid-container-wrapper">
+                     <div id="marbleGrid">
+                          <div class="add-card" id="addMarbleCard" title="Add a new marble" style="border-radius: 4px;">
+                              <i class="fa-solid fa-plus"></i>
+                              <span class="add-card-text">Add Marble</span>
+                          </div>
+                      </div>
+                 </div>
+                 <div id="savedMarblesGridContainer" class="grid-container-wrapper hidden"> <h3>Saved Marbles</h3> <div id="savedMarblesGrid">
+                           </div>
+                 </div>
+                 <div id="savedSetsGridContainer" class="grid-container-wrapper hidden"> <h3>Saved Sets</h3> <div id="savedSetsGrid">
+                           <div class="add-card" id="saveCurrentSetConfig" title="Save current marble set">
+                                <i class="fa-solid fa-save"></i>
+                                <span class="add-card-text">Save Set</span>
+                            </div>
+                      </div>
+                 </div>
+                 <div id="packsGridContainer" class="grid-container-wrapper hidden"> <div id="packsGrid">
+                           </div>
+                 </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modeSelectionScreen" class="screen">
+        <h2>Select Game Mode</h2>
+        <div class="mode-option" data-mode="classic">
+            <h3>First Wins (Classic)</h3>
+            <p>The first marble to reach the star wins the race.</p>
+        </div>
+        <div class="mode-option" data-mode="elimination">
+            <h3>Elimination</h3>
+            <p>If a marble touches the star, it's out. The last marble remaining wins.</p>
+        </div>
+        <div class="mode-option" data-mode="slow_elimination">
+            <h3>Slow Elimination</h3>
+            <p>In each round, the last marble to reach the star is out. New races automatically start until only one marble remains. Will take INCREDIBLY long.</p>
+        </div>
+        <div id="modeSelectionControls">
+            <button id="backToSelectionFromModeBtn" class="secondary">Back</button>
+        </div>
+    </div>
+    <div id="settingsScreen" class="screen">
+        <aside id="settingsSidebar">
+            <div class="sidebar-icons">
+                <button id="audioSettingsTab" class="active" title="Audio Settings"><i class="fa-solid fa-volume-high"></i><span class="label">Audio</span></button>
+                 <button id="gameplaySettingsTab" title="Gameplay Settings"><i class="fa-solid fa-gamepad"></i><span class="label">Gameplay</span></button>
+            </div>
+            <button id="settingsCollapseBtn" title="Toggle Sidebar"><i class="fa-solid fa-chevron-left"></i></button>
+        </aside>
+        <main id="settingsContent">
+             <div id="settingsTabHeader">
+                 <h2 id="settingsTabTitle">Audio Settings</h2>
+                  <button id="backToTitleFromSettingsBtn" class="secondary">Back to Title</button>
+            </div>
+            <div id="settingsTabContentArea">
+                <div id="audioSettingsContainer" class="settings-section">
+                    <h3>Volume Control</h3>
+                    <div class="settings-item">
+                        <label for="masterVolumeSlider">Master Volume:</label>
+                        <input type="range" id="masterVolumeSlider" min="0" max="1" step="0.01" value="1">
+                        <span id="masterVolumeValue" class="settings-value">100%</span>
+                    </div>
+                     <div class="settings-item">
+                        <label for="musicVolumeSlider">Music Volume:</label>
+                        <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.01" value="1">
+                        <span id="musicVolumeValue" class="settings-value">100%</span>
+                    </div>
+                     <div class="settings-item">
+                        <label for="raceSoundsVolumeSlider">Race Sounds Volume:</label>
+                        <input type="range" id="raceSoundsVolumeSlider" min="0" max="1" step="0.01" value="1">
+                        <span id="raceSoundsVolumeValue" class="settings-value">100%</span>
+                    </div>
+                </div>
+                <div id="gameplaySettingsContainer" class="settings-section hidden">
+                    <h3>Race Settings</h3>
+                     <div class="settings-item">
+                        <label for="showCountdownToggle">Show Countdown:</label>
+                        <input type="checkbox" id="showCountdownToggle" checked>
+                    </div>
+                    <div class="settings-item">
+                        <label for="speedResetSelect">Reset Speed:</label>
+                        <select id="speedResetSelect" style="padding: 8px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; flex-grow: 1;">
+                            <option value="always">Always</option>
+                            <option value="newRaceOnly">Only for New Race</option>
+                            <option value="never">Never</option>
+                        </select>
+                    </div>
+                    </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameUiOverlay" style="flex-direction: column;">
+            <button id="pausePlayButton" title="Pause/Play" style="margin-bottom: -10px;"><i class="fa-solid fa-pause"></i></button>
+            <button id="speedButton" title="Change Speed">x1</button>
+            </div>
+    </div>
+
+    <div id="winnerScreen" class="screen">
+        <h2 id="winnerHeading">We have a winner!</h2>
+        <div id="winnerMarbleDisplay"></div>
+        <div id="winnerScreenControls">
+            <button id="downloadRecordingBtn">Download Recording</button>
+            <button id="titleScreenBtn" class="secondary">Title Screen</button>
+            <button id="nextRaceBtn" class="primary">Next Race</button>
+        </div>
+         <div id="leaderboard" style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 8px; display: none;">
+             <h3>Leaderboard</h3>
+             <ul id="leaderboardList" style="list-style: none; padding: 0;"></ul>
+         </div>
+         </div>
+
+     <div id="modalOverlay">
+        <div id="modal">
+            <button id="modalClose" title="Close"><i class="fa-solid fa-xmark"></i></button>
+            <h3 id="modalTitle">Add New Marble</h3>
+            <div class="modal-content">
+                 <input type="hidden" id="editMarbleId">
+                 <div>
+                     <label for="modalMarbleName">Name:</label>
+                     <input type="text" id="modalMarbleName" placeholder="Marble">
+                 </div>
+                 <div>
+                     <label for="modalMarbleType">Type:</label>
+                     <select id="modalMarbleType" style="padding: 8px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; width: 100%;">
+                         <option value="color">Color</option>
+                         <option value="imageURL">Image URL</option>
+                         <option value="imageFile">Image File</option>
+                     </select>
+                 </div>
+                 <div id="modalColorInputDiv">
+                     <label for="modalMarbleColor">Color:</label>
+                     <input type="color" id="modalMarbleColor" value="#ff0000">
+                 </div>
+                 <div id="modalUrlInputDiv" class="hidden">
+                     <label for="modalMarbleImageUrl">Image URL:</label>
+                     <input type="text" id="modalMarbleImageUrl" placeholder="https://...">
+                 </div>
+                 <div id="modalFileInputDiv" class="hidden">
+                      <label for="modalMarbleImageFile">Upload Image:</label>
+                      <input type="file" id="modalMarbleImageFile" accept="image/*">
+                      <img id="modalImagePreview" src="#" alt="Image Preview" class="hidden" style="width: 100px; height: 100px; border-radius: 50%; margin-top: 10px; border: 1px solid var(--border-color); object-fit: cover;"/>
+                      <span id="modalFileStatus" style="font-size: 0.8rem; color: var(--secondary-text); margin-top: 5px;"></span>
+                 </div>
+                 <p id="modalLoadingIndicator" class="hidden" style="color: var(--primary-color); font-style: italic;">Loading image...</p>
+            </div>
+            <div class="modal-actions">
+                 <button id="modalCancelBtn" class="secondary">Cancel</button>
+                 <button id="modalSaveBtn">Save Marble</button>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        const devLogoScreen      = document.getElementById('devLogoScreen');
+        const titleScreen        = document.getElementById('titleScreen');
+        const selectionScreen    = document.getElementById('selectionScreen');
+        const modeSelectionScreen = document.getElementById('modeSelectionScreen'); // New screen
+        const settingsScreen     = document.getElementById('settingsScreen');
+        const gameScreen         = document.getElementById('gameScreen');
+        const winnerScreen       = document.getElementById('winnerScreen');
+        const messageArea        = document.getElementById('messageArea');
+
+        const goToSelectionBtn   = document.getElementById('goToSelectionBtn');
+        const goToSettingsBtn    = document.getElementById('goToSettingsBtn');
+        // Changed from startGameBtn
+        const goToModeSelectionBtn = document.getElementById('goToModeSelectionBtn');
+        const titleScreenBtn     = document.getElementById('titleScreenBtn');
+        const nextRaceBtn        = document.getElementById('nextRaceBtn');
+        const downloadRecordingBtn = document.getElementById('downloadRecordingBtn');
+        const backToTitleFromSettingsBtn = document.getElementById('backToTitleFromSettingsBtn');
+        const backToTitleFromSelectionBtn = document.getElementById('backToTitleFromSelectionBtn');
+        const backToSelectionFromModeBtn = document.getElementById('backToSelectionFromModeBtn'); // New button
+
+        const sidebar            = document.getElementById('sidebar');
+        const collapseBtn        = document.getElementById('collapseBtn');
+        const mainContent        = document.getElementById('mainContent');
+        const tabHeader          = document.getElementById('tabHeader');
+        const tabContentArea     = document.getElementById('tabContentArea');
+        const tabTitle           = document.getElementById('tabTitle');
+
+        const settingsSidebar    = document.getElementById('settingsSidebar');
+        const settingsCollapseBtn= document.getElementById('settingsCollapseBtn');
+        const settingsContent    = document.getElementById('settingsContent');
+        const settingsTabHeader  = document.getElementById('settingsTabHeader');
+        const settingsTabContentArea = document.getElementById('settingsTabContentArea');
+        const settingsTabTitle   = document.getElementById('settingsTabTitle');
+
+        const marbleGrid         = document.getElementById('marbleGrid');
+        const savedMarblesGrid   = document.getElementById('savedMarblesGrid');
+        const savedSetsGrid      = document.getElementById('savedSetsGrid');
+        const packsGrid          = document.getElementById('packsGrid');
+
+        const marbleGridContainer = document.getElementById('marbleGridContainer');
+        const savedMarblesGridContainer = document.getElementById('savedMarblesGridContainer');
+        const savedSetsGridContainer = document.getElementById('savedSetsGridContainer');
+        const packsGridContainer = document.getElementById('packsGridContainer');
+
+        const addMarbleCard      = document.getElementById('addMarbleCard');
+        const saveCurrentSetConfig  = document.getElementById('saveCurrentSetConfig');
+        const imageLoadingStatus = document.getElementById('imageLoadingStatus');
+
+        const tabs = { marbles: marbleGridContainer, savedMarbles: savedMarblesGridContainer, savedSets: savedSetsGridContainer, packs: packsGridContainer };
+        const tabButtons = {
+            marbles: document.getElementById('marblesTab'),
+            saved: document.getElementById('savedTab'),
+            packs: document.getElementById('packsTab')
+        };
+
+        const settingsTabs = { audio: document.getElementById('audioSettingsContainer'), gameplay: document.getElementById('gameplaySettingsContainer') };
+        const settingsTabButtons = {
+            audio: document.getElementById('audioSettingsTab'),
+            gameplay: document.getElementById('gameplaySettingsTab')
+        };
+
+        const modalOverlay       = document.getElementById('modalOverlay');
+        const modal              = document.getElementById('modal');
+        const modalClose         = document.getElementById('modalClose');
+        const modalTitle         = document.getElementById('modalTitle');
+        const modalMarbleName    = document.getElementById('modalMarbleName');
+        const modalMarbleType    = document.getElementById('modalMarbleType');
+        const modalColorInputDiv = document.getElementById('modalColorInputDiv');
+        const modalMarbleColor   = document.getElementById('modalMarbleColor');
+        const modalUrlInputDiv   = document.getElementById('modalUrlInputDiv');
+        const modalMarbleImageUrl= document.getElementById('modalMarbleImageUrl');
+        const modalFileInputDiv  = document.getElementById('modalFileInputDiv');
+        const modalMarbleImageFile = document.getElementById('modalMarbleImageFile');
+        const modalImagePreview  = document.getElementById('modalImagePreview');
+        const modalFileStatus    = document.getElementById('modalFileStatus');
+        const modalLoadingIndicator = document.getElementById('modalLoadingIndicator');
+        const modalCancelBtn     = document.getElementById('modalCancelBtn');
+        const modalSaveBtn       = document.getElementById('modalSaveBtn');
+        const editMarbleId       = document.getElementById('editMarbleId');
+
+        const gameCanvas             = document.getElementById('gameCanvas');
+        const gameCtx                = gameCanvas.getContext('2d');
+
+        const titleScreenCanvas      = document.getElementById('titleScreenCanvas');
+        const titleScreenCtx         = titleScreenCanvas.getContext('2d');
+
+        const pausePlayButton    = document.getElementById('pausePlayButton');
+        const speedButton        = document.getElementById('speedButton');
+        const winnerHeading      = document.getElementById('winnerHeading');
+        const winnerMarbleDisplay= document.getElementById('winnerMarbleDisplay');
+        const leaderboard        = document.getElementById('leaderboard'); // New leaderboard element
+        const leaderboardList    = document.getElementById('leaderboardList'); // New leaderboard list
+
+        const modeOptions = document.querySelectorAll('.mode-option'); // New mode option elements
+
+        const titleSplash = document.getElementById('title-splash');
+        var splashes = ["Also try Simple Marble Game!","i am a splash text :)","Now with apeirogons!","hola 👋","My metal lost it's rust","Trig'll fix it","GAHH"];
+        var randomSplash = Math.floor(Math.random()*splashes.length);
+        titleSplash.textContent = splashes[randomSplash];
+
+        const titleMusic         = document.getElementById('titleMusic');
+        const selectionMusic     = document.getElementById('selectionMusic');
+        const tickSound          = document.getElementById('tickSound');
+        const selectSound        = document.getElementById('selectSound');
+        const raceStartSound     = document.getElementById('raceStartSound');
+        const hitSounds = ['media/audio/hit1.mp3', 'media/audio/hit2.mp3', 'media/audio/hit3.mp3'].map(s => new Audio(s));
+        const winSound = document.getElementById('winSound');
+        const masterVolumeSlider = document.getElementById('masterVolumeSlider');
+        const masterVolumeValue  = document.getElementById('masterVolumeValue');
+        const musicVolumeSlider  = document.getElementById('musicVolumeSlider');
+        const musicVolumeValue   = document.getElementById('musicVolumeValue');
+        const raceSoundsVolumeSlider = document.getElementById('raceSoundsVolumeSlider');
+        const raceSoundsVolumeValue = document.getElementById('raceSoundsVolumeValue');
+         const showCountdownToggle = document.getElementById('showCountdownToggle');
+         const speedResetSelect = document.getElementById('speedResetSelect');
+
+        let configuredMarbles = [];
+        let savedMarbles = JSON.parse(localStorage.getItem('savedMarbles') || '[]');
+        let savedSets = JSON.parse(localStorage.getItem('marbleConfigs') || '{}');
+
+        let audioSettings = JSON.parse(localStorage.getItem('audioSettings') || '{"master":1,"music":1,"race":1,"ui":1}');
+
+        let gameplaySettings = JSON.parse(localStorage.getItem('gameplaySettings') || '{"showCountdown":true, "speedResetCondition": "always"}');
+
+        let nextMarbleId      = 0;
+        let imagesLoading     = 0;
+        let isPaused          = false;
+        const speedLevels     = [1, 2, 5, 8, 10];
+        let currentSpeedIndex = 0;
+        let speedMultiplier   = speedLevels[0];
+        let mediaRecorder, mediaStream, recordedChunks = [];
+        let downloadRequested = false;
+        let winner = null;
+        let gameEnded = false;
+        let winnerDisplayEndTime = null;
+        let gameAnimationId=null, gameStarted=false;
+        let titleAnimationId=null;
+
+        let countdownActive = false;
+        let countdownValue = 3;
+        let lastCountdownTime = 0;
+         let countdownAnimationStartTime = 0;
+         let countdownScale = 1.0;
+         const COUNTDOWN_ANIMATION_DURATION = 500;
+
+        let lastHoveredCard = null;
+        const keyState = { Shift: false, Control: false };
+
+        const MARBLE_RADIUS=16, MARBLE_SPEED=1.75, BOUNCE_FACTOR=1.0;
+        const NUM_CIRCLE_OBSTACLES=25;
+        const NUM_CROSS_OBSTACLES=10;
+        const CIRCLE_OBSTACLE_RADIUS=22, CROSS_OBSTACLE_SIZE=32;
+        const CROSS_ROTATION_SPEED_MAX=0.15;
+        const GOAL_SIZE=20;
+        let SPAWN_BOX_WIDTH=100, SPAWN_BOX_HEIGHT=150;
+        let SPAWN_BOX_X=50, SPAWN_BOX_Y=50;
+        const SPAWN_BOX_OPEN_SIDE='right';
+        let OPENING_CLEARANCE_LENGTH;
+
+        let marbles=[], obstacles=[], goal=null;
+
+        let titleMarbles = [];
+        const TITLE_MARBLE_RADIUS = 20;
+        const TITLE_MARBLE_SPEED = 0.75;
+
+        let currentGameMode = 'classic'; // Variable to store the selected game mode
+        let eliminatedMarbles = []; // To track eliminated marbles for Elimination modes
+        let raceOrder = []; // To track the order marbles reach the star in Slow Elimination
+
+        const presetPacks = {
+             primary: {
+                 name: "Primary Colors",
+                 icon: "fa-palette",
+                 description: "Red, Yellow, Blue",
+                 marbles: [
+                     { name: "Red", type: "color", value: "#f60938" },
+                     { name: "Yellow", type: "color", value: "#f6c709" },
+                     { name: "Blue", type: "color", value: "#0919f6" },
+                 ]
+             },
+             secondary: {
+                 name: "Secondary Colors",
+                 icon: "fa-palette",
+                 description: "Orange, Green, Purple",
+                 marbles: [
+                     { name: "Orange", type: "color", value: "#f65009" },
+                     { name: "Green", type: "color", value: "#09f664" },
+                     { name: "Purple", type: "color", value: "#8009f6" },
+                 ]
+             },
+             warm: {
+                 name: "Warm Colors",
+                 icon: "fa-palette",
+                 description: "Red, Orange, Yellow",
+                 marbles: [
+                     { name: "Red", type: "color", value: "#f60938" },
+                     { name: "Orange", type: "color", value: "#f65009" },
+                     { name: "Yellow", type: "color", value: "#f6c709" },
+                 ]
+             },
+             cool: {
+                 name: "Cool Colors",
+                 icon: "fa-palette",
+                 description: "Green, Blue, Purple",
+                 marbles: [
+
+                     { name: "Green", type: "color", value: "#09f664" },
+                     { name: "Blue", type: "color", value: "#0919f6" },
+                     { name: "Purple", type: "color", value: "#8009f6" },
+                 ]
+             },
+             rainbow: {
+                 name: "Rainbow",
+                 icon: "fa-rainbow",
+                 description: "Red, Orange, Yellow, Green, Teal, Blue, Purple, Magenta",
+                  marbles: [
+                     { name: "Red", type: "color", value: "#f60938" },
+                     { name: "Orange", type: "color", value: "#f65009" },
+                     { name: "Yellow", type: "color", value: "#f6c709" },
+                     { name: "Green", type: "color", value: "#09f664" },
+                     { name: "Teal", type: "color", value: "#09aff6" },
+                     { name: "Blue", type: "color", value: "#0919f6" },
+                     { name: "Purple", type: "color", value: "#8009f6" },
+                     { name: "Magenta", type: "color", value: "#f609b7"}
+                 ]
+             },
+              extendedrainbow: {
+                 name: "Extended Rainbow",
+                 icon: "fa-rainbow",
+                 description: "A lot of colors + grayscale",
+                  marbles: [
+                     { name: "Red", type: "color", value: "#f60938" },
+                     { name: "Orange", type: "color", value: "#f65009" },
+                     { name: "Yellow", type: "color", value: "#f6c709" },
+                     { name: "Lime", type: "color", value: "#b7f609"},
+                     { name: "Green", type: "color", value: "#09f664" },
+                     { name: "Dark Green", type: "color", value: "#216b17" },
+                     { name: "Teal", type: "color", value: "#09aff6" },
+                     { name: "Blue", type: "color", value: "#0919f6" },
+                     { name: "Purple", type: "color", value: "#8009f6" },
+                     { name: "Magenta", type: "color", value: "#f609b7"},
+                     { name: "Pink", type: "color", value: "#ff86b4"},
+                     { name: "Lavender", type: "color", value: "#de64ff"},
+                     { name: "Brown", type: "color", value: "#6b4a17"},
+                     { name: "Indigo", type: "color", value: "#1f052f"},
+                     { name: "White", type: "color", value: "#ffffff" },
+                     { name: "Gray", type: "color", value: "#676767" },
+                     { name: "Black", type: "color", value: "#000000" },
+                 ]
+             },
+              grayscale: {
+                  name: "Grayscale",
+                  icon: "fa-adjust",
+                  description: "Black, Gray, White",
+                  marbles: [
+                      { name: "Black", type: "color", value: "#000000" },
+                      { name: "Gray", type: "color", value: "#676767" },
+                      { name: "White", type: "color", value: "#ffffff" },
+                  ]
+             },
+             redorange: {
+                  name: "Red-orange",
+                  icon: "fa-adjust",
+                  description: "Red, orange, and inbetween",
+                  marbles: [
+                  { name: "Red", type: "color", value: "#ff0000" },
+                  { name: "Vermilion", type: "color", value: "#ff3d00" },
+                  { name: "Persimmon", type: "color", value: "#ff5900" },
+                  { name: "Sunset Orange", type: "color", value: "#ff7000" },
+                  { name: "Tangerine", type: "color", value: "#ff8400" },
+                  { name: "Amber", type: "color", value: "#ff9600" },
+                  { name: "Gold", type: "color", value: "#ffa700" },
+                  { name: "Marigold", type: "color", value: "#ffb700" },
+                  ]
+             },
+             yellowgreen: {
+                  name: "Yellow-green",
+                  icon: "fa-adjust",
+                  description: "Yellow, green, and inbetween",
+                  marbles: [
+                      { name: "Yellow", type: "color", value: "#fff500" },
+                      { name: "Lime Yellow", type: "color", value: "#dcf900" },
+                      { name: "Lime", type: "color", value: "#b2fc00" },
+                      { name: "Spring Green", type: "color", value: "#7efe00" },
+                      { name: "Green", type: "color", value: "#00ff0a" },
+                  ]
+             },
+             greenblue: {
+                  name: "Green-blue",
+                  icon: "fa-adjust",
+                  description: "Green, blue, and inbetween",
+                  marbles: [
+                      { name: "Green", type: "color", value: "#00ff0a" },
+                      { name: "Mint Green", type: "color", value: "#00e58a" },
+                      { name: "Teal", type: "color", value: "#00caaf" },
+                      { name: "Blue Green", type: "color", value: "#00b3bc" },
+                      { name: "Cyan", type: "color", value: "#009fb8" },
+                      { name: "Steel Blue", type: "color", value: "#008ead" },
+                      { name: "Sky Blue", type: "color", value: "#007eaf" },
+                      { name: "Electric Blue", type: "color", value: "#0047ff" },
+                  ]
+             },
+             bluepurple: {
+                  name: "Blue-purple",
+                  icon: "fa-adjust",
+                  description: "Blue, purple, and inbetween",
+                  marbles: [
+                      { name: "Blue", type: "color", value: "#000AFF" },
+                      { name: "Blue Violet", type: "color", value: "#4944ff" },
+                      { name: "Medium Purple", type: "color", value: "#6b40ff" },
+                      { name: "Amethyst", type: "color", value: "#853bff" },
+                      { name: "Lavender", type: "color", value: "#9d34ff" },
+                      { name: "Deep Purple", type: "color", value: "#b32bff" },
+                      { name: "Vivid Violet", type: "color", value: "#c81dff" },
+                      { name: "Magenta", type: "color", value: "#dd00ff" },
+                  ]
+             },
+             magentared: {
+                name: "Magenta-red",
+                icon: "fa-adjust",
+                description: "Magenta, red, and inbetween",
+                marbles: [
+                    { name: "Magenta", type: "color", value: "#dd00ff" },
+                    { name: "Heliotrope", type: "color", value: "#f300d9" },
+                    { name: "Fuchsia", type: "color", value: "#fc00b4" },
+                    { name: "Hollywood Cerise", type: "color", value: "#ff0095" },
+                    { name: "Rose Pink", type: "color", value: "#ff0078" },
+                    { name: "Raspberry", type: "color", value: "#ff005b" },
+                    { name: "Crimson", type:"color", value: "#ff0038" },
+                    { name: "Red", type: "color", value: "#ff0000" },
+                ]
+            },
+            hyperextendedRainbow: {
+                name: "Hyperextended Rainbow",
+                icon: "fa-rainbow",
+                description: "A massive full-spectrum rainbow",
+                marbles: [
+                    { name: "Red", type: "color", value: "#ff0000" },
+                    { name: "Vermilion", type: "color", value: "#ff3d00" },
+                    { name: "Persimmon", type: "color", value: "#ff5900" },
+                    { name: "Sunset Orange", type: "color", value: "#ff7000" },
+                    { name: "Tangerine", type: "color", value: "#ff8400" },
+                    { name: "Amber", type: "color", value: "#ff9600" },
+                    { name: "Gold", type: "color", value: "#ffa700" },
+                    { name: "Marigold", type: "color", value: "#ffb700" },
+                    { name: "Yellow", type: "color", value: "#fff500" },
+                    { name: "Lime Yellow", type: "color", value: "#dcf900" },
+                    { name: "Lime", type: "color", value: "#b2fc00" },
+                    { name: "Spring Green", type: "color", value: "#7efe00" },
+                    { name: "Green", type: "color", value: "#00ff0a" },
+                    { name: "Mint Green", type: "color", value: "#00e58a" },
+                    { name: "Teal", type: "color", value: "#00caaf" },
+                    { name: "Blue Green", type: "color", value: "#00b3bc" },
+                    { name: "Cyan", type: "color", value: "#009fb8" },
+                    { name: "Steel Blue", type: "color", value: "#008ead" },
+                    { name: "Sky Blue", type: "color", value: "#007eaf" },
+                    { name: "Electric Blue", type: "color", value: "#0047ff" },
+                    { name: "Blue", type: "color", value: "#000AFF" },
+                    { name: "Blue Violet", type: "color", value: "#4944ff" },
+                    { name: "Medium Purple", type: "color", value: "#6b40ff" },
+                    { name: "Amethyst", type: "color", value: "#853bff" },
+                    { name: "Lavender", type: "color", value: "#9d34ff" },
+                    { name: "Deep Purple", type: "color", value: "#b32bff" },
+                    { name: "Vivid Violet", type: "color", value: "#c81dff" },
+                    { name: "Magenta", type: "color", value: "#dd00ff" },
+                    { name: "Heliotrope", type: "color", value: "#f300d9" },
+                    { name: "Fuchsia", type: "color", value: "#fc00b4" },
+                    { name: "Hollywood Cerise", type: "color", value: "#ff0095" },
+                    { name: "Rose Pink", type: "color", value: "#ff0078" },
+                    { name: "Raspberry", type: "color", value: "#ff005b" },
+                    { name: "Crimson", type:"color", value: "#ff0038" },
+                    { name: "Black", type: "color", value: "#000000" },
+                    { name: "Dark Gray", type: "color", value: "#3b3b3b" },
+                    { name: "Gray", type: "color", value: "#676767" },
+                    { name: "Light Gray", type: "color", value: "#bdbdbd" },
+                    { name: "White", type: "color", value: "#ffffff" },
+                ]
+            }
+         };
+
+        let messageTimeout;
+        function showMessage(message, isError = false, duration = 3000) {
+            clearTimeout(messageTimeout);
+            messageArea.textContent = message;
+            messageArea.classList.remove('error');
+            if (isError) {
+                messageArea.classList.add('error');
+            }
+            messageArea.classList.add('show');
+            messageTimeout = setTimeout(() => {
+                messageArea.classList.remove('show');
+            }, duration);
+        }
+
+         let previousScreenId = null;
+
+        function showScreen(screenElement) {
+
+            if (devLogoScreen.classList.contains('active') && screenElement !== devLogoScreen) {
+                console.log("Dev logo screen is active, blocking other screen transitions.");
+                return;
+            }
+
+             const currentActiveScreen = document.querySelector('.screen.active');
+             previousScreenId = currentActiveScreen ? currentActiveScreen.id : null;
+
+            console.log(`Attempting to show screen: ${screenElement.id}. Previous screen: ${previousScreenId}`);
+
+            titleMusic.pause();
+            selectionMusic.pause();
+
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+            });
+
+            screenElement.classList.add('active');
+            console.log(`Screen "${screenElement.id}" should now be active.`);
+
+             if (screenElement === gameScreen) {
+                 resizeCanvas();
+                 stopTitleAnimation();
+             } else if (screenElement === titleScreen || screenElement === settingsScreen) {
+                 resizeTitleCanvas();
+                 startTitleAnimation();
+
+                 if (screenElement === titleScreen && previousScreenId !== 'settingsScreen') {
+                     console.log("Resetting title music time.");
+                     titleMusic.currentTime = 0;
+                 } else {
+                     console.log("Continuing title music from current time.");
+                 }
+                 titleMusic.play().catch(e => console.error("Error playing title music:", e));
+             } else if (screenElement === selectionScreen || screenElement === modeSelectionScreen) { // Added modeSelectionScreen
+                 stopTitleAnimation();
+
+                 selectionMusic.currentTime = 0;
+                 selectionMusic.play().catch(e => console.error("Error playing selection music:", e));
+             } else {
+                 stopTitleAnimation();
+             }
+
+             if (screenElement !== gameScreen && screenElement !== winnerScreen) {
+                 stopGame();
+             }
+
+             // Hide leaderboard unless on winner screen for Elimination or Slow Elimination
+             if (leaderboard) {
+                 if (screenElement === winnerScreen && (currentGameMode === 'elimination' || currentGameMode === 'slow_elimination')) {
+                     leaderboard.style.display = 'block';
+                 } else {
+                     leaderboard.style.display = 'none';
+                 }
+             }
+        }
+
+        function resizeCanvas(){
+            if (!gameCanvas) return;
+            gameCanvas.width=window.innerWidth;
+            gameCanvas.height=window.innerHeight;
+            SPAWN_BOX_Y=(gameCanvas.height-SPAWN_BOX_HEIGHT)/2;
+            OPENING_CLEARANCE_LENGTH=gameCanvas.width;
+
+            if(gameStarted || (gameEnded && winnerDisplayEndTime !== null) || countdownActive) draw();
+        }
+
+        function resizeTitleCanvas() {
+             if (!titleScreenCanvas) return;
+             titleScreenCanvas.width = titleScreen.clientWidth;
+             titleScreenCanvas.height = titleScreen.clientHeight;
+             initTitleMarbles();
+             if (titleAnimationId) drawTitleMarbles();
+        }
+
+        window.addEventListener('resize',() => {
+            resizeCanvas();
+            resizeTitleCanvas();
+        });
+
+        function normalizeSpeed(m){
+            const sq=m.vx*m.vx+m.vy*m.vy;
+            if(sq>0&&Math.abs(sq-MARBLE_SPEED*MARBLE_SPEED)>0.001){
+                const cur=Math.sqrt(sq), sc=MARBLE_SPEED/cur;
+                m.vx*=sc; m.vy*=sc;
+            } else if(sq===0){
+                const a=Math.random()*2*Math.PI;
+                m.vx=Math.cos(a)*MARBLE_SPEED; m.vy=Math.sin(a)*MARBLE_SPEED;
+            }
+        }
+
+        function initGame(cfg){
+            console.log("initGame called."); // Debug log
+            marbles=[]; obstacles=[]; goal=null;
+            gameStarted=false;
+            gameEnded=false;
+            winner=null;
+            winnerDisplayEndTime=null;
+            // eliminatedMarbles should persist across rounds in Slow Elimination, so don't reset here.
+            raceOrder = []; // Reset race order for a new race
+
+            winnerMarbleDisplay.innerHTML='';
+
+            // Filter the input config (cfg) to exclude marbles that are permanently eliminated
+            const marblesForThisRace = cfg.filter(c => !eliminatedMarbles.some(em => em.id === c.id));
+
+
+            marblesForThisRace.forEach(c=>{
+                const sx=SPAWN_BOX_X+MARBLE_RADIUS+Math.random()*(SPAWN_BOX_WIDTH-2*MARBLE_RADIUS);
+                const sy=SPAWN_BOX_Y+MARBLE_RADIUS+Math.random()*(SPAWN_BOX_HEIGHT-2*MARBLE_RADIUS); // Corrected variable name
+                const a=Math.random()*2*Math.PI;
+
+                const vx=0, vy=0;
+                // Ensure 'eliminated' is false for the start of a new race, but keep the original marble data
+                marbles.push({...c,x:sx,y:sy,vx,vy,radius:MARBLE_RADIUS, eliminated: false});
+            });
+            function isAreaClear(x,y,r){
+                 if (!gameCanvas) return false;
+                if(x+r>SPAWN_BOX_X&&x-r<SPAWN_BOX_X+SPAWN_BOX_WIDTH&&y+r>SPAWN_BOX_Y&&y-r<SPAWN_BOX_Y+SPAWN_BOX_HEIGHT)
+                    return false;
+                let zone=false;
+                if(SPAWN_BOX_OPEN_SIDE==='right'){
+                    if(x-r<SPAWN_BOX_X+SPAWN_BOX_WIDTH+OPENING_CLEARANCE_LENGTH&&x+r>SPAWN_BOX_X+SPAWN_BOX_WIDTH&&y+r>SPAWN_BOX_Y&&y-r<SPAWN_BOX_Y+SPAWN_BOX_HEIGHT)
+                        zone=true;
+                }
+                if(zone)return false;
+                for(const o of obstacles){
+                    const dx=x-o.x,dy=o.y,req=r+(o.type==='circle'?o.radius:o.size)+5;
+                    if(dx*dx+dy*dy<req*req)return false;
+                }
+                if(goal){
+                    const dx=x-goal.x,dy=goal.y,req=r+goal.size+5;
+                    if(dx*dx+dy*dy<req*req)return false;
+                }
+                return true;
+            }
+            let at=0,gx,gy;
+            do{
+                 if (!gameCanvas) break;
+                gx=Math.random()*(gameCanvas.width-2*GOAL_SIZE)+GOAL_SIZE;
+                gy=Math.random()*(gameCanvas.height-2*GOAL_SIZE)+GOAL_SIZE;
+                at++; if(at>500)break;
+            }while(!isAreaClear(gx,gy,GOAL_SIZE));
+            if(at<=500)goal={x:gx,y:gy,size:GOAL_SIZE,color:'var(--star-color)'};
+            at=0; placed=0;
+            while(placed<NUM_CIRCLE_OBSTACLES&&at<CIRCLE_OBSTACLE_RADIUS*50){
+                 if (!gameCanvas) break;
+                const ox=Math.random()*(gameCanvas.width-2*(CIRCLE_OBSTACLE_RADIUS+10))+(CIRCLE_OBSTACLE_RADIUS+10);
+                const oy=Math.random()*(gameCanvas.height-2*(CIRCLE_OBSTACLE_RADIUS+10))+(CIRCLE_OBSTACLE_RADIUS+10);
+                if(isAreaClear(ox,oy,CIRCLE_OBSTACLE_RADIUS)){
+                    obstacles.push({type:'circle',x:ox,y:oy,radius:CIRCLE_OBSTACLE_RADIUS,color:'var(--obstacle-color)'});
+                    placed++;
+                }
+                at++;
+            }
+            at=0; placed=0;
+            while(placed<NUM_CROSS_OBSTACLES&&at<CROSS_OBSTACLE_SIZE*50){
+                 if (!gameCanvas) break;
+                const ox=Math.random()*(gameCanvas.width-2*(CROSS_OBSTACLE_SIZE+10))+(CROSS_OBSTACLE_SIZE+10);
+                const oy=Math.random()*(gameCanvas.height-2*(CROSS_OBSTACLE_SIZE+10))+(CROSS_OBSTACLE_SIZE+10);
+                if(isAreaClear(ox,oy,CROSS_OBSTACLE_SIZE)){
+                    obstacles.push({
+                        type:'cross',x:ox,y:oy,size:CROSS_OBSTACLE_SIZE,
+                        angle:Math.random()*2*Math.PI,
+                        rotationSpeed:(Math.random()-0.5)*2*CROSS_ROTATION_SPEED_MAX,
+                        color:'var(--cross-color)'
+                    });
+                    placed++;
+                }
+                at++;
+            }
+
+             if (gameplaySettings.showCountdown) {
+                 console.log("initGame: Countdown is enabled. Setting countdownActive = true."); // Debug log
+                 countdownActive = true;
+                 countdownValue = 3;
+                 lastCountdownTime = performance.now();
+                  countdownAnimationStartTime = lastCountdownTime;
+                  countdownScale = 2.0;
+
+             } else {
+                 // If countdown is not shown, start the game immediately and play the sound
+                 console.log("initGame: Countdown is disabled. Starting game immediately and playing sound."); // Debug log
+                 countdownActive = false;
+                 gameStarted = true;
+
+                 marbles.forEach(m => {
+                     const angle = Math.random() * 2 * Math.PI;
+                     m.vx = Math.cos(angle) * MARBLE_SPEED;
+                     m.vy = Math.sin(angle) * MARBLE_SPEED;
+                     normalizeSpeed(m);
+                 });
+
+                 // Play the race start sound immediately if countdown is disabled
+                 raceStartSound.currentTime = 0;
+                 raceStartSound.play().catch(e => console.error("Error playing race start sound:", e));
+                 playedSound = true; // Mark sound as played
+             }
+
+             draw();
+        }
+
+        function drawMarble(m){
+             if (!gameCtx || m.eliminated) return; // Don't draw eliminated marbles
+            gameCtx.save(); gameCtx.beginPath();
+            gameCtx.arc(m.x,m.y,m.radius,0,2*Math.PI);
+            gameCtx.closePath(); gameCtx.clip();
+            if(m.type==='color'){
+                gameCtx.fillStyle=m.value; gameCtx.fill();
+            } else if(m.img&&m.img.complete){
+                try{gameCtx.drawImage(m.img,m.x-m.radius,m.y-m.radius,2*m.radius,2*m.radius);}catch{}
+            } else {
+                gameCtx.fillStyle='grey';gameCtx.fill();
+                gameCtx.fillStyle='white';gameCtx.textAlign='center';gameCtx.textBaseline='middle';
+                gameCtx.font=`${m.radius}px sans-serif`;gameCtx.fillText('?',m.x,m.y);
+            }
+            gameCtx.restore();
+
+            gameCtx.beginPath();
+            gameCtx.arc(m.x,m.y,m.radius,0,2*Math.PI);
+            gameCtx.strokeStyle='rgba(0,0,0,0)';gameCtx.lineWidth=1;gameCtx.stroke();
+        }
+
+        function drawObstacle(o){
+            if (!gameCtx) return;
+            gameCtx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--obstacle-color').trim()||'#ffffff';
+            if(o.type==='circle'){
+                gameCtx.beginPath();gameCtx.arc(o.x,o.y,o.radius,0,2*Math.PI);gameCtx.fill();
+            } else {
+                gameCtx.save();gameCtx.translate(o.x,o.y);gameCtx.rotate(o.angle);
+                gameCtx.beginPath();
+
+                gameCtx.moveTo(-o.size,0);gameCtx.lineTo(o.size,0);
+
+                gameCtx.moveTo(0,-o.size);gameCtx.lineTo(0,o.size);
+
+                gameCtx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--cross-color').trim()||'#ffffff';
+                gameCtx.lineWidth=4;gameCtx.stroke();gameCtx.restore();
+            }
+        }
+
+        function drawStar(s){
+            if(!s || !gameCtx)return;
+            const spikes=5,outer=s.size,inner=s.size/2;
+            let rot=Math.PI/2*3,x=s.x,y=s.y,step=Math.PI/spikes;
+            gameCtx.save();gameCtx.translate(x,y);gameCtx.beginPath();gameCtx.moveTo(0,-outer);
+            for(let i=0;i<spikes;i++){
+                x=Math.cos(rot)*outer;y=Math.sin(rot)*outer;gameCtx.lineTo(x,y);rot+=step;
+                x=Math.cos(rot)*inner;y=Math.sin(rot)*inner;gameCtx.lineTo(x,y);rot+=step;
+            }
+            gameCtx.lineTo(0,-outer);gameCtx.closePath();
+            gameCtx.lineWidth=3;gameCtx.strokeStyle='transparent';
+
+            gameCtx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--star-color').trim()||'#ffd100';
+            gameCtx.fill();gameCtx.stroke();
+            gameCtx.restore();
+        }
+
+        function draw(){
+            if (!gameCtx || !gameCanvas) return;
+
+            gameCtx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim()||'#2a313d';
+            gameCtx.fillRect(0,0,gameCanvas.width,gameCanvas.height);
+
+            drawStar(goal);
+            obstacles.forEach(drawObstacle);
+            marbles.forEach(drawMarble); // Draw only non-eliminated marbles
+
+            gameCtx.fillStyle='white';
+            gameCtx.font='14px Inter';
+            gameCtx.textAlign='center'; gameCtx.textBaseline='bottom';
+            marbles.forEach(m=>{
+                if (!m.eliminated) { // Only draw names for non-eliminated marbles
+                    gameCtx.fillText(m.name, m.x, m.y - m.radius - 4);
+                }
+            });
+
+
+             if (countdownActive) {
+                 gameCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                 gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+                 gameCtx.fillStyle = 'white';
+
+                 gameCtx.font = `bold ${100 * countdownScale}px Inter`;
+
+                 gameCtx.textAlign = 'center';
+                 gameCtx.textBaseline = 'middle';
+
+                 let displayValue = countdownValue > 0 ? countdownValue : (countdownValue === 0 ? 'GO!' : '');
+                 gameCtx.fillText(displayValue, gameCanvas.width / 2, gameCanvas.height / 2);
+             }
+
+            if(gameEnded && winner !== null && winnerDisplayEndTime !== null && performance.now() < winnerDisplayEndTime){
+
+                gameCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+                gameCtx.fillStyle = 'white';
+                gameCtx.font = 'bold 28px Inter';
+                gameCtx.textAlign = 'center';
+                gameCtx.textBaseline = 'bottom';
+
+                const textY = gameCanvas.height / 2 - 40;
+                gameCtx.fillText(`${winner.name} wins!`, gameCanvas.width / 2, textY);
+
+                const displayRadius = 120;
+                const displayX = gameCanvas.width / 2;
+                const displayY = textY + 30 + displayRadius;
+
+                gameCtx.save();
+                gameCtx.beginPath();
+                gameCtx.arc(displayX, displayY, displayRadius, 0, 2 * Math.PI);
+                gameCtx.closePath();
+                gameCtx.clip();
+
+                if(winner.type === 'color'){
+                    gameCtx.fillStyle = winner.value;
+                    gameCtx.fill();
+                } else if (winner.img && winner.img.complete && winner.img.naturalWidth > 0) { // Added check for naturalWidth
+                    try {
+
+                        gameCtx.drawImage(winner.img, displayX - displayRadius, displayY - displayRadius, 2 * displayRadius, 2 * displayRadius);
+                    } catch(e) {
+                        console.error("Error drawing winner image:", e);
+
+                        gameCtx.fillStyle = 'grey'; gameCtx.fill();
+                        gameCtx.fillStyle = 'white'; gameCtx.textAlign = 'center'; gameCtx.textBaseline='middle';
+                        gameCtx.font = `${displayRadius}px sans-serif`; gameCtx.fillText('?', displayX, displayY);
+                    }
+                } else {
+
+                    gameCtx.fillStyle = 'grey'; gameCtx.fill();
+                    gameCtx.fillStyle = 'white'; gameCtx.textAlign = 'center'; gameCtx.textBaseline='middle';
+                    gameCtx.font = `${displayRadius}px sans-serif`; gameCtx.fillText('?', displayX, displayY);
+                }
+                gameCtx.restore();
+
+            }
+        }
+
+        function updateObstacles(){
+
+            if (!gameEnded && !isPaused && !countdownActive) {
+                 obstacles.forEach(o=>{ if(o.type==='cross') o.angle += CROSS_ROTATION_SPEED_MAX * (1/60) * 5; });
+            }
+        }
+
+        function handleMarbleCircleCollision(m,c){
+            const dx=m.x-c.x,dy=m.y-c.y,distSq=dx*dx+dy*dy,minD=m.radius+c.radius;
+            if(distSq<minD*minD&&distSq>0){
+                const dist=Math.sqrt(distSq),angle=Math.atan2(dy,dx),overlap=minD-dist;
+                m.x+=Math.cos(angle)*overlap*1.01; m.y+=Math.sin(angle)*overlap*1.01;
+                const nv=m.vx*Math.cos(angle)+m.vy*Math.sin(angle);
+                if(nv<0){ m.vx-=(1+BOUNCE_FACTOR)*nv*Math.cos(angle); m.vy-=(1+BOUNCE_FACTOR)*nv*Math.sin(angle); }
+                return true;
+            }
+            return false;
+        }
+
+        function handleMarbleCrossCollision(m,c){
+            const cosA=Math.cos(c.angle),sinA=Math.sin(c.angle);
+
+            const lines=[
+                { x1: -c.size * cosA, y1: -c.size * sinA, x2: c.size * cosA, y2: c.size * sinA },
+                { x1: c.size * sinA, y1: -c.size * cosA, x2: -c.size * sinA, y2: c.size * cosA }
+            ];
+            return lines.some(l=>{
+
+                const line={x1:c.x+l.x1,y1:c.y+l.y1,x2:c.x+l.x2,y2:l.y2+c.y};
+                return checkLineCircleCollision(m,line);
+            });
+        }
+
+        function checkLineCircleCollision(m,line){
+            const vx=line.x2-line.x1,vy=line.y2-line.y1,lenSq=vx*vx+vy*vy;
+            if(!lenSq)return false;
+            const dot=((m.x-line.x1)*vx+(m.y-line.y1)*vy);
+
+            const t=Math.max(0,Math.min(1,dot/lenSq));
+            const cx=line.x1+t*vx,cy=line.y1+t*vy;
+            const dx=m.x-cx,dy=m.y-cy;
+
+            if(dx*dx+dy*dy < m.radius*m.radius){
+                const dist=Math.sqrt(dx*dx+dy*dy),overlap=m.radius-dist;
+
+                const angle= (dist > 0) ? Math.atan2(dy,dx) : Math.atan2(m.vy, m.vx) + Math.PI;
+
+                m.x+=Math.cos(angle)*overlap*1.01;
+                m.y+=Math.sin(angle)*overlap*1.01;
+
+                const nv=m.vx*Math.cos(angle)+m.vy*Math.sin(angle);
+                if(nv<0){
+                    m.vx-=(1+BOUNCE_FACTOR)*nv*Math.cos(angle);
+                    m.vy-=(1+BOUNCE_FACTOR)*nv*Math.sin(angle);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function updateMarbles(){
+
+            if(gameEnded || !gameStarted || isPaused || !gameCanvas || countdownActive)return;
+
+            marbles.forEach(m=>{
+                if (m.eliminated) return; // Skip eliminated marbles
+
+                m.x+=m.vx * speedMultiplier;
+                m.y+=m.vy * speedMultiplier;
+
+                let collided=false;
+
+                if(m.x-m.radius<0||m.x+m.radius>gameCanvas.width||m.y-m.radius<0||m.y+m.radius>gameCanvas.height){
+                    if(m.x-m.radius<0){m.x=m.radius;m.vx*=-BOUNCE_FACTOR;}
+                    else if(m.x+m.radius>gameCanvas.width){m.x=gameCanvas.width-m.radius;m.vx*=-BOUNCE_FACTOR;}
+                    if(m.y-m.radius<0){m.y=m.radius;m.vy*=-BOUNCE_FACTOR;}
+                    else if(m.y+m.radius>gameCanvas.height){m.y=gameCanvas.height-m.radius;m.vy*=-BOUNCE_FACTOR;}
+                    collided=true;
+                }
+
+                obstacles.forEach(o=>{
+                    if(o.type==='circle'&&handleMarbleCircleCollision(m,o))collided=true;
+                    if(o.type==='cross'&&handleMarbleCrossCollision(m,o))collided=true;
+                });
+
+                marbles.forEach(o=>{
+                    if(o===m || o.eliminated)return; // Skip eliminated marbles for inter-marble collision
+                    const dx=o.x-m.x,dy=o.y-m.y,distSq=dx*dx+dy*dy,minD=m.radius+o.radius;
+                    if(distSq<minD*minD&&distSq>0){
+                        const dist=Math.sqrt(distSq),overlap=minD-dist,angle=Math.atan2(dy,dx);
+                        const px=Math.cos(angle)*overlap*0.51,py=Math.sin(angle)*overlap*0.51;
+                        m.x-=px;m.y-=py;o.x+=px;o.y+=py;
+                        const nx=dx/dist,ny=dy/dist,tx=-ny,ty=nx;
+                        const v1n=m.vx*nx+m.vy*ny,v1t=m.vx*tx+m.vy*ty;
+                        const v2n=o.vx*nx+o.vy*ny,v2t=o.vx*tx+o.vy*ty;
+                        m.vx=(v2n*nx+v1t*tx)*BOUNCE_FACTOR;
+                        m.vy=(v2n*ny+v1t*ty)*BOUNCE_FACTOR;
+                        o.vx=(v1n*nx+v2t*tx)*BOUNCE_FACTOR;
+                        o.vy=(v1n*ny+v2t*ty)*BOUNCE_FACTOR;
+                        normalizeSpeed(o);
+                        collided=true;
+                    }
+                });
+                if(collided){ normalizeSpeed(m); playHitSound(); }
+
+                if(goal&&!winner){
+                    const dx=m.x-goal.x,dy=m.y-goal.y;
+                    if(dx*dx+dy*dy < (m.radius+goal.size*0.7)**2){
+                        // Marble reached the goal
+                        handleGoalReached(m);
+                    }
+                }
+            });
+        }
+
+        function handleGoalReached(marble) {
+            if (currentGameMode === 'classic') {
+                winner = marble;
+                gameEnded = true;
+                winnerDisplayEndTime = performance.now() + 3000;
+                winSound.play().catch(e => console.error("Error playing win sound:", e));
+                showWinnerScreen(winner);
+                showScreen(winnerScreen);
+            } else if (currentGameMode === 'elimination') {
+                marble.eliminated = true;
+                eliminatedMarbles.push(marble);
+                showMessage(`${marble.name} is eliminated!`, false, 2000);
+
+                const remainingMarbles = marbles.filter(m => !m.eliminated);
+
+                if (remainingMarbles.length <= 1) {
+                    gameEnded = true;
+                    winner = remainingMarbles.length === 1 ? remainingMarbles[0] : null; // The last one remaining wins
+                    winnerDisplayEndTime = performance.now() + 3000;
+                    if (winner) {
+                         winSound.play().catch(e => console.error("Error playing win sound:", e));
+                         showWinnerScreen(winner);
+                    } else {
+                         winnerHeading.textContent = "All marbles eliminated!";
+                         winnerMarbleDisplay.innerHTML = '';
+                         winnerMarbleDisplay.style.backgroundColor = 'transparent';
+                    }
+                    updateLeaderboard(); // Update leaderboard for final screen
+                    showScreen(winnerScreen);
+                }
+            } else if (currentGameMode === 'slow_elimination') {
+                 // In Slow Elimination, reaching the goal means they are safe for this round
+                 if (!raceOrder.find(m => m.id === marble.id)) { // Only add if not already in raceOrder for this round
+                     raceOrder.push(marble);
+                     marble.eliminated = true; // Mark as eliminated to make it disappear visually for this round
+                     showMessage(`${marble.name} reached the goal!`, false, 1500);
+
+                     // Get marbles that are currently in the race (those in the 'marbles' array at the start of the round)
+                     // The 'marbles' array is updated by initGame for each round based on permanent eliminations.
+                     const marblesCurrentlyRacing = marbles;
+
+                     // Check if all marbles that started this round have finished
+                     if (raceOrder.length === marblesCurrentlyRacing.length) {
+                         // All marbles that started this round have reached the goal.
+                         // The last one in raceOrder is eliminated from the game.
+                         const eliminatedMarbleForThisRound = raceOrder.pop(); // Last one in raceOrder
+                         eliminatedMarbles.push(eliminatedMarbleForThisRound); // Add to the list of permanently eliminated marbles
+
+                         // The 'marbles' array will be recreated by initGame for the next round, excluding permanently eliminated marbles.
+
+                         showMessage(`${eliminatedMarbleForThisRound.name} was the last and is eliminated!`, true, 3000);
+
+                         // Check if the game has ended (only one marble left in the overall game)
+                         const remainingMarblesOverall = configuredMarbles.filter(m => !eliminatedMarbles.some(em => em.id === m.id));
+
+                         if (remainingMarblesOverall.length <= 1) {
+                             gameEnded = true;
+                             winner = remainingMarblesOverall.length === 1 ? remainingMarblesOverall[0] : null;
+                             winnerDisplayEndTime = performance.now() + 3000;
+                             if (winner) {
+                                  winSound.play().catch(e => console.error("Error playing win sound:", e));
+                             }
+                             updateLeaderboard(); // Update leaderboard for final screen
+                             showWinnerScreen(winner); // Call showWinnerScreen with the winner for the final screen
+                             showScreen(winnerScreen); // Transition to winner screen
+                         } else {
+                             // Game is not over, start next round transition
+                             updateLeaderboard(); // Update leaderboard for intermediate screen
+                             showWinnerScreen(null); // Show intermediate winner screen
+                             showScreen(winnerScreen); // Transition to intermediate screen
+                             nextRaceBtn.textContent = "Next Round"; // Change button text
+                             winnerHeading.textContent = "Round Over!"; // Change heading
+                             winnerMarbleDisplay.innerHTML = ''; // Clear marble display
+                             winnerMarbleDisplay.style.backgroundColor = 'transparent';
+                             // The next round will be started by the nextRaceBtn handler using the updated 'eliminatedMarbles' list
+                         }
+                     } else {
+                         // Game is not over, continue the current round
+                         updateLeaderboard(); // Update leaderboard to show who finished so far
+                         // No screen change, marbles continue racing
+                     }
+                 }
+            }
+        }
+
+        function showWinnerScreen(m){
+
+// Hide leaderboard initially, show only for specific modes
+if (leaderboard) leaderboard.style.display = 'none';
+
+if (currentGameMode === 'classic') {
+     winnerHeading.textContent=`${m.name} wins!`;
+     winnerMarbleDisplay.innerHTML='';
+     if(m.type==='color'){
+         winnerMarbleDisplay.style.backgroundColor=m.value;
+     } else if(m.img && m.img.complete && m.img.naturalWidth > 0){ // Added check for naturalWidth
+         const imgEl=document.createElement('img');
+         imgEl.src=m.img.src; imgEl.alt = m.name; winnerMarbleDisplay.appendChild(imgEl); // Added alt text
+     } else {
+         winnerMarbleDisplay.style.backgroundColor='grey';
+     }
+     nextRaceBtn.textContent = "Next Race"; // Ensure button text is correct
+
+} else if (currentGameMode === 'elimination') {
+     if (m) { // If there's a winner (last one standing)
+          winnerHeading.textContent=`${m.name} wins!`;
+          winnerMarbleDisplay.innerHTML='';
+          if(m.type==='color'){
+              winnerMarbleDisplay.style.backgroundColor=m.value;
+          } else if(m.img && m.img.complete && m.img.naturalWidth > 0){ // Added check for naturalWidth
+              const imgEl=document.createElement('img');
+              imgEl.src=m.img.src; imgEl.alt = m.name; winnerMarbleDisplay.appendChild(imgEl); // Added alt text
+          } else {
+              winnerMarbleDisplay.style.backgroundColor='grey';
+          }
+     } else { // If all were eliminated simultaneously (unlikely but possible)
+         winnerHeading.textContent = "All marbles eliminated!";
+         winnerMarbleDisplay.innerHTML = '';
+         winnerMarbleDisplay.style.backgroundColor = 'transparent';
+     }
+     nextRaceBtn.textContent = "New Game"; // Change button text for Elimination
+     if (leaderboard) leaderboard.style.display = 'block'; // Show leaderboard
+
+} else if (currentGameMode === 'slow_elimination') {
+     if (gameEnded) { // Check if the game has fully ended
+         if (m) { // If there's a final winner
+              winnerHeading.textContent=`${m.name} is the ultimate winner!`;
+              winnerMarbleDisplay.innerHTML='';
+              if(m.type==='color'){
+                  winnerMarbleDisplay.style.backgroundColor=m.value;
+              } else if(m.img && m.img.complete && m.img.naturalWidth > 0){ // Added check for naturalWidth
+                  const imgEl=document.createElement('img');
+                  imgEl.src=m.img.src; imgEl.alt = m.name; winnerMarbleDisplay.appendChild(imgEl); // Added alt text
+              } else {
+                  winnerMarbleDisplay.style.backgroundColor='grey';
+              }
+              nextRaceBtn.textContent = "New Game"; // Change button text for final winner
+         } else { // If all were eliminated simultaneously (no single winner)
+             winnerHeading.textContent = "All marbles eliminated!";
+             winnerMarbleDisplay.innerHTML = '';
+             winnerMarbleDisplay.style.backgroundColor = 'transparent';
+             nextRaceBtn.textContent = "New Game";
+         }
+     } else { // Intermediate round winner screen
+         winnerHeading.textContent = "Round Over!";
+         winnerMarbleDisplay.innerHTML = '';
+         winnerMarbleDisplay.style.backgroundColor = 'transparent';
+         nextRaceBtn.textContent = "Next Round"; // Change button text for intermediate rounds
+     }
+     if (leaderboard) leaderboard.style.display = 'block'; // Always show leaderboard in Slow Elimination winner screen
+}
+}
+
+function updateLeaderboard() {
+            if (!leaderboardList) return;
+
+            leaderboardList.innerHTML = ''; // Clear current list
+            const totalMarbles = configuredMarbles.length;
+
+            if (currentGameMode === 'elimination') {
+                // For Elimination, show the order of elimination (first eliminated is last place)
+                // Display eliminated marbles in reverse order of elimination
+                const reversedEliminated = [...eliminatedMarbles].reverse();
+                reversedEliminated.forEach((marble, index) => {
+                    // Rank is total marbles minus the number of marbles eliminated before this one
+                    const rank = totalMarbles - (eliminatedMarbles.length - 1 - index);
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${rank}. ${marble.name}`;
+                    leaderboardList.appendChild(listItem);
+                });
+
+                 if (winner) {
+                     const winnerItem = document.createElement('li');
+                     winnerItem.textContent = `1. ${winner.name}`;
+                     winnerItem.style.fontWeight = 'bold';
+                     // Add winner at the top of the list
+                     leaderboardList.insertBefore(winnerItem, leaderboardList.firstChild);
+                 } else if (eliminatedMarbles.length === totalMarbles && totalMarbles > 0) {
+                      const noWinnerItem = document.createElement('li');
+                      noWinnerItem.textContent = `No winner this round.`;
+                      leaderboardList.appendChild(noWinnerItem);
+                 }
+
+
+            } else if (currentGameMode === 'slow_elimination') {
+                 // For Slow Elimination, show marbles in order of elimination (first eliminated is last place)
+                 // Display eliminated marbles in reverse order of elimination
+                 const reversedEliminated = [...eliminatedMarbles].reverse();
+                 reversedEliminated.forEach((marble, index) => {
+                     // Rank is total marbles minus the number of marbles eliminated before this one
+                     const rank = totalMarbles - (eliminatedMarbles.length - 1 - index);
+                     const listItem = document.createElement('li');
+                     listItem.textContent = `${rank}. ${marble.name}`;
+                     leaderboardList.appendChild(listItem);
+                 });
+
+                 if (winner) {
+                     const winnerItem = document.createElement('li');
+                     winnerItem.textContent = `1. ${winner.name}`;
+                     winnerItem.style.fontWeight = 'bold';
+                     // Add winner at the top of the list
+                      leaderboardList.insertBefore(winnerItem, leaderboardList.firstChild);
+                 } else if (eliminatedMarbles.length < totalMarbles) {
+                     // Show remaining marbles in the current round
+                     // Filter against configuredMarbles and check if they are NOT in the eliminatedMarbles list
+                     const remainingMarbles = configuredMarbles.filter(m => !eliminatedMarbles.some(em => em.id === m.id));
+                     if (remainingMarbles.length > 0) {
+                         const remainingHeader = document.createElement('li');
+                         remainingHeader.textContent = `Still in the game:`;
+                         remainingHeader.style.marginTop = '10px';
+                         leaderboardList.appendChild(remainingHeader);
+                         // List remaining marbles - their rank is their current position + number eliminated
+                         remainingMarbles.forEach((marble, index) => {
+                              const listItem = document.createElement('li');
+                              listItem.textContent = `- ${marble.name}`; // No rank for those still in the game
+                              leaderboardList.appendChild(listItem);
+                         });
+                     }
+                 }
+            }
+        }
+
+        let recordingMimeType = 'video/webm';
+
+        function stopGame(){
+            console.log("Stopping game (cancelling animation frame and recorder if active).");
+            if(gameAnimationId){ cancelAnimationFrame(gameAnimationId); gameAnimationId=null; }
+            gameStarted=false;
+            countdownActive = false;
+
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                 console.log("MediaRecorder stop() called from stopGame. Download requested:", downloadRequested);
+
+                 mediaRecorder.stop();
+            } else if (mediaStream) {
+
+                 console.log("Stopping media stream tracks directly from stopGame.");
+                 mediaStream.getTracks().forEach(track => track.stop());
+                 mediaStream = null;
+                 mediaRecorder = null;
+                 recordedChunks = [];
+            }
+        }
+
+        function addMarbleConfig(config) {
+
+            const marbleId = config.id !== undefined ? config.id : nextMarbleId++;
+            const newMarble = { ...config, id: marbleId, loading: false, img: null, eliminated: false }; // Add eliminated property
+
+            if (newMarble.type === 'imageURL' || newMarble.type === 'imageFile') {
+                if (newMarble.value) {
+                    newMarble.loading = true;
+                    imagesLoading++;
+                    updateStartButtonState();
+
+                    const img = new Image();
+                    img.onload = () => {
+                        newMarble.img = img;
+                        newMarble.loading = false;
+                        imagesLoading--;
+                        updateStartButtonState();
+                        updateMarbleGridUI();
+                    };
+                    img.onerror = () => {
+                        console.error(`Failed to load image for marble "${newMarble.name}" from ${newMarble.value}`);
+                        newMarble.loading = false;
+                        newMarble.img = null;
+                        imagesLoading--;
+                        updateStartButtonState();
+                        updateMarbleGridUI();
+                        showMessage(`Failed to load image for "${newMarble.name}".`, true);
+                    };
+                    img.src = newMarble.value;
+                    newMarble.img = img;
+                } else {
+
+                     newMarble.loading = false;
+                     newMarble.img = null;
+
+                }
+            }
+
+            configuredMarbles.push(newMarble);
+            saveMarblesToStorage();
+            updateMarbleGridUI();
+            updateStartButtonState();
+        }
+
+        function editMarbleConfig(id, newConfig) {
+            const index = configuredMarbles.findIndex(m => m.id === id);
+            if (index > -1) {
+                const oldMarble = configuredMarbles[index];
+                const updatedMarble = { ...oldMarble, ...newConfig };
+
+                if ((updatedMarble.type === 'imageURL' || updatedMarble.type === 'imageFile') && updatedMarble.value !== oldMarble.value) {
+
+                     if (oldMarble.loading) {
+                         imagesLoading--;
+                     }
+                     updatedMarble.loading = true;
+                     imagesLoading++;
+                     updateStartButtonState();
+
+                     const img = new Image();
+                     img.onload = () => {
+                         updatedMarble.img = img;
+                         updatedMarble.loading = false;
+                         imagesLoading--;
+                         updateStartButtonState();
+                         updateMarbleGridUI();
+                     };
+                     img.onerror = () => {
+                         console.error(`Failed to load updated image for marble "${updatedMarble.name}" from ${updatedMarble.value}`);
+                         updatedMarble.loading = false;
+                         updatedMarble.img = null;
+                         imagesLoading--;
+                         updateStartButtonState();
+                         updateMarbleGridUI();
+                         showMessage(`Failed to load updated image for "${updatedMarble.name}".`, true);
+                     };
+                     img.src = updatedMarble.value;
+                     updatedMarble.img = img;
+                } else if (updatedMarble.type === 'color' && oldMarble.loading) {
+
+                     imagesLoading--;
+                     updatedMarble.loading = false;
+                     updatedMarble.img = null;
+                     updateStartButtonState();
+                } else if ((updatedMarble.type === 'imageURL' || updatedMarble.type === 'imageFile') && updatedMarble.value === oldMarble.value) {
+
+                     updatedMarble.img = oldMarble.img;
+                     updatedMarble.loading = oldMarble.loading;
+
+                } else {
+
+                     updatedMarble.loading = false;
+                     updatedMarble.img = null;
+
+                     if (oldMarble.loading) imagesLoading--;
+                     updateStartButtonState();
+                }
+
+                configuredMarbles[index] = updatedMarble;
+                saveMarblesToStorage();
+                updateMarbleGridUI();
+                updateStartButtonState();
+            } else {
+                 showMessage("Error: Could not find marble to edit.", true);
+            }
+        }
+
+        function removeMarbleConfig(id) {
+            const index = configuredMarbles.findIndex(m => m.id === id);
+            if (index > -1) {
+
+                 if (configuredMarbles[index].loading) {
+                     imagesLoading--;
+                     updateStartButtonState();
+                 }
+                configuredMarbles.splice(index, 1);
+                saveMarblesToStorage();
+                updateMarbleGridUI();
+
+                 if (lastHoveredCard && parseInt(lastHoveredCard.dataset.id) === id) {
+                     lastHoveredCard = null;
+                 }
+            } else {
+                 showMessage("Error: Could not find marble to delete.", true);
+            }
+        }
+
+        let lastHitSoundTime = 0;
+        const HIT_SOUND_COOLDOWN = 50;
+
+        function playHitSound() {
+            const now = performance.now();
+            if (now - lastHitSoundTime > HIT_SOUND_COOLDOWN) {
+                 const sound = hitSounds[Math.floor(Math.random() * hitSounds.length)];
+
+                 try {
+                     const soundClone = sound.cloneNode();
+                      soundClone.volume = getRaceSoundsVolume();
+                     soundClone.play().catch(e => console.warn("Error playing sound:", e));
+                 } catch (e) {
+                     console.warn("Error cloning sound:", e);
+                 }
+                 lastHitSoundTime = now;
+            }
+        }
+
+         function playTickSound() {
+             if (tickSound) {
+                 try {
+                     const soundClone = tickSound.cloneNode();
+                      soundClone.volume = getUIVolume();
+                     soundClone.currentTime = 0;
+                     soundClone.play().catch(e => console.warn("Error playing tick sound:", e));
+                 } catch (e) {
+                     console.warn("Error cloning tick sound:", e);
+                 }
+             }
+         }
+
+         function playSelectSound() {
+             if (selectSound) {
+                  try {
+                     const soundClone = selectSound.cloneNode();
+                      soundClone.volume = getUIVolume();
+                     soundClone.currentTime = 0;
+                     soundClone.play().catch(e => console.warn("Error playing select sound:", e));
+                 } catch (e) {
+                     console.warn("Error cloning select sound:", e);
+                 }
+             }
+         }
+
+        function saveMarblesToStorage() {
+
+            const dataToSave = configuredMarbles.map(m => {
+                const { img, loading, eliminated, ...rest } = m; // Exclude img, loading, and eliminated for saving
+                return rest;
+            });
+            localStorage.setItem('currentMarbles', JSON.stringify(dataToSave));
+        }
+
+        function loadMarblesFromStorage() {
+            const storedMarbles = localStorage.getItem('currentMarbles');
+            if (storedMarbles) {
+                try {
+                    const parsedMarbles = JSON.parse(storedMarbles);
+
+                    if (parsedMarbles && parsedMarbles.length > 0) {
+                         configuredMarbles = [];
+                         imagesLoading = 0;
+                         nextMarbleId = 0;
+                         parsedMarbles.forEach(m => {
+
+                             addMarbleConfig({ ...m, id: undefined });
+                         });
+
+                    } else {
+
+                         configuredMarbles = [];
+                         imagesLoading = 0;
+                         nextMarbleId = 0;
+                    }
+                } catch (e) {
+                    console.error("Error loading marbles from storage:", e);
+                    showMessage("Error loading saved marbles. Starting fresh.", true, 5000);
+
+                    configuredMarbles = [];
+                    imagesLoading = 0;
+                    nextMarbleId = 0;
+                }
+            } else {
+
+                 configuredMarbles = [];
+                 imagesLoading = 0;
+                 nextMarbleId = 0;
+            }
+
+        }
+
+        function updateStartButtonState() {
+             // Update goToModeSelectionBtn state instead of startGameBtn
+             if (!goToModeSelectionBtn) return;
+             goToModeSelectionBtn.disabled = (configuredMarbles.length === 0 || imagesLoading > 0);
+             if (goToModeSelectionBtn.disabled) {
+                 goToModeSelectionBtn.title = configuredMarbles.length === 0 ? "Add at least one marble to start" : `Waiting for ${imagesLoading} image(s) to load...`;
+                 imageLoadingStatus.textContent = imagesLoading > 0 ? `(${imagesLoading} loading)` : '';
+             } else {
+                 goToModeSelectionBtn.title = "Proceed to Mode Selection";
+                 imageLoadingStatus.textContent = '';
+             }
+         }
+
+        function updateMarbleGridUI() {
+            if (!marbleGrid || !addMarbleCard) return;
+            marbleGrid.innerHTML = '';
+            configuredMarbles.forEach(m => {
+                const card = createMarbleCardElement(m);
+                marbleGrid.appendChild(card);
+            });
+            marbleGrid.appendChild(addMarbleCard);
+            updateStartButtonState();
+        }
+
+        function createMarbleCardElement(marbleData) {
+            const card = document.createElement('div');
+            card.className = 'card marble-card';
+            card.dataset.id = marbleData.id;
+            const swatchContainer = document.createElement('div');
+            swatchContainer.className = 'marble-swatch-container';
+
+            if (marbleData.loading) {
+                swatchContainer.textContent = '...';
+                swatchContainer.style.backgroundColor = 'var(--bg-color)';
+            } else if (marbleData.type === 'color') {
+                swatchContainer.style.backgroundColor = marbleData.value;
+            } else if (marbleData.img && marbleData.img.complete && marbleData.img.naturalWidth > 0) {
+                 try {  const imgEl = document.createElement('img'); imgEl.src = marbleData.img.src; imgEl.alt = marbleData.name; swatchContainer.appendChild(imgEl); swatchContainer.style.backgroundColor = 'transparent'; }
+                 catch (e) { console.warn(`Error displaying image for marble ${marbleData.name}:`, e); swatchContainer.textContent = 'X'; swatchContainer.style.backgroundColor = 'var(--error-color)'; }
+            } else {
+
+                swatchContainer.textContent = 'X';
+                swatchContainer.style.backgroundColor = 'var(--error-color)';
+            }
+            card.appendChild(swatchContainer);
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'marble-name';
+            nameSpan.textContent = marbleData.name;
+            nameSpan.title = marbleData.name;
+            card.appendChild(nameSpan);
+
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+
+            const editIcon = document.createElement('i');
+            editIcon.className = 'fa-solid fa-pencil';
+            editIcon.title = 'Edit Marble (Click)';
+            editIcon.dataset.action = 'edit';
+
+            const saveIcon = document.createElement('i');
+            saveIcon.className = 'fa-solid fa-save';
+            saveIcon.title = 'Save Marble (Shift + Click)';
+             saveIcon.dataset.action = 'save';
+
+            const deleteIcon = document.createElement('i');
+            deleteIcon.className = 'fa-solid fa-trash danger';
+            deleteIcon.title = 'Delete Marble (Ctrl + Click)';
+             deleteIcon.dataset.action = 'delete';
+
+            overlay.appendChild(editIcon);
+            overlay.appendChild(saveIcon);
+            overlay.appendChild(deleteIcon);
+
+            card.appendChild(overlay);
+
+            card.addEventListener('click', (e) => {
+                const marbleId = parseInt(card.dataset.id);
+                const targetIcon = e.target.closest('.overlay i');
+
+                if (!targetIcon) {
+
+                     if (!keyState.Shift && !keyState.Control) {
+                         openModalForEdit(marbleId);
+                     }
+                    return;
+                }
+
+                const action = targetIcon.dataset.action;
+
+                if (action === 'edit' && !keyState.Shift && !keyState.Control) {
+                    openModalForEdit(marbleId);
+                } else if (action === 'save' && keyState.Shift && !keyState.Control) {
+                     const marbleToSave = configuredMarbles.find(m => m.id === marbleId);
+                     if (marbleToSave) {
+                         saveIndividualMarble(marbleToSave);
+                         showMessage(`Saved "${marbleToSave.name}" to Saved Marbles.`);
+                     }
+                } else if (action === 'delete' && keyState.Control && !keyState.Shift) {
+                     const marbleName = configuredMarbles.find(m => m.id === marbleId)?.name || 'this marble';
+                     if (confirm(`Are you sure you want to delete marble "${marbleName}"?`)) {
+                         removeMarbleConfig(marbleId);
+                         showMessage(`Deleted "${marbleName}"`);
+                     }
+                }
+
+            });
+
+            card.addEventListener('mouseenter', () => {
+                lastHoveredCard = card;
+                refreshOverlay();
+            });
+            card.addEventListener('mouseleave', () => {
+                lastHoveredCard = null;
+
+                if (keyState.Shift || keyState.Control) {
+                    refreshOverlay();
+                } else {
+
+                     overlay.style.opacity = '0';
+                     overlay.style.pointerEvents = 'none';
+                }
+            });
+
+            return card;
+        }
+
+        function refreshOverlay() {
+
+            document.querySelectorAll('.marble-card .overlay').forEach(ov => {
+
+                ov.querySelectorAll('i').forEach(icon => icon.style.display = 'none');
+                ov.style.opacity = '0';
+                ov.style.pointerEvents = 'none';
+            });
+
+            const overlay = lastHoveredCard ? lastHoveredCard.querySelector('.overlay') : null;
+
+            if (!lastHoveredCard || !overlay) {
+                return;
+            }
+
+            const editIcon = overlay.querySelector('[data-action="edit"]');
+            const saveIcon = overlay.querySelector('[data-action="save"]');
+            const deleteIcon = overlay.querySelector('[data-action="delete"]');
+
+            if (keyState.Control) {
+                deleteIcon.style.display = 'block';
+                editIcon.style.display = 'none';
+                saveIcon.style.display = 'none';
+            } else if (keyState.Shift) {
+                saveIcon.style.display = 'block';
+                editIcon.style.display = 'none';
+                deleteIcon.style.display = 'none';
+            } else {
+
+                editIcon.style.display = 'block';
+                saveIcon.style.display = 'none';
+                deleteIcon.style.display = 'none';
+            }
+
+            overlay.style.opacity = '1';
+            overlay.style.pointerEvents = 'auto';
+        }
+
+         function populatePacksGrid() {
+             if (!packsGrid) return;
+             packsGrid.innerHTML = '';
+             Object.entries(presetPacks).forEach(([key, pack]) => {
+                 const card = document.createElement('div');
+                 card.className = 'card pack-card';
+                 card.title = `Add ${pack.marbles.length} marbles from the "${pack.name}" pack`;
+                 const icon = document.createElement('i');
+                 icon.className = `fa-solid ${pack.icon || 'fa-box'}`;
+                 card.appendChild(icon);
+                 const nameSpan = document.createElement('span');
+                 nameSpan.className = 'pack-card-name'; nameSpan.textContent = pack.name;
+                 card.appendChild(nameSpan);
+                 const descSpan = document.createElement('span');
+                 descSpan.className = 'pack-card-desc';
+                 descSpan.textContent = pack.description || `${pack.marbles.length} marbles`;
+                 card.appendChild(descSpan);
+                 card.onclick = () => {
+
+                      if (confirm(`Add all marbles from the "${pack.name}" pack?`)) {
+                          pack.marbles.forEach(marbleData => addMarbleConfig({ ...marbleData, id: undefined }));
+                          showMessage(`Added marbles from "${pack.name}" pack.`, false, 4000);
+                          if (tabButtons.marbles) tabButtons.marbles.click();
+                      }
+                 };
+                 packsGrid.appendChild(card);
+             });
+         }
+
+         function loadSavedMarbles() {
+             const storedSavedMarbles = localStorage.getItem('savedMarbles');
+             if (storedSavedMarbles) {
+                 try {
+                     savedMarbles = JSON.parse(storedSavedMarbles);
+                 } catch (e) {
+                     console.error("Error loading saved individual marbles from storage:", e);
+                     showMessage("Error loading saved individual marbles. Starting fresh.", true, 5000);
+                     savedMarbles = [];
+                 }
+             } else {
+                 savedMarbles = [];
+             }
+
+         }
+
+         function updateSavedMarblesGridUI() {
+              if (!savedMarblesGrid) return;
+              savedMarblesGrid.innerHTML = '';
+
+              savedMarbles.forEach(m => {
+                  const card = createSavedMarbleCardElement(m);
+                  savedMarblesGrid.appendChild(card);
+              });
+         }
+
+         function createSavedMarbleCardElement(marbleData) {
+              const card = document.createElement('div');
+              card.className = 'card saved-marble-card';
+
+              card.dataset.savedId = marbleData.id;
+
+              const swatchContainer = document.createElement('div');
+              swatchContainer.className = 'marble-swatch-container';
+
+              if (marbleData.type === 'color') {
+                  swatchContainer.style.backgroundColor = marbleData.value;
+              } else if (marbleData.value) {
+                  const imgEl = document.createElement('img');
+                  imgEl.src = marbleData.value;
+                  imgEl.alt = marbleData.name;
+
+                  imgEl.onerror = () => {
+                       swatchContainer.textContent = 'X';
+                       swatchContainer.style.backgroundColor = 'var(--error-color)';
+                       imgEl.remove();
+                  };
+                  swatchContainer.appendChild(imgEl);
+                  swatchContainer.style.backgroundColor = 'transparent';
+              } else {
+                   swatchContainer.textContent = '?';
+                   swatchContainer.style.backgroundColor = 'grey';
+              }
+              card.appendChild(swatchContainer);
+
+              const nameSpan = document.createElement('span');
+              nameSpan.className = 'saved-marble-name';
+              nameSpan.textContent = marbleData.name;
+              nameSpan.title = marbleData.name;
+              card.appendChild(nameSpan);
+
+              const actionsDiv = document.createElement('div');
+              actionsDiv.className = 'actions-div';
+              actionsDiv.style.cssText = 'display: flex; gap: 5px; margin-top: 10px;';
+              card.appendChild(actionsDiv);
+
+              const loadBtn = document.createElement('button');
+              loadBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
+              loadBtn.title = 'Add this marble to current marbles';
+
+              loadBtn.onclick = (e) => {
+                  e.stopPropagation();
+
+                  addMarbleConfig(JSON.parse(JSON.stringify(marbleData)));
+                  showMessage(`Added "${marbleData.name}" to current marbles.`);
+              };
+              actionsDiv.appendChild(loadBtn);
+
+              const deleteBtn = document.createElement('button');
+              deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+              deleteBtn.className = 'danger';
+
+              deleteBtn.title = 'Delete this saved marble';
+              deleteBtn.onclick = (e) => {
+                     e.stopPropagation();
+                  if (confirm(`Are you sure you want to delete saved marble "${marbleData.name}"?`)) {
+                      removeSavedMarble(marbleData.id);
+                      showMessage(`Deleted saved marble "${marbleData.name}".`);
+                  }
+              };
+              actionsDiv.appendChild(deleteBtn);
+
+              return card;
+         }
+
+         function removeSavedMarble(id) {
+              const index = savedMarbles.findIndex(m => m.id === id);
+              if (index > -1) {
+                  savedMarbles.splice(index, 1);
+                  localStorage.setItem('savedMarbles', JSON.stringify(savedMarbles));
+                  updateSavedMarblesGridUI();
+              }
+         }
+
+         function saveIndividualMarble(marbleConfig) {
+
+             const newSavedMarble = JSON.parse(JSON.stringify(marbleConfig));
+             newSavedMarble.id = Date.now();
+
+             savedMarbles.push(newSavedMarble);
+             localStorage.setItem('savedMarbles', JSON.stringify(savedMarbles));
+             updateSavedMarblesGridUI();
+
+         }
+
+         function saveCurrentConfigurationSet() {
+             const configName = prompt("Enter a name for this marble set:", `Saved Set ${Object.keys(savedSets).length + 1}`);
+             if (configName && configName.trim()) {
+                 const trimmedName = configName.trim();
+
+                 if (savedSets[trimmedName]) {
+                      if (!confirm(`A configuration named "${trimmedName}" already exists. Do you want to overwrite it?`)) {
+                          return;
+                      }
+                 }
+
+                 savedSets[trimmedName] = JSON.parse(JSON.stringify(configuredMarbles.map(m => { // Exclude img, loading, and eliminated for saving sets
+                     const { img, loading, eliminated, ...rest } = m; return rest;
+                 })));
+                 localStorage.setItem('marbleConfigs', JSON.stringify(savedSets));
+                 populateSavedSetsGrid();
+                 showMessage(`Configuration set "${trimmedName}" saved!`, false, 4000);
+             } else if (configName !== null) {
+                 showMessage("Save cancelled or name was empty.", false, 2000);
+             }
+         }
+
+         function populateSavedSetsGrid() {
+             if (!savedSetsGrid || !saveCurrentSetConfig) return;
+             savedSetsGrid.innerHTML = '';
+             savedSetsGrid.appendChild(saveCurrentSetConfig);
+
+             const sortedConfigs = Object.entries(savedSets).sort(([nameA], [nameB]) => nameA.localeCompare(nameB));
+
+             sortedConfigs.forEach(([name, configMarbles]) => {
+                 const card = document.createElement('div');
+                 card.className = 'card saved-config-card';
+                 card.title = `Load the "${name}" configuration (${configMarbles.length} marbles)`;
+                 const icon = document.createElement('i');
+                 icon.className = `fa-solid fa-layer-group`;
+                 card.appendChild(icon);
+                 const nameSpan = document.createElement('span');
+                 nameSpan.className = 'saved-config-name'; nameSpan.textContent = name;
+                 card.appendChild(nameSpan);
+                 const detailsSpan = document.createElement('span');
+                 detailsSpan.className = 'saved-config-details'; detailsSpan.textContent = `${configMarbles.length} marble(s)`;
+                 card.appendChild(detailsSpan);
+                 card.onclick = () => {
+
+                     if (confirm(`Load the "${name}" configuration? This will replace your current marbles.`)) {
+                         loadConfigurationSet(name);
+                         showMessage(`Loaded configuration set "${name}".`, false, 4000);
+                     }
+                 };
+                 const deleteBtn = document.createElement('button');
+                 deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                 deleteBtn.className = 'danger';
+                 deleteBtn.style.cssText = 'position: absolute; top: 4px; right: 4px; padding: 2px 5px; font-size: 0.7rem; background: none; border: none;';
+                 deleteBtn.title = 'Delete this saved set';
+                 deleteBtn.onclick = (e) => {
+                     e.stopPropagation();
+
+                     if (confirm(`Are you sure you want to delete the saved configuration "${name}"?`)) {
+                         delete savedSets[name];
+                         localStorage.setItem('marbleConfigs', JSON.stringify(savedSets));
+                         populateSavedSetsGrid();
+                         showMessage(`Deleted configuration set "${name}".`, false, 4000);
+                     }
+                 };
+                 card.appendChild(deleteBtn);
+                 savedSetsGrid.appendChild(card);
+             });
+         }
+
+         function loadSavedSets() {
+             const storedSavedSets = localStorage.getItem('marbleConfigs');
+             if (storedSavedSets) {
+                 try {
+                     savedSets = JSON.parse(storedSavedSets);
+                 } catch (e) {
+                     console.error("Error loading saved sets from storage:", e);
+                     showMessage("Error loading saved marble sets. Starting fresh.", true, 5000);
+                     savedSets = {};
+                 }
+             } else {
+                 savedSets = {};
+             }
+
+         }
+
+         function loadConfigurationSet(configName) {
+             const configToLoad = savedSets[configName];
+             if (configToLoad) {
+                 configuredMarbles = [];
+                 imagesLoading = 0;
+                 nextMarbleId = 0;
+
+                 JSON.parse(JSON.stringify(configToLoad)).forEach(marbleData => {
+                     addMarbleConfig({ ...marbleData, id: undefined });
+                 });
+                 saveMarblesToStorage();
+                 updateMarbleGridUI();
+                 updateSavedMarblesGridUI();
+                 updateStartButtonState();
+                 if (tabButtons.marbles) tabButtons.marbles.click();
+             } else {
+                 showMessage(`Configuration set "${configName}" not found.`, true, 4000);
+             }
+         }
+
+        function openModalForAdd() {
+            if (!modalOverlay) return;
+            modalTitle.textContent = "Add New Marble";
+            editMarbleId.value = '';
+            modalMarbleName.value = '';
+            modalMarbleType.value = 'color';
+            modalMarbleColor.value = '#ff0000';
+            modalMarbleImageUrl.value = '';
+            modalMarbleImageFile.value = null;
+             resetModalImageView();
+            updateModalInputVisibility();
+             modalLoadingIndicator.classList.add('hidden');
+             modalSaveBtn.disabled = false;
+            modalOverlay.classList.add('active');
+            modalSaveBtn.onclick = handleModalSave;
+        }
+
+        function openModalForEdit(id) {
+             if (!modalOverlay) return;
+            const marble = configuredMarbles.find(m => m.id === id);
+            if (!marble) {
+                 showMessage("Error: Marble not found for editing.", true);
+                 return;
+            }
+            modalTitle.textContent = "Edit Marble";
+            editMarbleId.value = id;
+            modalMarbleName.value = marble.name;
+            modalMarbleType.value = marble.type;
+            modalMarbleColor.value = marble.type === 'color' ? marble.value : '#000000';
+            modalMarbleImageUrl.value = marble.type === 'imageURL' ? marble.value : '';
+            modalMarbleImageFile.value = null;
+             resetModalImageView();
+
+            if ((marble.type === 'imageURL' || marble.type === 'imageFile') && marble.value) {
+                 modalImagePreview.src = marble.value;
+                 modalImagePreview.classList.remove('hidden');
+                 modalFileStatus.textContent = marble.type === 'imageFile' ? 'Existing file loaded' : 'Existing URL loaded';
+             }
+
+            updateModalInputVisibility();
+             modalLoadingIndicator.classList.add('hidden');
+             modalSaveBtn.disabled = false;
+            modalOverlay.classList.add('active');
+             modalSaveBtn.onclick = handleModalSave;
+        }
+
+        function closeModal() {
+             if (!modalOverlay) return;
+            modalOverlay.classList.remove('active');
+             resetModalImageView();
+
+             editMarbleId.value = '';
+             modalMarbleName.value = '';
+             modalMarbleType.value = 'color';
+             modalMarbleColor.value = '#ff0000';
+             modalMarbleImageUrl.value = '';
+             modalMarbleImageFile.value = null;
+             modalFileStatus.textContent = '';
+             modalLoadingIndicator.classList.add('hidden');
+             modalSaveBtn.disabled = false;
+
+             modalSaveBtn.onclick = handleModalSave;
+        }
+
+        function resetModalImageView() {
+             if (!modalImagePreview || !modalFileStatus) return;
+             modalImagePreview.classList.add('hidden');
+             modalImagePreview.src = '#';
+             modalFileStatus.textContent = '';
+
+         }
+
+        function updateModalInputVisibility() {
+             if (!modalColorInputDiv || !modalUrlInputDiv || !modalFileInputDiv || !modalMarbleType) return;
+            const selectedType = modalMarbleType.value;
+            modalColorInputDiv.classList.toggle('hidden', selectedType !== 'color');
+            modalUrlInputDiv.classList.toggle('hidden', selectedType !== 'imageURL');
+            modalFileInputDiv.classList.toggle('hidden', selectedType !== 'imageFile');
+             if (selectedType !== 'imageFile') resetModalImageView();
+             else {
+
+                 if (!modalMarbleImageFile.files || modalMarbleImageFile.files.length === 0) {
+                     resetModalImageView();
+                 }
+             }
+        }
+
+        function handleModalFileSelect(event) {
+             const file = event.target.files[0];
+             resetModalImageView();
+             if (file) {
+                 modalFileStatus.textContent = `Selected: ${file.name}`;
+                 const reader = new FileReader();
+                 reader.onload = function(e) {
+                     modalImagePreview.src = e.target.result;
+                     modalImagePreview.classList.remove('hidden');
+                 }
+                 reader.onerror = function() {
+                      modalFileStatus.textContent = 'Error reading file.';
+                      modalImagePreview.classList.add('hidden');
+                      showMessage("Error reading file.", true, 3000);
+                 }
+                 reader.readAsDataURL(file);
+             } else {
+                 modalFileStatus.textContent = 'No file selected.';
+             }
+         }
+
+         function handleModalSave() {
+             const idToEdit = editMarbleId.value ? parseInt(editMarbleId.value) : null;
+             const name = modalMarbleName.value.trim() || (idToEdit !== null ? configuredMarbles.find(m=>m.id===idToEdit)?.name : `Marble ${nextMarbleId + 1}`);
+             let type = modalMarbleType.value;
+             let value = '';
+             let isValid = true;
+             let fileSelected = false;
+
+             modalSaveBtn.disabled = true;
+             modalLoadingIndicator.classList.remove('hidden');
+
+             if (type === 'color') {
+                 value = modalMarbleColor.value;
+
+                 isValid = true;
+                 modalLoadingIndicator.classList.add('hidden');
+             } else if (type === 'imageURL') {
+                 value = modalMarbleImageUrl.value.trim();
+                 if (!value) {
+                     showMessage("Please enter a valid image URL.", true);
+                     isValid = false;
+                 }
+
+                 modalLoadingIndicator.classList.add('hidden');
+             } else if (type === 'imageFile') {
+                 const file = modalMarbleImageFile.files[0];
+                 if (file) {
+                     fileSelected = true;
+                     const reader = new FileReader();
+
+                     reader.onload = (e) => {
+                         const originalDataUrl = e.target.result;
+                         const tempImg = new Image();
+
+                         tempImg.onload = () => {
+                             const MAX_DIMENSION = 512;
+                             let width = tempImg.naturalWidth;
+                             let height = tempImg.naturalHeight;
+                             let needsResize = false;
+
+                             if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                                 needsResize = true;
+
+                                 if (width > height) {
+                                     height = Math.round(height * (MAX_DIMENSION / width));
+                                     width = MAX_DIMENSION;
+                                 } else {
+                                     width = Math.round(width * (MAX_DIMENSION / height));
+                                     height = MAX_DIMENSION;
+                                 }
+                                 console.log(`Resizing image from ${tempImg.naturalWidth}x${tempImg.naturalHeight} to ${width}x${height}`);
+                             } else {
+                                 console.log(`Image dimensions (${tempImg.naturalWidth}x${tempImg.naturalHeight}) are within limits.`);
+                             }
+
+                             let finalDataUrl = originalDataUrl;
+
+                             if (needsResize) {
+                                 try {
+                                     const canvas = document.createElement('canvas');
+                                     canvas.width = width;
+                                     canvas.height = height;
+                                     const ctx = canvas.getContext('2d');
+
+                                     ctx.drawImage(tempImg, 0, 0, width, height);
+
+                                     finalDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                                     console.log(`Resized image data URL length: ${finalDataUrl.length}`);
+                                 } catch (resizeError) {
+                                     console.error("Error resizing image:", resizeError);
+                                     showMessage("Failed to resize image, using original.", true);
+
+                                     finalDataUrl = originalDataUrl;
+                                 }
+                             } else {
+                                  console.log(`Original image data URL length: ${finalDataUrl.length}`);
+                             }
+
+                             const config = { name, type, value: finalDataUrl, fileSelected: fileSelected };
+                             if (idToEdit !== null) {
+                                 editMarbleConfig(idToEdit, config);
+                             } else {
+                                 addMarbleConfig(config);
+                             }
+
+                             modalLoadingIndicator.classList.add('hidden');
+                             modalSaveBtn.disabled = false;
+                             closeModal();
+                             showMessage(idToEdit !== null ? `Marble "${name}" updated successfully!` : `New marble "${name}" added!`, false, 4000);
+
+                         };
+
+                         tempImg.onerror = () => {
+                             console.error("Error loading image data URL into temp image element.");
+                             showMessage("Could not load image data for processing. Please try another image.", true);
+                             modalLoadingIndicator.classList.add('hidden');
+                             modalSaveBtn.disabled = false;
+                         };
+
+                         tempImg.src = originalDataUrl;
+
+                     };
+
+                     reader.onerror = () => {
+                         showMessage("Error reading file.", true, 3000);
+                         isValid = false;
+                         modalLoadingIndicator.classList.add('hidden');
+                         modalSaveBtn.disabled = false;
+                     };
+
+                     reader.readAsDataURL(file);
+                     return;
+
+                 } else if (idToEdit !== null) {
+
+                     const existingMarble = configuredMarbles.find(m => m.id === idToEdit);
+                     if (existingMarble && (existingMarble.type === 'imageFile' || existingMarble.type === 'imageURL')) {
+                         value = existingMarble.value;
+                         type = existingMarble.type;
+                         fileSelected = existingMarble.fileSelected || false;
+                         isValid = true;
+                     } else {
+                         showMessage("No image file selected for update.", true);
+                         isValid = false;
+                     }
+                     modalLoadingIndicator.classList.add('hidden');
+                 } else {
+
+                     showMessage("Please select an image file.", true);
+                     isValid = false;
+                     modalLoadingIndicator.classList.add('hidden');
+                 }
+             }
+
+             if (type !== 'imageFile' || !isValid) {
+                 if (isValid) {
+                     const config = { name, type, value, fileSelected: fileSelected };
+                     if (idToEdit !== null) {
+                         editMarbleConfig(idToEdit, config);
+                     } else {
+                         addMarbleConfig(config);
+                     }
+                     closeModal();
+                     showMessage(idToEdit !== null ? `Marble "${name}" updated successfully!` : `New marble "${name}" added!`, false, 4000);
+                 } else {
+
+                     modalSaveBtn.disabled = false;
+                     modalLoadingIndicator.classList.add('hidden');
+                 }
+             }
+        }
+
+        function togglePause() {
+             isPaused = !isPaused;
+             updatePausePlayButtonIcon();
+         }
+        function updatePausePlayButtonIcon() {
+             if (!pausePlayButton) return;
+            pausePlayButton.innerHTML = `<i class="fa-solid ${isPaused ? 'fa-play' : 'fa-pause'}"></i>`;
+        }
+        function resetSpeed() {
+            currentSpeedIndex = 0;
+            speedMultiplier = speedLevels[0];
+             if (speedButton) speedButton.textContent = `x${speedMultiplier}`;
+        }
+        function cycleSpeed() {
+             currentSpeedIndex = (currentSpeedIndex + 1) % speedLevels.length;
+             speedMultiplier = speedLevels[currentSpeedIndex];
+             if (speedButton) speedButton.textContent = `x${speedMultiplier}`;
+         }
+
+         let playedSound = false;
+
+         function handleStartGame(mode, isNewRaceStart) {
+            console.log(`handleStartGame called with mode: ${mode}, isNewRaceStart: ${isNewRaceStart}`); // Debug log
+            if (configuredMarbles.length === 0) {
+                showMessage("Add at least one marble to start!", true);
+                return;
+            }
+            if (imagesLoading > 0) {
+                showMessage(`Please wait for ${imagesLoading} image(s) to load.`, true);
+                return;
+            }
+
+            currentGameMode = mode; // Set the selected game mode
+
+            // Reset playedSound for every new race or round start
+            console.log("handleStartGame: Resetting playedSound to false."); // Debug log
+            playedSound = false;
+
+            // If starting a brand new game (not just the next round), reset eliminated marbles
+            if (isNewRaceStart) {
+                console.log("handleStartGame: Starting a new game. Resetting eliminatedMarbles."); // Debug log
+                eliminatedMarbles = [];
+            } else {
+                 console.log("handleStartGame: Starting next round. eliminatedMarbles will persist."); // Debug log
+            }
+
+
+            gameEnded = false;
+            winner = null;
+            winnerDisplayEndTime = null;
+
+            const condition = gameplaySettings.speedResetCondition;
+
+            if (condition === 'always' || (condition === 'newRaceOnly' && isNewRaceStart)) {
+                console.log(`handleStartGame: Resetting speed. Condition: ${condition}, Is New Race Start: ${isNewRaceStart}`); // Debug log
+                resetSpeed();
+            } else {
+                console.log(`handleStartGame: NOT resetting speed. Condition: ${condition}, Is New Race Start: ${isNewRaceStart}`); // Debug log
+
+                if (speedButton) speedButton.textContent = `x${speedMultiplier}`;
+            }
+
+            resizeCanvas();
+            showScreen(gameScreen);
+            isPaused = false;
+            updatePausePlayButtonIcon();
+            recordedChunks = [];
+             downloadRequested = false;
+
+            try {
+                 if (!gameCanvas) throw new Error("Game canvas not found for captureStream.");
+                 mediaStream = gameCanvas.captureStream(30);
+                 let options = { mimeType: 'video/webm; codecs=vp9' };
+
+                 if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'video/webm; codecs=vp8' };
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        options = { mimeType: 'video/mp4' };
+                        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                            options = { mimeType: 'video/webm' };
+                            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                                console.warn('No supported MediaRecorder mimeType found. Recording disabled.');
+                                showMessage("Screen recording is not supported in this browser.", false, 5000);
+                                mediaRecorder = null;
+                                mediaStream = null;
+                                recordingMimeType = 'video/webm';
+                            } else {
+                                console.log('Using video/webm for recording.');
+                                recordingMimeType = options.mimeType;
+                            }
+                        } else {
+                            console.log('Using video/mp4 for recording.');
+                            recordingMimeType = options.mimeType;
+                        }
+                    } else {
+                        console.log('Using video/webm; codecs=vp8 for recording.');
+                        recordingMimeType = options.mimeType;
+                    }
+                } else {
+                    console.log('Using video/webm; codecs=vp9 for recording.');
+                    recordingMimeType = options.mimeType;
+                }
+
+                if (mediaStream && options && MediaRecorder.isTypeSupported(options.mimeType)) {
+                    try {
+                        mediaRecorder = new MediaRecorder(mediaStream, options);
+
+                        mediaRecorder.ondataavailable = (event) => {
+                            if (event.data.size > 0) {
+                                recordedChunks.push(event.data);
+
+                            }
+                        };
+
+                        mediaRecorder.onstop = () => {
+
+                            if (downloadRequested && recordedChunks.length > 0) {
+                                try {
+
+                                     const mimeType = mediaRecorder ? mediaRecorder.mimeType.split(';')[0] : recordingMimeType.split(';')[0] || 'video/webm';
+                                     let fileExtension = 'webm';
+                                     if (mimeType === 'video/mp4') fileExtension = 'mp4';
+                                     else if (mimeType.includes('webm')) fileExtension = 'webm';
+
+                                     const blob = new Blob(recordedChunks, { type: mimeType });
+                                     const url = URL.createObjectURL(blob);
+                                     const a = document.createElement('a');
+                                     a.style.display = 'none'; a.href = url; a.download = `marmora-race-${Date.now()}.${fileExtension}`;
+                                     document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); document.body.removeChild(a);
+
+                                     showMessage("Recording downloaded successfully!", false, 3000);
+
+                                } catch (error) {
+                                    console.error("Failed to download recording in onstop:", error);
+                                    showMessage("Failed to create or download recording file.", true);
+                                }
+                            } else if (recordedChunks.length === 0 && downloadRequested) {
+
+                                 showMessage("Recording stopped but no data was captured.", false, 3000);
+                            } else {
+
+                            }
+
+                             if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+                             mediaRecorder = null;
+                             recordedChunks = [];
+                             downloadRequested = false;
+                        };
+
+                        mediaRecorder.onerror = (event) => {
+                            console.error("MediaRecorder error:", event.error);
+                            showMessage("An error occurred during recording.", true);
+                            stopGame();
+
+                             if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+                             mediaRecorder = null; recordedChunks = []; downloadRequested = false; recordingMimeType = 'video/webm';
+                        };
+
+                        mediaRecorder.start();
+
+                    } catch (e) {
+                        console.error("Error creating MediaRecorder:", e);
+                        showMessage(`Failed to create MediaRecorder (${e.message}). Recording disabled.`, true);
+                        mediaRecorder = null;
+                         if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+                         recordedChunks = []; downloadRequested = false; recordingMimeType = 'video/webm';
+                    }
+                } else {
+
+                    mediaRecorder = null;
+                     if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+                     recordedChunks = []; downloadRequested = false; recordingMimeType = 'video/webm';
+                }
+
+            } catch (e) {
+                console.error("Error setting up MediaRecorder or captureStream:", e);
+                showMessage("An error occurred setting up screen recording.", true);
+                mediaRecorder = null;
+                 if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+                 recordedChunks = []; downloadRequested = false; recordingMimeType = 'video/webm';
+            }
+
+             // For Elimination and Slow Elimination, start with all configured marbles
+             // For Classic, maybe only use a subset? Or just use all? Let's use all for now.
+             // initGame now filters based on the (potentially cleared) eliminatedMarbles list
+             initGame(configuredMarbles.map(m => ({...m, eliminated: false}))); // Ensure eliminated is false for new game/round start
+
+            if (!gameAnimationId) gameLoop();
+        }
+
+        function handleDownloadRecording() {
+            console.log("handleDownloadRecording called.");
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                console.log("Setting downloadRequested flag and stopping MediaRecorder.");
+                downloadRequested = true;
+                mediaRecorder.stop();
+            } else {
+                showMessage("No active recording to download.", false, 3000);
+                console.log("No active recording or recording already stopped.");
+
+                downloadRequested = false;
+
+                 if (recordedChunks.length > 0) {
+                     console.log("Clearing existing recorded chunks as no active recorder was found.");
+                     recordedChunks = [];
+                 }
+            }
+        }
+
+         function saveAudioSettings() {
+             localStorage.setItem('audioSettings', JSON.stringify(audioSettings));
+         }
+
+         function loadAudioSettings() {
+             const storedSettings = localStorage.getItem('audioSettings');
+             if (storedSettings) {
+                 try {
+                     const parsedSettings = JSON.parse(storedSettings);
+
+                     audioSettings = { "master": 1, "music": 1, "race": 1, "ui": 1, ...parsedSettings };
+                 } catch (e) {
+                     console.error("Error loading audio settings from storage:", e);
+
+                     audioSettings = { "master": 1, "music": 1, "race": 1, "ui": 1 };
+                     showMessage("Error loading audio settings. Resetting to defaults.", true, 5000);
+                 }
+             } else {
+
+                 audioSettings = { "master": 1, "music": 1, "race": 1, "ui": 1 };
+             }
+             applyAudioSettings();
+         }
+
+         function saveGameplaySettings() {
+              localStorage.setItem('gameplaySettings', JSON.stringify(gameplaySettings));
+         }
+
+         function loadGameplaySettings() {
+         const storedSettings = localStorage.getItem('gameplaySettings');
+
+         const defaultSettings = { "showCountdown": true, "speedResetCondition": "always" };
+         if (storedSettings) {
+             try {
+                 const parsedSettings = JSON.parse(storedSettings);
+
+                  gameplaySettings = { ...defaultSettings, ...parsedSettings };
+             } catch (e) {
+                 console.error("Error loading gameplay settings from storage:", e);
+                  gameplaySettings = { ...defaultSettings };
+                 showMessage("Error loading gameplay settings. Resetting to defaults.", true, 5000);
+             }
+         } else {
+             gameplaySettings = { ...defaultSettings };
+         }
+     }
+
+         function loadSettings() {
+             loadAudioSettings();
+             loadGameplaySettings();
+             updateSettingsUI();
+         }
+
+         function applyAudioSettings() {
+
+             titleMusic.volume = audioSettings.master * audioSettings.music;
+             selectionMusic.volume = audioSettings.master * audioSettings.music;
+             winSound.volume = audioSettings.master * audioSettings.race;
+              raceStartSound.volume = audioSettings.master * audioSettings.race;
+
+         }
+
+         function updateSettingsUI() {
+
+             if (masterVolumeSlider) {
+                 masterVolumeSlider.value = audioSettings.master;
+                 masterVolumeValue.textContent = `${Math.round(audioSettings.master * 100)}%`;
+             }
+              if (musicVolumeSlider) {
+                 musicVolumeSlider.value = audioSettings.music;
+                 musicVolumeValue.textContent = `${Math.round(audioSettings.music * 100)}%`;
+             }
+              if (raceSoundsVolumeSlider) {
+                 raceSoundsVolumeSlider.value = audioSettings.race;
+                 raceSoundsVolumeValue.textContent = `${Math.round(audioSettings.race * 100)}%`;
+             }
+            if (showCountdownToggle) {
+                showCountdownToggle.checked = gameplaySettings.showCountdown;
+            }
+            if (speedResetSelect) {
+                speedResetSelect.value = gameplaySettings.speedResetCondition;
+            }
+         }
+
+         function handleSettingChange(tabType, settingKey, value) {
+             if (tabType === 'audio') {
+                audioSettings[settingKey] = parseFloat(value);
+                saveAudioSettings();
+                applyAudioSettings();
+             } else if (tabType === 'gameplay') {
+                 gameplaySettings[settingKey] = value;
+                 saveGameplaySettings();
+             }
+             updateSettingsUI();
+         }
+
+         function getRaceSoundsVolume() {
+             return audioSettings.master * audioSettings.race;
+         }
+
+         function getUIVolume() {
+             return audioSettings.master * audioSettings.ui;
+         }
+
+         function showSettingsTab(tabElement) {
+             if (!settingsTabTitle || !settingsTabContentArea) return;
+
+             Object.values(settingsTabs).forEach(container => container.classList.add('hidden'));
+
+             tabElement.classList.remove('hidden');
+
+             switch (tabElement.id) {
+                 case 'audioSettingsContainer':
+                     settingsTabTitle.textContent = 'Audio Settings';
+                     break;
+                 case 'gameplaySettingsContainer':
+                     settingsTabTitle.textContent = 'Gameplay Settings';
+                     break;
+                 default:
+                     settingsTabTitle.textContent = 'Settings';
+             }
+
+             Object.values(settingsTabButtons).forEach(btn => btn.classList.remove('active'));
+              for (const key in settingsTabs) {
+                  if (settingsTabs[key] === tabElement && settingsTabButtons[key]) {
+                      settingsTabButtons[key].classList.add('active');
+                      break;
+                  }
+              }
+         }
+
+         if (devLogoScreen) {
+             devLogoScreen.addEventListener('click', () => {
+                 console.log("Dev logo screen clicked.");
+                 playSelectSound();
+
+                 devLogoScreen.style.display = 'none';
+                 devLogoScreen.classList.remove('active');
+
+                 showScreen(titleScreen);
+             }, { once: true });
+         } else {
+             console.error("Dev Logo Screen element not found!");
+         }
+
+         if (titleScreen) {
+             titleScreen.addEventListener('click', (e) => {
+                 console.log('Clicked on Title Screen.', e.target);
+             });
+         }
+
+        if (goToSelectionBtn) {
+            goToSelectionBtn.addEventListener('click', () => {
+                console.log('New Race button clicked!');
+                showScreen(selectionScreen);
+            });
+        }
+
+         if (goToSettingsBtn) {
+             goToSettingsBtn.addEventListener('click', () => {
+                 console.log('Settings button clicked!');
+                 showScreen(settingsScreen);
+
+                 if (settingsTabs.audio) showSettingsTab(settingsTabs.audio);
+             });
+         }
+
+         if (backToTitleFromSettingsBtn) backToTitleFromSettingsBtn.addEventListener('click', () => {
+             console.log('Back to Title button clicked from Settings!');
+             showScreen(titleScreen);
+         });
+
+          if (backToTitleFromSelectionBtn) backToTitleFromSelectionBtn.addEventListener('click', () => {
+              console.log('Back to Title button clicked from Selection!');
+              showScreen(titleScreen);
+          });
+
+          // New button event listener
+          if (goToModeSelectionBtn) {
+              goToModeSelectionBtn.addEventListener('click', () => {
+                  console.log('Next (to Mode Selection) button clicked!');
+                  showScreen(modeSelectionScreen);
+              });
+          }
+
+          // New button event listener
+          if (backToSelectionFromModeBtn) {
+              backToSelectionFromModeBtn.addEventListener('click', () => {
+                  console.log('Back (to Selection) button clicked from Mode Selection!');
+                  showScreen(selectionScreen);
+              });
+          }
+
+
+        if (tabButtons.marbles) tabButtons.marbles.addEventListener('click', () => {
+            if (!tabTitle || !startGameBtnContainer) return;
+            tabTitle.textContent = 'Marbles';
+            Object.values(tabs).forEach(container => container.classList.add('hidden'));
+            if (tabs.marbles) tabs.marbles.classList.remove('hidden');
+            Object.values(tabButtons).forEach(btn => btn.classList.remove('active'));
+            tabButtons.marbles.classList.add('active');
+             startGameBtnContainer.classList.remove('hidden'); // Keep Next button visible on Marbles tab
+             updateStartButtonState(); // Update state for Next button
+        });
+
+        if (tabButtons.saved) tabButtons.saved.addEventListener('click', () => {
+            if (!tabTitle || !startGameBtnContainer) return;
+            tabTitle.textContent = 'Saved Marbles & Sets';
+            Object.values(tabs).forEach(container => container.classList.add('hidden'));
+            if (tabs.savedMarbles) tabs.savedMarbles.classList.remove('hidden');
+            if (tabs.savedSets) tabs.savedSets.classList.remove('hidden');
+            Object.values(tabButtons).forEach(btn => btn.classList.remove('active'));
+            tabButtons.saved.classList.add('active');
+             startGameBtnContainer.classList.add('hidden'); // Hide Next button on Saved tab
+        });
+
+        if (tabButtons.packs) packsTab.addEventListener('click', () => {
+             if (!tabTitle || !startGameBtnContainer) return;
+            tabTitle.textContent = 'Marble Packs';
+             Object.values(tabs).forEach(container => container.classList.add('hidden'));
+             if (tabs.packs) tabs.packs.classList.remove('hidden');
+            Object.values(tabButtons).forEach(btn => btn.classList.remove('active'));
+            tabButtons.packs.classList.add('active');
+             startGameBtnContainer.classList.add('hidden'); // Hide Next button on Packs tab
+        });
+
+         if (settingsTabButtons.audio) settingsTabButtons.audio.addEventListener('click', () => {
+             if (settingsTabs.audio) showSettingsTab(settingsTabs.audio);
+             playSelectSound();
+         });
+          if (settingsTabButtons.gameplay) settingsTabButtons.gameplay.addEventListener('click', () => {
+              if (settingsTabs.gameplay) showSettingsTab(settingsTabs.gameplay);
+              playSelectSound();
+          });
+
+        if (collapseBtn) collapseBtn.addEventListener('click', () => {
+             if (!sidebar) return;
+            sidebar.classList.toggle('collapsed');
+            collapseBtn.title = sidebar.classList.contains('collapsed') ? 'Expand Sidebar' : 'Collapse Sidebar';
+        });
+
+         if (settingsCollapseBtn) settingsCollapseBtn.addEventListener('click', () => {
+             if (!settingsSidebar) return;
+             settingsSidebar.classList.toggle('collapsed');
+             settingsCollapseBtn.title = settingsSidebar.classList.contains('collapsed') ? 'Expand Sidebar' : 'Collapse Sidebar';
+         });
+
+        if (addMarbleCard) addMarbleCard.addEventListener('click', () => openModalForAdd());
+        if (saveCurrentSetConfig) saveCurrentSetConfig.addEventListener('click', () => saveCurrentConfigurationSet());
+
+        if (modalClose) modalClose.onclick = closeModal;
+        if (modalCancelBtn) modalCancelBtn.onclick = closeModal;
+        if (modalSaveBtn) modalSaveBtn.onclick = handleModalSave;
+        if (modalMarbleType) modalMarbleType.addEventListener('change', updateModalInputVisibility);
+        if (modalMarbleImageFile) modalMarbleImageFile.addEventListener('change', handleModalFileSelect);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Shift') {
+                keyState.Shift = true;
+                if (lastHoveredCard) refreshOverlay();
+                 document.body.classList.add('modifier-held');
+            }
+            if (e.key === 'Control') {
+                keyState.Control = true;
+                if (lastHoveredCard) refreshOverlay();
+                 document.body.classList.add('modifier-held');
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'Shift') {
+                keyState.Shift = false;
+                if (!keyState.Control && lastHoveredCard) refreshOverlay();
+                 if (!keyState.Shift && !keyState.Control) document.body.classList.remove('modifier-held');
+            }
+            if (e.key === 'Control') {
+                keyState.Control = false;
+                 if (!keyState.Shift && lastHoveredCard) refreshOverlay();
+                 if (!keyState.Shift && !keyState.Control) document.body.classList.remove('modifier-held');
+            }
+        });
+
+        if (pausePlayButton) pausePlayButton.addEventListener('click', togglePause);
+        if (speedButton) speedButton.addEventListener('click', cycleSpeed);
+        // startGameBtn is now goToModeSelectionBtn, game is started from mode selection
+        // if (startGameBtn) startGameBtn.addEventListener('click', () => handleStartGame('classic', true));
+        if (downloadRecordingBtn) downloadRecordingBtn.addEventListener('click', handleDownloadRecording);
+
+        if (titleScreenBtn) titleScreenBtn.addEventListener('click', () => showScreen(titleScreen));
+        if (nextRaceBtn) {
+            nextRaceBtn.addEventListener('click', () => {
+                console.log("Next Race button clicked. Starting next game/round.");
+                // For Slow Elimination, nextRaceBtn starts the next round
+                // The marbles array is already updated in handleGoalReached to exclude the eliminated marble
+                if (currentGameMode === 'slow_elimination' && configuredMarbles.filter(m => !eliminatedMarbles.some(em => em.id === m.id)).length > 1) {
+                     initGame(configuredMarbles); // Start next round with the remaining marbles (initGame filters based on eliminatedMarbles)
+                     showScreen(gameScreen); // Go back to game screen
+                     raceOrder = []; // Reset race order for the new round
+                } else {
+                    // For Classic, Elimination, or final round of Slow Elimination, start a new game of the same mode
+                    handleStartGame(currentGameMode, true);
+                }
+            });
+        }
+
+         // Add event listeners for mode options
+         modeOptions.forEach(option => {
+             option.addEventListener('click', () => {
+                 const mode = option.dataset.mode;
+                 console.log(`Mode selected: ${mode}`);
+                 handleStartGame(mode, true); // Start the game with the selected mode
+             });
+         });
+
+
+         if (masterVolumeSlider) {
+             masterVolumeSlider.addEventListener('input', (e) => handleSettingChange('audio', 'master', e.target.value));
+         }
+         if (musicVolumeSlider) {
+             musicVolumeSlider.addEventListener('input', (e) => handleSettingChange('audio', 'music', e.target.value));
+         }
+         if (raceSoundsVolumeSlider) {
+             raceSoundsVolumeSlider.addEventListener('input', (e) => handleSettingChange('audio', 'race', e.target.value));
+         }
+
+         if (showCountdownToggle) {
+             showCountdownToggle.addEventListener('change', (e) => handleSettingChange('gameplay', 'showCountdown', e.target.checked));
+         }
+         if (speedResetSelect) {
+         speedResetSelect.addEventListener('change', (e) => handleSettingChange('gameplay', 'speedResetCondition', e.target.value));
+        }
+
+        document.body.addEventListener('click', (e) => {
+
+            const target = e.target;
+            const isButton = target.tagName === 'BUTTON' && !target.disabled;
+            const isIcon = target.tagName === 'I' && (target.closest('.overlay') || target.closest('.actions-div'));
+             const isInput = target.tagName === 'INPUT' || target.tagName === 'SELECT';
+             const isModeOption = target.closest('.mode-option'); // Check if clicked element is inside a mode option
+
+             if ((isButton || isIcon || isModeOption) && !isInput) { // Added isModeOption
+                 playSelectSound();
+             }
+        });
+
+         document.querySelectorAll('.titleScreenSelection').forEach(element => {
+             element.addEventListener('mouseenter', playTickSound);
+         });
+
+        function initTitleMarbles() {
+             if (!titleScreenCanvas) return;
+             titleMarbles = [
+             { x: titleScreenCanvas.width * 0.2, y: titleScreenCanvas.height * 0.3, vx: TITLE_MARBLE_SPEED, vy: TITLE_MARBLE_SPEED * 0.8, radius: TITLE_MARBLE_RADIUS, color: '#f60938' },
+            { x: titleScreenCanvas.width * 0.3, y: titleScreenCanvas.height * 0.5, vx: -TITLE_MARBLE_SPEED * 0.9, vy: TITLE_MARBLE_SPEED * 0.7, radius: TITLE_MARBLE_RADIUS, color: '#f65009' },
+            { x: titleScreenCanvas.width * 0.4, y: titleScreenCanvas.height * 0.4, vx: TITLE_MARBLE_SPEED * 0.6, vy: -TITLE_MARBLE_SPEED * 1.1, radius: TITLE_MARBLE_RADIUS, color: '#f6c709' },
+            { x: titleScreenCanvas.width * 0.5, y: titleScreenCanvas.height * 0.6, vx: -TITLE_MARBLE_SPEED * 0.7, vy: TITLE_MARBLE_SPEED * 0.9, radius: TITLE_MARBLE_RADIUS, color: '#09f664' },
+            { x: titleScreenCanvas.width * 0.6, y: titleScreenCanvas.height * 0.3, vx: TITLE_MARBLE_SPEED * 0.8, vy: -TITLE_MARBLE_SPEED * 0.6, radius: TITLE_MARBLE_RADIUS, color: '#09aff6' },
+            { x: titleScreenCanvas.width * 0.7, y: titleScreenCanvas.height * 0.5, vx: -TITLE_MARBLE_SPEED * 0.5, vy: TITLE_MARBLE_SPEED * 0.6, radius: TITLE_MARBLE_RADIUS, color: '#0919f6' },
+            { x: titleScreenCanvas.width * 0.8, y: titleScreenCanvas.height * 0.4, vx: TITLE_MARBLE_SPEED * 0.4, vy: -TITLE_MARBLE_SPEED * 1.0, radius: TITLE_MARBLE_RADIUS, color: '#8009f6' },
+            { x: titleScreenCanvas.width * 0.6, y: titleScreenCanvas.height * 0.7, vx: -TITLE_MARBLE_SPEED * 0.6, vy: TITLE_MARBLE_SPEED * 0.5, radius: TITLE_MARBLE_RADIUS, color: '#f609b7' }
+             ];
+
+             titleMarbles.forEach(m => {
+                 const angle = Math.random() * 2 * Math.PI;
+                 m.vx = Math.cos(angle) * TITLE_MARBLE_SPEED;
+                 m.vy = Math.sin(angle) * TITLE_MARBLE_SPEED;
+             });
+        }
+
+        function updateTitleMarbles() {
+             if (!titleScreenCanvas) return;
+             titleMarbles.forEach(m => {
+                 m.x += m.vx;
+                 m.y += m.vy;
+
+                 if (m.x - m.radius < 0) { m.x = m.radius; m.vx *= -1; }
+                 else if (m.x + m.radius > titleScreenCanvas.width) { m.x = titleScreenCanvas.width - m.radius; m.vx *= -1; }
+                 if (m.y - m.radius < 0) { m.y = m.radius; m.vy *= -1; }
+                 else if (m.y + m.radius > titleScreenCanvas.height) { m.y = titleScreenCanvas.height - m.radius; m.vy *= -1; }
+             });
+
+        }
+
+        function drawTitleMarbles() {
+             if (!titleScreenCtx || !titleScreenCanvas) return;
+             titleScreenCtx.clearRect(0, 0, titleScreenCanvas.width, titleScreenCanvas.height);
+
+             titleMarbles.forEach(m => {
+                 titleScreenCtx.fillStyle = m.color;
+                 titleScreenCtx.beginPath();
+                 titleScreenCtx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+                 titleScreenCtx.fill();
+             });
+        }
+
+        function titleAnimationLoop() {
+             if (!titleAnimationId) return;
+             updateTitleMarbles();
+             drawTitleMarbles();
+             titleAnimationId = requestAnimationFrame(titleAnimationLoop);
+        }
+
+        function startTitleAnimation() {
+             if (!titleAnimationId) {
+                 initTitleMarbles();
+                 titleAnimationId = requestAnimationFrame(titleAnimationLoop);
+                 console.log("Title animation started.");
+             }
+        }
+
+        function stopTitleAnimation() {
+             if (titleAnimationId) {
+                 cancelAnimationFrame(titleAnimationId);
+                 titleAnimationId = null;
+                 console.log("Title animation stopped.");
+             }
+        }
+
+        function gameLoop(){
+
+            if ((!gameStarted && !gameEnded && winnerDisplayEndTime === null && gameAnimationId === null && !countdownActive) || titleAnimationId !== null) {
+
+                return;
+            }
+
+            gameAnimationId = requestAnimationFrame(gameLoop);
+
+            const now = performance.now();
+
+             if (countdownActive) {
+                 const elapsedSinceLastSecond = now - lastCountdownTime;
+                 const elapsedSinceAnimationStart = now - countdownAnimationStartTime;
+
+                 if (!playedSound && elapsedSinceAnimationStart >= (COUNTDOWN_ANIMATION_DURATION - 10)) {
+                    playedSound = true;
+                    raceStartSound.currentTime = 0;
+                    raceStartSound.play().catch(e => console.error("Error playing race start sound:", e));
+                    console.log("Played race start sound.", "Played sound:", playedSound);
+                 }
+
+                 if (elapsedSinceLastSecond >= 1000) {
+
+                     countdownValue--;
+                     lastCountdownTime = now;
+                      countdownAnimationStartTime = now;
+                      countdownScale = 2.0;
+
+                     if (countdownValue < 0) {
+                         countdownActive = false;
+                         gameStarted = true;
+
+                         marbles.forEach(m => {
+                             const angle = Math.random() * 2 * Math.PI;
+                             m.vx = Math.cos(angle) * MARBLE_SPEED;
+                             m.vy = Math.sin(angle) * MARBLE_SPEED;
+                             normalizeSpeed(m);
+                         });
+                     }
+                 } else {
+
+                      const t = Math.min(1.0, elapsedSinceAnimationStart / COUNTDOWN_ANIMATION_DURATION);
+                      const easedT = t * t;
+                      countdownScale = 2.0 - easedT;
+
+                 }
+             }
+
+             // Check for game end conditions based on mode
+             if (!gameEnded && gameStarted && !isPaused && !countdownActive) {
+                 const activeMarbles = marbles.filter(m => !m.eliminated); // Marbles still actively moving in this round
+
+                 if (currentGameMode === 'elimination' && activeMarbles.length <= 1) {
+                     // Elimination game ends when 1 or 0 marbles remain active in the race
+                     gameEnded = true;
+                     winner = activeMarbles.length === 1 ? activeMarbles[0] : null;
+                     winnerDisplayEndTime = performance.now() + 3000;
+                     if (winner) { winSound.play().catch(e => console.error("Error playing win sound:", e)); }
+                     updateLeaderboard();
+                     showWinnerScreen(winner);
+                     showScreen(winnerScreen);
+                 } else if (currentGameMode === 'slow_elimination') {
+                      // In Slow Elimination, the game ends when only one marble remains in the overall game (not in eliminatedMarbles)
+                      const remainingMarblesOverall = configuredMarbles.filter(m => !eliminatedMarbles.some(em => em.id === m.id));
+                      // Check if only one marble remains overall AND all marbles that started the current round have finished
+                      if (remainingMarblesOverall.length <= 1 && raceOrder.length === marbles.length) {
+                           gameEnded = true;
+                           winner = remainingMarblesOverall.length === 1 ? remainingMarblesOverall[0] : null;
+                           winnerDisplayEndTime = performance.now() + 3000;
+                           if (winner) { winSound.play().catch(e => console.error("Error playing win sound:", e)); }
+                           updateLeaderboard();
+                           showWinnerScreen(winner);
+                           showScreen(winnerScreen);
+                      }
+                 }
+             }
+
+
+             if (gameEnded && winnerDisplayEndTime !== null && now >= winnerDisplayEndTime) {
+                console.log("Winner display time ended. Stopping game loop related drawing/updates.");
+
+                 gameStarted = false;
+                 winnerDisplayEndTime = null;
+                 countdownActive = false;
+
+            }
+
+            if (gameStarted && !gameEnded && !isPaused && !countdownActive) {
+                for (let i = 0; i < speedMultiplier; i++) {
+                    updateObstacles();
+                    updateMarbles();
+                    // Check for game end again after updating marbles, in case a marble reaching the goal ended the game
+                    if (gameEnded) {
+
+                         winnerDisplayEndTime = performance.now() + 3000;
+                         break;
+                    }
+                }
+            }
+
+            const isDisplayingWinnerOverlay = gameEnded && winner !== null && winnerDisplayEndTime !== null && now < winnerDisplayEndTime;
+            const isIntermediateSlowEliminationScreen = currentGameMode === 'slow_elimination' && !gameEnded && winnerDisplayEndTime !== null && now < winnerDisplayEndTime; // Check for intermediate screen
+            if (gameStarted || isDisplayingWinnerOverlay || countdownActive || isIntermediateSlowEliminationScreen) { // Added check for intermediate screen
+                 draw();
+            }
+
+        }
+
+         loadMarblesFromStorage();
+         loadSavedMarbles();
+         loadSavedSets();
+         loadSettings();
+         updateMarbleGridUI();
+         updateSavedMarblesGridUI();
+         populateSavedSetsGrid();
+         populatePacksGrid();
+         updateSettingsUI();
+
+         resizeCanvas();
+         resizeTitleCanvas();
+
+    </script>
+</body>
+</html>
