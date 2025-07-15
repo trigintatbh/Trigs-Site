@@ -5,34 +5,216 @@
     <title>Trig's Cafe</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: sans-serif;
-            user-select: none;
             font-family: 'Inter', sans-serif;
+            user-select: none;
         }
 
         body {
-            background-color: #eee;
-            padding-bottom: 180px;
-            position: relative;
+            background-color: #000;
+            margin: 0;
             min-height: 100vh;
-            background-image: url('media/images/floor/floor.png'); 
-            background-repeat: repeat; 
-            background-position: center; 
-            background-size: 100px 100px; 
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
+
+        .game-view {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; 
+            background-image: url('media/images/floor/floor.png');
+            background-repeat: repeat;
+            background-position: center;
+            background-size: 100px 100px;
+        }
+
+        #devLogoScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            color: white;
+        }
+
+        #devLogo {
+            max-width: 60%;
+            max-height: 60%;
+            height: auto;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+
+        #continuePrompt {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 2s ease-in-out 1s;
+            color: #c0c0c0;
+        }
+
+        #titleScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+            color: white;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #playButton {
+            font-weight: 700;
+            font-size: 2rem;
+            padding: 15px 30px;
+            background-color: #7300ff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 5px 0 #4c0178;
+            transition: all 0.1s ease-in-out;
+        }
+
+        #playButton:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 #4c0178;
+        }
+
+        #saveSlotScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+            color: white;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+        }
+
+        #saveSlotScreen h2 {
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .save-slot-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .save-slot {
+            width: 200px;
+            height: 250px;
+            border: 3px solid #7300ff;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: relative; 
+        }
+
+        .save-slot:hover {
+            background-color: #222;
+        }
+
+        .slot-info {
+            text-align: center;
+        }
+
+        .slot-info h3 {
+             font-weight: 700;
+             margin-bottom: 10px;
+        }
+
+        .delete-save {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: none; 
+        }
+
+        .save-slot:hover .delete-save {
+            display: block;
+        }
+
+        #difficultyScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #difficultyScreen h2 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+
+        .difficulty-options button {
+            display: block;
+            font-weight: 700;
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            margin: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 250px;
+            transition: background-color 0.3s;
+        }
+
+        #easyBtn { background-color: #28a745; color: white; }
+        #mediumBtn { background-color: #ffc107; color: black; }
+        #hardBtn { background-color: #dc3545; color: white; }
+        #insaneBtn { background-color: #000; color: #dc3545; border: 2px solid #dc3545; } 
 
         #customerArea {
             display: flex;
             justify-content: space-around;
             align-items: center;
             padding: 20px;
+            width: 100%; 
+            min-height: 270px; 
         }
 
         .customerSlot {
@@ -40,6 +222,23 @@
             text-align: center;
             position: relative;
             min-height: 270px;
+        }
+
+        .timerBar {
+            width: 100%;
+            height: 10px;
+            background-color: #555;
+            border-radius: 5px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .timerBar-inner {
+            height: 100%;
+            background-color: #28a745;
+            border-radius: 5px;
+            width: 100%;
+            transition: width 1s linear, background-color 0.5s;
         }
 
         .customerAvatar {
@@ -72,12 +271,12 @@
             font-size: 1.1rem;
             display: none;
             white-space: nowrap;
-            height: 6.5em;          
-            line-height: 1.5em;      
-            text-align: center;     
-            width: 150px;         
-            align-items: center; 
-            justify-content: center; 
+            height: 6.5em;
+            line-height: 1.5em;
+            text-align: center;
+            width: 150px;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 40px;
             flex-direction: column;
         }
@@ -85,43 +284,45 @@
         .speechBubble div {
             margin: 0;
             padding: 0;
-            vertical-align: middle; 
+            vertical-align: middle;
         }
 
-        .speechBubble::before { 
+        .speechBubble::before {
             content: "";
             position: absolute;
             top: 100%;
             left: 50%;
             transform: translateX(-50%);
-            border-width: 9px; 
+            border-width: 9px;
             border-style: solid;
-            border-color: #333 transparent transparent transparent; 
-            z-index: -1; 
+            border-color: #333 transparent transparent transparent;
+            z-index: -1;
         }
 
-        .speechBubble::after { 
+        .speechBubble::after {
             content: "";
             position: absolute;
-            top: calc(100% - 2px); 
+            top: calc(100% - 2px);
             left: 50%;
             transform: translateX(-50%);
             border-width: 8px;
             border-style: solid;
-            border-color: #fff transparent transparent transparent; 
+            border-color: #fff transparent transparent transparent;
+        }
+
+        #bottomGameArea {
+            display: flex;
+            flex-direction: column;
+            width: 100%; 
         }
 
         #plateArea {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 60px;
             background-color: #8c581e;
             display: flex;
             align-items: center;
             justify-content: space-evenly;
             padding: 10px;
-            height: 120px;
+            height: 120px; 
             flex-wrap: wrap;
             z-index: 10;
         }
@@ -149,8 +350,8 @@
             left: 0;
             object-fit: contain;
             pointer-events: none;
-            border-radius: 50%; 
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); 
+            border-radius: 50%;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
         }
 
         .plate {
@@ -166,7 +367,7 @@
             color: #333;
             cursor: pointer;
             margin: 10px;
-            overflow: visible; 
+            overflow: visible;
         }
 
         .plate .plateImg {
@@ -191,7 +392,7 @@
             transform: translate(-50%, -50%);
             object-fit: contain;
             pointer-events: none;
-            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 20%, transparent 60%); 
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.5) 20%, transparent 60%);
             z-index: 1;
         }
 
@@ -213,10 +414,6 @@
         }
 
         #bottomBar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
             display: flex;
             justify-content: space-evenly;
             align-items: center;
@@ -256,17 +453,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #111114; 
+            background-color: #111114;
             color: white;
             z-index: 30;
-            display: none; 
+            display: none;
             justify-content: center;
             align-items: center;
-            overflow: auto; 
+            overflow: auto;
         }
 
         #upgradesContent {
-            width: 90%; 
+            width: 90%;
             padding: 20px;
         }
 
@@ -295,31 +492,31 @@
 
         #upgradesGrid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min-content, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(min-content, 1fr));
             gap: 20px;
         }
 
         @media (min-width: 600px) {
             #upgradesGrid {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             }
         }
 
         @media (min-width: 900px) {
             #upgradesGrid {
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             }
         }
 
         .upgradeItem {
-            background-color: #222226; 
+            background-color: #222226;
             border-radius: 10px;
             padding: 20px;
             text-align: center;
         }
 
         .upgradeItem img {
-            width: 100px; 
+            width: 100px;
             height: 100px;
             object-fit: contain;
             margin-bottom: 10px;
@@ -380,17 +577,17 @@
         }
 
         #minigameButton {
-            width: 200px; 
+            width: 200px;
             height: 200px;
             border-radius: 50%;
             background-color: transparent;
             border: none;
             background-image: url('media/images/minigames/button/up.png');
-            margin: 20px 0; 
+            margin: 20px 0;
             background-size: contain;
             background-size: 80px 80px;
-            background-repeat: no-repeat; 
-            background-position: center; 
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         #barMinigame {
@@ -398,8 +595,8 @@
             width: 300px;
             height: 20px;
             margin: 20px 0;
-            position: relative; 
-            overflow: hidden; 
+            position: relative;
+            overflow: hidden;
             border-radius: 10px;
         }
 
@@ -419,14 +616,14 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            border-bottom: 20px solid rgb(255, 255, 255); 
-            top: -20px; 
+            border-bottom: 20px solid rgb(255, 255, 255);
+            top: -20px;
         }
 
         .plate .food {
-            width: 50px; 
-            height: 50px; 
-            object-fit: contain; 
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
             z-index: 1;
         }
 
@@ -443,19 +640,19 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #111114; 
-            color: white; 
-            z-index: 9999; 
-            overflow: auto; 
-            padding: 20px; 
-            box-sizing: border-box; 
+            background-color: #111114;
+            color: white;
+            z-index: 9999;
+            overflow: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .modal-content {
-            width: 80%; 
-            max-width: 600px; 
-            margin: 50px auto; 
-            background-color: #222226; 
+            width: 80%;
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #222226;
             padding: 20px;
             border-radius: 10px;
         }
@@ -494,7 +691,7 @@
             z-index: 20000000;
         }
 
-        #settingsModal button { 
+        #settingsModal button {
             background-color: #7300ff;
             color: white;
             border: none;
@@ -502,42 +699,100 @@
             padding: 10px 20px;
             font-size: 1em;
             cursor: pointer;
-            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3); 
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
         }
 
-        #settingsModal button:hover { 
-            background-color: #6000e0; 
+        #settingsModal button:hover {
+            background-color: #6000e0;
         }
 
-        #settingsModal input[type="range"] { 
+        #settingsModal input[type="range"] {
             width: 100%;
             margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="customerArea">
-        <div class="customerSlot" data-slot="0">
-            <img class="customerAvatar" src="" draggable="none" style="display: none;" />
-            <div class="speechBubble" data-request="" data-quantity=""></div>
-        </div>
-        <div class="customerSlot" data-slot="1">
-            <img class="customerAvatar" src="" draggable="none" style="display: none;" />
-            <div class="speechBubble" data-request="" data-quantity=""></div>
-        </div>
-        <div class="customerSlot" data-slot="2">
-            <img class="customerAvatar" src="" draggable="none" style="display: none;" />
-            <div class="speechBubble" data-request="" data-quantity=""></div>
+    <div id="devLogoScreen">
+        <img id="devLogo" src="media/images/dev-logo.png" alt="Developer Logo">
+        <div id="continuePrompt">Click anywhere to continue</div>
+    </div>
+
+    <div id="titleScreen">
+        <img id="logo" src="media/images/logo.png" alt="Logo" style="height: 7vw; margin-bottom: 2rem;">
+        <button id="playButton">Play</button>
+    </div>
+
+    <div id="saveSlotScreen">
+        <h2 style="margin-bottom: 40px;">Select a Save File</h2>
+        <div class="save-slot-container">
+            <div class="save-slot" data-slot="1">
+                <div class="slot-info">
+                    <h3>Slot 1</h3>
+                    <p class="slot-status">Empty</p>
+                    <p class="slot-money"></p>
+                </div>
+                <button class="delete-save" data-slot="1">Delete</button>
+            </div>
+            <div class="save-slot" data-slot="2">
+                <div class="slot-info">
+                    <h3>Slot 2</h3>
+                    <p class="slot-status">Empty</p>
+                    <p class="slot-money"></p>
+                </div>
+                <button class="delete-save" data-slot="2">Delete</button>
+            </div>
+            <div class="save-slot" data-slot="3">
+                <div class="slot-info">
+                    <h3>Slot 3</h3>
+                    <p class="slot-status">Empty</p>
+                    <p class="slot-money"></p>
+                </div>
+                <button class="delete-save" data-slot="3">Delete</button>
+            </div>
         </div>
     </div>
 
-    <div id="plateArea" draggable="none" style="user-select: none;">
+    <div id="difficultyScreen">
+        <h2>Select Difficulty</h2>
+        <div class="difficulty-options">
+            <button id="easyBtn">Easy</button>
+            <button id="mediumBtn">Medium</button>
+            <button id="hardBtn">Hard</button>
+            <button id="insaneBtn">Insane</button> <!-- New Insane button -->
+        </div>
     </div>
 
-    <div id="bottomBar">
-        <div id="moneyDisplay">Money: $0</div>
-        <button id="restockBtn">Restock Food</button>
-        <button id="upgradeBtn">Upgrade Shop</button>
+    <div class="game-view" style="display: none;">
+        <div id="customerArea">
+            <div class="customerSlot" data-slot="0">
+                <img class="customerAvatar" src="" draggable="none" style="display: none;" />
+                <div class="speechBubble" data-request="" data-quantity=""></div>
+                <div class="timerBar"><div class="timerBar-inner"></div></div>
+            </div>
+            <div class="customerSlot" data-slot="1">
+                <img class="customerAvatar" src="" draggable="none" style="display: none;" />
+                <div class="speechBubble" data-request="" data-quantity=""></div>
+                 <div class="timerBar"><div class="timerBar-inner"></div></div>
+            </div>
+            <div class="customerSlot" data-slot="2">
+                <img class="customerAvatar" src="" draggable="none" style="display: none;" />
+                <div class="speechBubble" data-request="" data-quantity=""></div>
+                 <div class="timerBar"><div class="timerBar-inner"></div></div>
+            </div>
+        </div>
+
+        <!-- New container for plateArea and bottomBar -->
+        <div id="bottomGameArea">
+            <div id="plateArea" draggable="none" style="user-select: none;">
+            </div>
+
+            <div id="bottomBar">
+                <div id="moneyDisplay">Money: $0</div>
+                <button id="restockBtn">Restock Food</button>
+                <button id="upgradeBtn">Upgrade Shop</button>
+            </div>
+        </div>
     </div>
 
     <div id="upgradesModal">
@@ -547,11 +802,11 @@
                 <button id="modalClose">Back</button>
             </div>
             <div id="upgradesGrid">
-                </div>
+            </div>
         </div>
     </div>
 
-    <div id="minigameModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+    <div id="minigameModal" style="display: none;">
         <div style="padding: 20px; border-radius: 10px; text-align: center; width: 100%; height: 100%;">
             <h2 id="minigameTitle"></h2>
             <div id="minigameTimer"></div>
@@ -561,7 +816,7 @@
 
             <div id="barMinigame" style="display: none; width: 300px; height: 20px; background-color: rgb(255, 0, 51); margin: 20px 0; position: relative; overflow: hidden;">
                 <div id="greenBar" style="height: 100%; background-color: rgb(20, 255, 122); position: absolute;"></div>
-                <div id="arrow" style="width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid rgb(255, 255, 255); position: absolute; top: -20px; left: 0;"></div> </div>
+                <div id="arrow" style="width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid rgb(255, 255, 255); position: absolute; top: -20px; left: 0;"></div>
             </div>
         </div>
     </div>
@@ -595,11 +850,178 @@
     </div>
 
     <script>
+
+let gameState = 'devLogo'; 
+let currentSaveSlot = null;
+let difficulty = 'easy'; 
+
 let money = 0;
+let plates = [];
+const UPGRADE_MAX_LEVEL = 30;
+
+const devLogoScreen = document.getElementById('devLogoScreen');
+const devLogo = document.getElementById('devLogo');
+const continuePrompt = document.getElementById('continuePrompt');
+const titleScreen = document.getElementById('titleScreen');
+const playButton = document.getElementById('playButton');
+const saveSlotScreen = document.getElementById('saveSlotScreen');
+const difficultyScreen = document.getElementById('difficultyScreen');
+const gameView = document.querySelector('.game-view');
+
+window.onload = () => {
+
+    document.addEventListener('click', handleInitialInteraction, { once: true });
+
+    setTimeout(() => {
+        devLogo.style.opacity = 1;
+        setTimeout(() => {
+            continuePrompt.style.opacity = 1; 
+        }, 750);
+    }, 1000); 
+};
+
+function handleInitialInteraction() {
+    if (gameState !== 'devLogo') return; 
+    gameState = 'title';
+    startMusic();
+    devLogoScreen.style.opacity = 0;
+    devLogoScreen.style.transition = 'opacity 0.5s ease-in-out';
+    setTimeout(() => {
+        devLogoScreen.style.display = 'none';
+    }, 1000);
+    titleScreen.style.display = 'flex';
+}
+
+playButton.addEventListener('click', () => {
+    titleScreen.style.display = 'none';
+    saveSlotScreen.style.display = 'flex';
+    gameState = 'saveSelect';
+    renderSaveSlots();
+});
+
+document.querySelectorAll('.save-slot').forEach(slot => {
+    slot.addEventListener('click', (event) => {
+
+        if (event.target.classList.contains('delete-save')) {
+            return; 
+        }
+        currentSaveSlot = slot.dataset.slot;
+        const savedData = localStorage.getItem(`cookinGameData_${currentSaveSlot}`);
+        if (savedData) {
+            loadGameData(currentSaveSlot);
+            startGame();
+        } else {
+            saveSlotScreen.style.display = 'none';
+            difficultyScreen.style.display = 'flex';
+        }
+    });
+});
+
+document.querySelectorAll('.delete-save').forEach(button => {
+    button.addEventListener('click', (event) => {
+        event.stopPropagation(); 
+        const slotToDelete = button.dataset.slot;
+
+        showCustomConfirm(`Are you sure you want to delete save slot ${slotToDelete}? This cannot be undone.`, () => {
+            localStorage.removeItem(`cookinGameData_${slotToDelete}`);
+            renderSaveSlots(); 
+            playSfx("media/audio/sfx/fail.mp3"); 
+        });
+    });
+});
+
+document.querySelectorAll('.difficulty-options button').forEach(button => {
+    button.addEventListener('click', (e) => {
+        difficulty = e.target.id.replace('Btn', '');
+        createNewSave(currentSaveSlot, difficulty);
+        loadGameData(currentSaveSlot);
+        startGame();
+    });
+});
+
+function startGame() {
+    difficultyScreen.style.display = 'none';
+    saveSlotScreen.style.display = 'none';
+    gameView.style.display = 'flex';
+    gameState = 'game';
+
+    updateMoney(money);
+    renderPlates();
+    if (!window.customerSpawnInterval) {
+        window.customerSpawnInterval = setInterval(() => {
+            spawnCustomer();
+        }, Math.random() * 3000 + 4000);
+    }
+}
+
+function createNewSave(slot, diff) {
+    const defaultPlates = [
+        { index: 0, foodType: "media/images/food/toast.png", foodName: "Toast", count: 0, level: 1, locked: false, costToUnlock: 0, basePrice: 3 },
+        { index: 1, foodType: "media/images/food/cereal.png", foodName: "Cereal", count: 0, level: 1, locked: true, costToUnlock: 100, basePrice: 15 },
+        { index: 2, foodType: "media/images/food/juice.png", foodName: "Juice", count: 0, level: 1, locked: true, costToUnlock: 450, basePrice: 50 },
+        { index: 3, foodType: "media/images/food/milk.png", foodName: "Milk", count: 0, level: 1, locked: true, costToUnlock: 800, basePrice: 125 },
+        { index: 4, foodType: "media/images/food/yogurt.png", foodName: "Yogurt", count: 0, level: 1, locked: true, costToUnlock: 1800, basePrice: 275 },
+        { index: 5, foodType: "media/images/food/coffee.png", foodName: "Coffee", count: 0, level: 1, locked: true, costToUnlock: 3000, basePrice: 520 },
+        { index: 6, foodType: "media/images/food/waffle.png", foodName: "Waffle", count: 0, level: 1, locked: true, costToUnlock: 7500, basePrice: 650 },
+        { index: 7, foodType: "media/images/food/fries.png", foodName: "Fries", count: 0, level: 1, locked: true, costToUnlock: 17000, basePrice: 1100 },
+        { index: 8, foodType: "media/images/food/bacon.png", foodName: "Bacon", count: 0, level: 1, locked: true, costToUnlock: 30000, basePrice: 1650 },
+        { index: 9, foodType: "media/images/food/pizza.png", foodName: "Pizza", count: 0, level: 1, locked: true, costToUnlock: 70000, basePrice: 3000 },
+        { index: 10, foodType: "media/images/food/burger.png", foodName: "Burger", count: 0, level: 1, locked: true, costToUnlock: 200000, basePrice: 7000 },
+        { index: 11, foodType: "media/images/food/ice_cream.png", foodName: "Ice Cream", count: 0, level: 1, locked: true, costToUnlock: 1000000, basePrice: 20000 },
+        { index: 12, foodType: "media/images/food/cake.png", foodName: "Cake", count: 0, level: 1, locked: true, costToUnlock: 5000000, basePrice: 70000 }
+    ];
+
+    const gameData = {
+        money: 0,
+        plates: defaultPlates,
+        difficulty: diff
+    };
+    localStorage.setItem(`cookinGameData_${slot}`, JSON.stringify(gameData));
+}
+
+function renderSaveSlots() {
+    document.querySelectorAll('.save-slot').forEach(slot => {
+        const slotNum = slot.dataset.slot;
+        const savedData = localStorage.getItem(`cookinGameData_${slotNum}`);
+        const statusEl = slot.querySelector('.slot-status');
+        const moneyEl = slot.querySelector('.slot-money');
+        const deleteButton = slot.querySelector('.delete-save');
+
+        if (savedData) {
+            const gameData = JSON.parse(savedData);
+            statusEl.textContent = `Difficulty: ${gameData.difficulty}`;
+            moneyEl.textContent = `Money: $${gameData.money}`;
+            deleteButton.style.display = 'block'; 
+        } else {
+            statusEl.textContent = 'Empty';
+            moneyEl.textContent = '';
+            deleteButton.style.display = 'none'; 
+        }
+    });
+}
 
 function updateMoney(val) {
     money = val;
     document.getElementById("moneyDisplay").innerText = `Money: $${money}`;
+}
+
+function getPrice(basePrice, level) {
+    let price = Math.floor(basePrice * (level ** 1.98));
+    if (difficulty === 'hard') {
+        price = Math.ceil(price * 1.25);
+    } else if (difficulty === 'insane') { 
+        price = Math.ceil(price * 2); 
+    }
+    return price;
+}
+
+function getCost(baseCost) {
+     if (difficulty === 'hard') {
+        return Math.ceil(baseCost * 1.25);
+    } else if (difficulty === 'insane') { 
+        return Math.ceil(baseCost * 2); 
+    }
+    return baseCost;
 }
 
 function generatePlateHTML(plate) {
@@ -629,8 +1051,6 @@ function renderPlates() {
     });
 }
 
-let incomingMoney = 0;
-
 function addFoodDragListeners() {
     document.querySelectorAll(".plate .food").forEach(foodEl => {
         let isDragging = false;
@@ -654,7 +1074,7 @@ function addFoodDragListeners() {
             dragImage.style.zIndex = '1000';
             document.body.appendChild(dragImage);
             document.addEventListener("mousemove", updateDragImagePosition);
-            document.addEventListener("mouseup", onMouseUp); // Use a named function for clarity
+            document.addEventListener("mouseup", onMouseUp);
         });
 
         function updateDragImagePosition(e) {
@@ -669,14 +1089,13 @@ function addFoodDragListeners() {
                 isDragging = false;
                 document.body.removeChild(dragImage);
                 document.removeEventListener("mousemove", updateDragImagePosition);
-                document.removeEventListener("mouseup", onMouseUp); // Clean up listener
+                document.removeEventListener("mouseup", onMouseUp);
 
                 const customerEl = document.elementFromPoint(e.clientX, e.clientY);
                 if (customerEl && customerEl.classList.contains("customerAvatar")) {
                     const slotEl = customerEl.closest(".customerSlot");
                     const bubbleEl = slotEl.querySelector(".speechBubble");
 
-                    // CRASH FIX: Initialize incoming money on the customer's bubble if it's not there
                     if (!bubbleEl.dataset.incomingMoney) {
                         bubbleEl.dataset.incomingMoney = "0";
                     }
@@ -692,9 +1111,8 @@ function addFoodDragListeners() {
                             const [food, currentQuantity] = requestedFoods[foodIndex].split(" x ");
                             let newQuantity = parseInt(currentQuantity) - 1;
 
-                            // CRASH FIX: Add earnings to the bubble's specific kitty
                             let currentIncoming = parseFloat(bubbleEl.dataset.incomingMoney);
-                            currentIncoming += Math.floor(plates[initialPlateIndex].basePrice * (plates[initialPlateIndex].level ** 1.98));
+                            currentIncoming += getPrice(plates[initialPlateIndex].basePrice, plates[initialPlateIndex].level);
                             bubbleEl.dataset.incomingMoney = currentIncoming;
 
                             if (newQuantity > 0) {
@@ -707,11 +1125,18 @@ function addFoodDragListeners() {
                             bubbleEl.dataset.request = JSON.stringify(requestedFoods);
 
                             if (remaining === 0) {
+
+                                if (slotEl.customerFrameId) {
+                                    cancelAnimationFrame(slotEl.customerFrameId);
+                                    slotEl.customerFrameId = null;
+                                }
+                                const timerBar = slotEl.querySelector('.timerBar');
+                                if (timerBar) timerBar.style.display = 'none';
+
                                 const earnedAmount = parseFloat(bubbleEl.dataset.incomingMoney);
                                 bubbleEl.innerHTML = `Thanks!<br><br>$${earnedAmount}`;
                                 playSfx("media/audio/sfx/collect.mp3");
 
-                                // CRASH FIX: Add the final amount from the bubble to the main money
                                 setTimeout(() => {
                                     updateMoney(money + earnedAmount);
                                 }, 500);
@@ -723,7 +1148,7 @@ function addFoodDragListeners() {
                                     avatarEl.style.transition = "opacity 0.5s ease-in-out";
                                     avatarEl.style.opacity = 0;
                                     setTimeout(() => {
-                                        removeCustomer(slotEl); // removeCustomer handles the rest of the cleanup
+                                        removeCustomer(slotEl);
                                     }, 500);
                                 }, 1500);
                             } else {
@@ -740,127 +1165,20 @@ function addFoodDragListeners() {
     });
 }
 
-let plates = [
-    { index: 0, foodType: "media/images/food/toast.png", foodName: "Toast", count: 0, level: 1, locked: false, costToUnlock: 0, basePrice: 3 },
-    { index: 1, foodType: "media/images/food/cereal.png", foodName: "Cereal", count: 0, level: 1, locked: true, costToUnlock: 100, basePrice: 15 },
-    { index: 2, foodType: "media/images/food/juice.png", foodName: "Juice", count: 0, level: 1, locked: true, costToUnlock: 450, basePrice: 50 },
-    { index: 3, foodType: "media/images/food/milk.png", foodName: "Milk", count: 0, level: 1, locked: true, costToUnlock: 800, basePrice: 125 },
-    { index: 4, foodType: "media/images/food/yogurt.png", foodName: "Yogurt", count: 0, level: 1, locked: true, costToUnlock: 1800, basePrice: 275 },
-    { index: 5, foodType: "media/images/food/coffee.png", foodName: "Coffee", count: 0, level: 1, locked: true, costToUnlock: 3000, basePrice: 520 },
-    { index: 6, foodType: "media/images/food/waffle.png", foodName: "Waffle", count: 0, level: 1, locked: true, costToUnlock: 7500, basePrice: 650 },
-    { index: 7, foodType: "media/images/food/fries.png", foodName: "Fries", count: 0, level: 1, locked: true, costToUnlock: 17000, basePrice: 1100 },
-    { index: 8, foodType: "media/images/food/bacon.png", foodName: "Bacon", count: 0, level: 1, locked: true, costToUnlock: 30000, basePrice: 1650 },
-    { index: 9, foodType: "media/images/food/pizza.png", foodName: "Pizza", count: 0, level: 1, locked: true, costToUnlock: 70000, basePrice: 3000 },
-    { index: 10, foodType: "media/images/food/burger.png", foodName: "Burger", count: 0, level: 1, locked: true, costToUnlock: 200000, basePrice: 7000 },
-    { index: 11, foodType: "media/images/food/ice_cream.png", foodName: "Ice Cream", count: 0, level: 1, locked: true, costToUnlock: 1000000, basePrice: 20000 },
-    { index: 12, foodType: "media/images/food/cake.png", foodName: "Cake", count: 0, level: 1, locked: true, costToUnlock: 5000000, basePrice: 70000 }
-];
-
-renderPlates();
-
-const collectSound = new Audio("media/audio/sfx/collect.mp3");
-const popSound = new Audio("media/audio/sfx/pop.mp3");
-const pop2Sound = new Audio("media/audio/sfx/pop2.mp3");
-
-const upgradesBtn = document.getElementById("upgradeBtn");
-const upgradesModal = document.getElementById("upgradesModal");
-const modalClose = document.getElementById("modalClose");
-const upgradesList = document.getElementById("upgradesList");
-const baseServeValue = 10;
-
-function generateCustomerImageURLs(count) {
-    const urls = [];
-    for (let i = 0; i < count; i++) {
-        urls.push(`media/images/customers/${i}.png`);
-    }
-    return urls;
-}
-
-const avatarURLs = generateCustomerImageURLs(29);
-
-function unlockPlateUI(plateEl, plateData) {
-    plateEl.classList.remove("locked");
-    const lockIcon = plateEl.querySelector(".lockIcon");
-    if (lockIcon) {
-        lockIcon.style.display = "none";
-    }
-    const foodEl = plateEl.querySelector(".food");
-    if (foodEl) {
-        foodEl.style.display = "block";
-    }
-    const badge = plateEl.querySelector(".countBadge");
-    if (badge) {
-        badge.style.display = "flex";
-    }
-    updatePlateCountUI(plateData.index, plateData.count);
-}
-
-function updatePlateCountUI(index, newCount) {
-    plateEls = document.querySelectorAll(".plate");
-    const plateEl = plateEls[index];
-    const badgeEl = plateEl.querySelector(".countBadge");
-    badgeEl.innerText = newCount;
-}
-
-function dragOverHandler(e) {
-    e.preventDefault();
-}
-
-function serveCustomer(plateIndex, bubbleEl, slotEl, dropHandler) {
-    console.log("serveCustomer called with plateIndex:", plateIndex);
-    const p = plates[plateIndex];
-    if (p.count < 1) {
-        alert("Not enough food on that plate!");
-        return;
-    }
-    p.count -= 1;
-    updatePlateCountUI(plateIndex, p.count);
-    const earned = Math.floor(plates[plateIndex].basePrice * (plates[plateIndex].level ** 1.98));
-    updateMoney(money + earned);
-    renderPlates();
-
-    let remaining = parseInt(bubbleEl.dataset.remaining);
-    console.log("Remaining:", remaining);
-    if (remaining <= 0) {
-        bubbleEl.innerHTML = `Thanks!<br><br>$${incomingMoney}`;
-        playSfx("media/audio/sfx/collect.mp3");
-        setTimeout(() => {
-            updateMoney(money + incomingMoney);
-        }, 500);
-        setTimeout(() => {
-            bubbleEl.style.transition = "opacity 0.5s ease-in-out";
-            bubbleEl.style.opacity = 0;
-            const avatarEl = slotEl.querySelector(".customerAvatar");
-            avatarEl.style.transition = "opacity 0.5s ease-in-out";
-            avatarEl.style.opacity = 0;
-            setTimeout(() => {
-                bubbleEl.style.display = "none";
-                avatarEl.style.display = "none";
-                bubbleEl.style.opacity = 1;
-                avatarEl.style.opacity = 1;
-                incomingMoney = 0;
-                removeCustomer(slotEl);
-            }, 500);
-        }, 1500);
-        saveGameData();
-    } else {
-        remaining -= 1;
-        console.log("remaining decremented to:", remaining);
-        bubbleEl.dataset.remaining = remaining;
-        console.log("Remaining dataset:", bubbleEl.dataset.remaining);
-        bubbleEl.innerHTML = JSON.parse(bubbleEl.dataset.request).map(food => `<div>${food}</div>`).join('');
-        playSfx("media/audio/sfx/pop2.mp3");
-    }
-}
+const avatarURLs = Array.from({length: 29}, (_, i) => `media/images/customers/${i}.png`);
 
 function removeCustomer(slotEl) {
     const avatar = slotEl.querySelector(".customerAvatar");
     const bubble = slotEl.querySelector(".speechBubble");
+    const timerBar = slotEl.querySelector(".timerBar");
 
-    // CRASH FIX: Immediately mark the slot so spawnCustomer won't use it
+    if (slotEl.customerFrameId) {
+        cancelAnimationFrame(slotEl.customerFrameId);
+        slotEl.customerFrameId = null;
+    }
+
     slotEl.dataset.occupied = "removing";
 
-    console.log("Customer removed from slot:", slotEl);
     if (avatar) {
         avatar.style.display = "none";
         avatar.src = "";
@@ -870,32 +1188,25 @@ function removeCustomer(slotEl) {
         bubble.innerHTML = "";
         bubble.dataset.request = "";
         bubble.dataset.remaining = "";
-        // CRASH FIX: Clean up the money tracker
         bubble.dataset.incomingMoney = "0";
     }
+    if (timerBar) {
+        timerBar.style.display = "none";
+    }
 
-    // After animations and cleanup are done, finally free the slot
     slotEl.dataset.occupied = "false";
 }
 
 function spawnCustomer() {
-    console.log("spawnCustomer called");
     const customerSlots = document.querySelectorAll(".customerSlot");
-    const freeSlots = [];
-    customerSlots.forEach(slot => {
-        // CRASH FIX: Ensure the slot is not occupied or in the process of being cleared
-        if (slot.dataset.occupied !== "true" && slot.dataset.occupied !== "removing") {
-            freeSlots.push(slot);
-        }
-    });
+    const freeSlots = Array.from(customerSlots).filter(slot => slot.dataset.occupied !== "true" && slot.dataset.occupied !== "removing");
 
     if (freeSlots.length === 0) return;
     const slotEl = freeSlots[Math.floor(Math.random() * freeSlots.length)];
     slotEl.dataset.occupied = "true";
     const avatarEl = slotEl.querySelector(".customerAvatar");
     const bubbleEl = slotEl.querySelector(".speechBubble");
-    
-    // CRASH FIX: Reset bubble data on spawn
+
     bubbleEl.dataset.incomingMoney = "0";
 
     if (Math.random() < 0.001) {
@@ -915,16 +1226,17 @@ function spawnCustomer() {
     avatarEl.style.transition = 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out';
 
     const unlockedPlates = plates.filter(p => !p.locked);
+    if (unlockedPlates.length === 0) {
+        slotEl.dataset.occupied = "false";
+        return;
+    }
     const orderFoods = [];
     let totalOrderQuantity = 0;
 
     let numberOfFoods = Math.floor(Math.random() * 3) + 1;
-    if (unlockedPlates.length === 1) {
-        numberOfFoods = 1;
-    } else if (unlockedPlates.length < numberOfFoods) {
+    if (unlockedPlates.length < numberOfFoods) {
         numberOfFoods = unlockedPlates.length;
     }
-
 
     const chosenFoods = new Set();
     for (let i = 0; i < numberOfFoods; i++) {
@@ -933,7 +1245,7 @@ function spawnCustomer() {
         do {
             chosen = unlockedPlates[Math.floor(Math.random() * unlockedPlates.length)];
             orderQuantity = Math.floor(Math.random() * 3) + 1;
-        } while (chosenFoods.has(chosen.foodName)); // Use foodName to ensure unique food types
+        } while (chosenFoods.has(chosen.foodName));
         chosenFoods.add(chosen.foodName);
 
         const foodHtml = `<img src="${chosen.foodType}" alt="${chosen.foodName}" style="width: 30px; height: 30px; vertical-align: middle;"> x ${orderQuantity}`;
@@ -948,25 +1260,90 @@ function spawnCustomer() {
 
     avatarEl.classList.add("slide-down");
 
-    clearTimeout(customerTimeout);
-    customerTimeout = setTimeout(() => {
+    setTimeout(() => {
         avatarEl.classList.remove("slide-down");
-
         setTimeout(() => {
             avatarEl.classList.remove("initial-position");
-
             bubbleEl.style.display = "flex";
             bubbleEl.style.opacity = 0;
             bubbleEl.style.transition = "opacity 0.5s ease-in-out";
             setTimeout(() => {
                 bubbleEl.style.opacity = 1;
-            }, 500);
 
+                if (difficulty !== 'easy') {
+                    startCustomerTimer(slotEl, totalOrderQuantity);
+                }
+            }, 500);
         }, 500);
     }, 1000);
 }
 
-let customerTimeout;
+function startCustomerTimer(slotEl, orderSize) {
+    const timerBar = slotEl.querySelector('.timerBar');
+    const timerBarInner = timerBar.querySelector('.timerBar-inner');
+    const bubbleEl = slotEl.querySelector('.speechBubble');
+
+    if (slotEl.customerFrameId) {
+        cancelAnimationFrame(slotEl.customerFrameId);
+    }
+
+    timerBar.style.display = 'block';
+    timerBarInner.style.width = '100%';
+    timerBarInner.style.backgroundColor = '#28a745';
+
+    let timeLimit;
+    if (difficulty === 'insane') {
+        timeLimit = 7500 + (orderSize * 1000); 
+    } else if (difficulty === 'hard') {
+        timeLimit = 15000 + (orderSize * 2000);
+    } else { 
+        timeLimit = 30000 + (orderSize * 4000);
+    }
+
+    const startTime = Date.now();
+
+    function updateTimer() {
+        if (slotEl.dataset.occupied !== 'true') {
+            if (slotEl.customerFrameId) cancelAnimationFrame(slotEl.customerFrameId);
+            return;
+        }
+
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = timeLimit - elapsedTime;
+        const percentage = (remainingTime / timeLimit) * 100;
+
+        if (percentage <= 0) {
+            timerBarInner.style.width = '0%';
+
+            let penalty = 0;
+            if (difficulty === 'insane') {
+                penalty = Math.floor(money * 0.50); 
+            } else if (difficulty === 'hard') {
+                penalty = Math.floor(money * 0.10);
+            } else { 
+                penalty = Math.floor(money * 0.05);
+            }
+            updateMoney(money - penalty);
+
+            bubbleEl.innerHTML = `Too slow!<br>Lost $${penalty}`;
+            playSfx("media/audio/sfx/fail.mp3");
+
+            setTimeout(() => removeCustomer(slotEl), 2000);
+            return;
+        }
+
+        timerBarInner.style.width = `${percentage}%`;
+        if (percentage < 25) {
+            timerBarInner.style.backgroundColor = '#dc3545';
+        } else if (percentage < 50) {
+            timerBarInner.style.backgroundColor = '#ffc107';
+        }
+
+        slotEl.customerFrameId = requestAnimationFrame(updateTimer);
+    }
+
+    slotEl.customerFrameId = requestAnimationFrame(updateTimer);
+}
 
 const restockBtn = document.getElementById("restockBtn");
 const minigameModal = document.getElementById("minigameModal");
@@ -983,12 +1360,14 @@ let clickCount = 0;
 let minigameTimeout = null;
 let minigameStartTime = 0;
 let barMinigameInterval = null;
+let buttonTimerStarted = false; 
 
 restockBtn.addEventListener("click", () => {
     if (minigameActive) return;
 
     minigameActive = true;
     clickCount = 0;
+    buttonTimerStarted = false; 
 
     playSfx("media/audio/sfx/pop.mp3");
 
@@ -1003,16 +1382,7 @@ restockBtn.addEventListener("click", () => {
         minigameTimer.style.display = "block";
         minigameCount.style.display = "block";
 
-        minigameStartTime = Date.now();
-        updateTimer();
-
-        minigameTimeout = setTimeout(() => {
-            minigameTimer.innerText = "00:00:000";
-            minigameActive = false;
-            minigameModal.style.display = "none";
-            alert("Too slow! Try again.");
-        }, 5000);
-
+        minigameTimer.innerText = "00:05:000"; 
         minigameButton.addEventListener("click", minigameClickHandler);
     } else if (randomMinigame === "bar") {
         minigameTitle.innerText = "Time it right!";
@@ -1026,10 +1396,28 @@ restockBtn.addEventListener("click", () => {
 });
 
 function minigameClickHandler() {
+    if (!buttonTimerStarted) {
+        minigameStartTime = Date.now(); 
+        buttonTimerStarted = true;
+        requestAnimationFrame(updateTimerMinigame); 
+
+        minigameTimeout = setTimeout(() => {
+            minigameTimer.innerText = "00:00:000";
+            minigameActive = false;
+            minigameModal.style.display = "none";
+            minigameButton.removeEventListener("click", minigameClickHandler);
+        }, 5000); 
+    }
+
     clickCount++;
     minigameCount.innerText = clickCount;
 
-    if (clickCount >= 10) {
+    let requiredClicks = 10;
+    if (difficulty === 'insane') {
+        requiredClicks = 20; 
+    }
+
+    if (clickCount >= requiredClicks) {
         clearTimeout(minigameTimeout);
         minigameActive = false;
         minigameModal.style.display = "none";
@@ -1038,25 +1426,32 @@ function minigameClickHandler() {
     }
 }
 
-function updateTimer() {
-    if (!minigameActive) return;
+function updateTimerMinigame() {
+    if (!minigameActive || !buttonTimerStarted) return; 
 
-    const elapsedTime = Date.now() - minigameStartTime;
+    const elapsedTime = Date.now() - minigameStartTime; 
     const remainingTime = 5000 - elapsedTime;
 
-    if (remainingTime <= 0) return;
+    if (remainingTime <= 0) {
+        minigameTimer.innerText = "00:00:000"; 
+        return;
+    }
 
     const minutes = Math.floor(remainingTime / 60000);
     const seconds = Math.floor((remainingTime % 60000) / 1000);
     const milliseconds = remainingTime % 1000;
 
     minigameTimer.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(milliseconds).padStart(3, '0')}`;
-    requestAnimationFrame(updateTimer);
+    requestAnimationFrame(updateTimerMinigame); 
 }
 
 function startBarMinigame() {
+    let greenBarBaseWidth = 100; 
+    if (difficulty === 'insane') {
+        greenBarBaseWidth = 50; 
+    }
 
-    const greenBarWidth = Math.floor(Math.random() * 100) + 50;
+    const greenBarWidth = Math.floor(Math.random() * greenBarBaseWidth) + (greenBarBaseWidth / 2); 
     const greenBarPosition = Math.floor(Math.random() * (barMinigame.offsetWidth - greenBarWidth));
     greenBar.style.width = `${greenBarWidth}px`;
     greenBar.style.left = `${greenBarPosition}px`;
@@ -1079,21 +1474,17 @@ function startBarMinigame() {
         const greenBarRect = greenBar.getBoundingClientRect();
 
         if (arrowRect.right >= greenBarRect.left && arrowRect.left <= greenBarRect.right) {
-
             clearInterval(barMinigameInterval);
             minigameActive = false;
             minigameModal.style.display = "none";
             restockFood();
         } else {
-
             clearInterval(barMinigameInterval);
             minigameActive = false;
             minigameModal.style.display = "none";
-            alert("Missed! Try again.");
         }
 
         playSfx("media/audio/sfx/pop.mp3");
-
         minigameModal.removeEventListener("click", barMinigameClickHandler);
     };
 
@@ -1104,10 +1495,9 @@ function restockFood() {
     plates.forEach(p => {
         if (!p.locked) {
             p.count++;
-            updatePlateCountUI(p.index, p.count);
         }
     });
-    saveGameData();
+    saveGameData(currentSaveSlot);
     renderPlates();
 }
 
@@ -1121,11 +1511,14 @@ minigameButton.addEventListener("mouseup", () => {
     playSfx("media/audio/sfx/pop2.mp3");
 });
 
+const upgradesBtn = document.getElementById("upgradeBtn");
+const upgradesModal = document.getElementById("upgradesModal");
+const modalClose = document.getElementById("modalClose");
+
 upgradesBtn.addEventListener("click", () => {
     showUpgrades();
     upgradesModal.style.display = "block";
     playSfx("media/audio/sfx/pop.mp3");
-    saveGameData();
 });
 
 modalClose.addEventListener("click", () => {
@@ -1156,7 +1549,13 @@ function showUpgrades() {
         upgradeItem.appendChild(foodName);
 
         const levelInfo = document.createElement("p");
-        levelInfo.textContent = plate.locked ? "Locked" : `Level ${plate.level}`;
+        if (plate.locked) {
+            levelInfo.textContent = "Locked";
+        } else if (plate.level >= UPGRADE_MAX_LEVEL) {
+             levelInfo.textContent = `Level MAX`;
+        } else {
+            levelInfo.textContent = `Level ${plate.level}`;
+        }
         upgradeItem.appendChild(levelInfo);
 
         const buttonContainer = document.createElement("div");
@@ -1164,115 +1563,69 @@ function showUpgrades() {
         buttonContainer.style.flexDirection = "column";
         buttonContainer.style.alignItems = "center";
 
-        let unlockButton, upgradeButton;
-
         if (plate.locked) {
-            unlockButton = document.createElement("button");
+            const unlockButton = document.createElement("button");
+            const unlockCost = getCost(plate.costToUnlock);
             unlockButton.textContent = "Unlock";
             unlockButton.addEventListener("click", () => {
-                if (money >= plate.costToUnlock) {
-                    updateMoney(money - plate.costToUnlock);
+                if (money >= unlockCost) {
+                    updateMoney(money - unlockCost);
                     plate.locked = false;
                     renderPlates();
                     playSfx("media/audio/sfx/pop.mp3");
+                    saveGameData(currentSaveSlot); 
                     showUpgrades();
-                } else {
-                    alert("Not enough money to unlock!");
                 }
             });
 
-            unlockButton.disabled = index > bestUnlockedIndex;
-
-            if (unlockButton.disabled) {
-                unlockButton.style.backgroundColor = "#4c0178";
-                unlockButton.style.cursor = "not-allowed";
-            } else {
-                if (money < plate.costToUnlock) {
-                    unlockButton.style.backgroundColor = "#4c0178";
-                    unlockButton.style.cursor = "not-allowed";
-                } else {
-                    unlockButton.style.backgroundColor = "";
-                    unlockButton.style.cursor = "";
-                }
-            }
+            unlockButton.disabled = index > bestUnlockedIndex || money < unlockCost;
+            unlockButton.style.backgroundColor = unlockButton.disabled ? "#4c0178" : "";
+            unlockButton.style.cursor = unlockButton.disabled ? "not-allowed" : "";
 
             buttonContainer.appendChild(unlockButton);
+            const unlockCostEl = document.createElement("p");
+            unlockCostEl.textContent = `$${unlockCost}`;
+            unlockCostEl.style.fontSize = "12px";
+            buttonContainer.appendChild(unlockCostEl);
+        } else if (plate.level < UPGRADE_MAX_LEVEL) {
+            const currentPrice = getPrice(plate.basePrice, plate.level);
+            const newPrice = getPrice(plate.basePrice, plate.level + 1);
+            const upgradeCost = getCost(Math.floor(plate.basePrice * ((plate.level + 1) ** 1.98)));
 
-            const unlockCost = document.createElement("p");
-            unlockCost.textContent = `$${plate.costToUnlock}`;
-            unlockCost.style.fontSize = "12px";
-            buttonContainer.appendChild(unlockCost);
-
-            upgradeItem.appendChild(buttonContainer);
-        } else {
-            if (buttonContainer.firstChild) {
-                buttonContainer.removeChild(buttonContainer.firstChild);
-            }
-
-            const currentPrice = Math.floor(plate.basePrice * (plate.level ** 1.98));
-            const newPrice = Math.floor(plate.basePrice * ((plate.level + 1) ** 1.98));
-
-            upgradeButton = document.createElement("button");
+            const upgradeButton = document.createElement("button");
             upgradeButton.textContent = `Upgrade ($${currentPrice} -> $${newPrice})`;
             upgradeButton.addEventListener("click", () => {
                 playSfx("media/audio/sfx/pop.mp3");
-                const cost = Math.floor(plate.basePrice * ((plate.level + 1) ** 1.98));
-                if (money >= cost) {
-                    updateMoney(money - cost);
+                if (money >= upgradeCost) {
+                    updateMoney(money - upgradeCost);
                     plate.level++;
                     renderPlates();
+                    saveGameData(currentSaveSlot); 
                     showUpgrades();
-                } else {
-                    alert("Not enough money to upgrade!");
                 }
             });
 
-            const cost = Math.floor(plate.basePrice * ((plate.level + 1) ** 1.98));
-
-            upgradeButton.disabled = index > bestUnlockedIndex;
-
-            if (upgradeButton.disabled) {
-                upgradeButton.style.backgroundColor = "#4c0178";
-                upgradeButton.style.cursor = "not-allowed";
-            } else {
-                if (money < cost) {
-                    upgradeButton.style.backgroundColor = "#4c0178";
-                    upgradeButton.style.cursor = "not-allowed";
-                } else {
-                    upgradeButton.style.backgroundColor = "";
-                    upgradeButton.style.cursor = "";
-                }
-            }
+            upgradeButton.disabled = money < upgradeCost;
+            upgradeButton.style.backgroundColor = upgradeButton.disabled ? "#4c0178" : "";
+            upgradeButton.style.cursor = upgradeButton.disabled ? "not-allowed" : "";
 
             buttonContainer.appendChild(upgradeButton);
-
-            const upgradeCost = document.createElement("p");
-            upgradeCost.textContent = `$${cost}`;
-            upgradeCost.style.fontSize = "12px";
-            buttonContainer.appendChild(upgradeCost);
-
-            upgradeItem.appendChild(buttonContainer);
+            const upgradeCostEl = document.createElement("p");
+            upgradeCostEl.textContent = `$${upgradeCost}`;
+            upgradeCostEl.style.fontSize = "12px";
+            buttonContainer.appendChild(upgradeCostEl);
+        } else {
+            const maxLevelText = document.createElement("p");
+            maxLevelText.textContent = "MAXED OUT!";
+            maxLevelText.style.fontWeight = "bold";
+            maxLevelText.style.color = "#7300ff";
+            buttonContainer.appendChild(maxLevelText);
         }
 
+        upgradeItem.appendChild(buttonContainer);
         upgradesGrid.appendChild(upgradeItem);
     });
-
-    upgradesModal.style.display = "block";
 }
-
-function positionCustomerSlots() {
-  const plateArea = document.getElementById("plateArea");
-  const customerSlots = document.querySelectorAll(".customerSlot");
-  const plateAreaRect = plateArea.getBoundingClientRect();
-
-  customerSlots.forEach(slot => {
-    const marginTop = plateAreaRect.top - slot.offsetHeight;
-    slot.style.marginTop = `${marginTop}px`;
-  });
-}
-
-positionCustomerSlots();
-window.addEventListener("resize", positionCustomerSlots);
 
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsModal = document.getElementById("settingsModal");
@@ -1292,8 +1645,6 @@ closeSettingsBtn.addEventListener("click", () => {
     playSfx("media/audio/sfx/pop.mp3");
 });
 
-const audio = new Audio(); 
-
 const musicAudio = new Audio();
 musicAudio.id = "musicPlayer";
 musicAudio.loop = true;
@@ -1312,7 +1663,6 @@ const tracks = [
 let currentTrackIndex = null;
 
 function playRandomTrack() {
-
     let newTrackIndex;
     do {
         newTrackIndex = Math.floor(Math.random() * tracks.length);
@@ -1320,109 +1670,135 @@ function playRandomTrack() {
     currentTrackIndex = newTrackIndex;
 
     musicAudio.src = tracks[currentTrackIndex];
-    musicAudio.play();
+    musicAudio.play().catch(e => console.error("Music play failed:", e));
 }
 
 function startMusic() {
     playRandomTrack();
-
-    document.removeEventListener('click', startMusic);
-
     musicAudio.addEventListener("ended", playRandomTrack);
 }
 
 masterVolumeSlider.addEventListener("input", () => {
-    const volume = masterVolumeSlider.value / 100;
-    audio.volume = volume;
-    if(musicAudio){musicAudio.volume = musicVolumeSlider.value / 100 * volume;}
-    if(sfxAudio){sfxAudio.volume = sfxVolumeSlider.value / 100 * volume;}
+    const masterVol = masterVolumeSlider.value / 100;
+    musicAudio.volume = (musicVolumeSlider.value / 100) * masterVol;
     playSfx("media/audio/sfx/pop.mp3");
 });
 
 musicVolumeSlider.addEventListener("input", () => {
-    const volume = musicVolumeSlider.value / 100;
-    if(musicAudio){musicAudio.volume = volume * masterVolumeSlider.value / 100;}
+    const masterVol = masterVolumeSlider.value / 100;
+    musicAudio.volume = (musicVolumeSlider.value / 100) * masterVol;
     playSfx("media/audio/sfx/pop.mp3");
 });
 
 sfxVolumeSlider.addEventListener("input", () => {
-    const volume = sfxVolumeSlider.value / 100;
-    if(sfxAudio){sfxAudio.volume = volume * masterVolumeSlider.value / 100;}
     playSfx("media/audio/sfx/pop.mp3");
 });
 
 wipeSaveBtn.addEventListener("click", () => {
-    if (confirm("Are you sure you want to wipe your save data?")) {
-        localStorage.removeItem('cookinGameData');
-        money = 0;
-        plates.forEach(plate => {
-            plate.count = 0;
-            plate.level = 1;
-            plate.locked = plate.costToUnlock > 0;
-        });
-        updateMoney(money);
-        renderPlates();
 
-        const customerSlots = document.querySelectorAll(".customerSlot");
-        customerSlots.forEach(slot => {
-            const avatar = slot.querySelector(".customerAvatar");
-            const bubble = slot.querySelector(".speechBubble");
-            if (avatar) {
-                avatar.style.display = "none";
-            }
-            if (bubble) {
-                bubble.style.display = "none";
-            }
-        });
-
-        clearInterval(customerInterval);
-        customerInterval = setInterval(generateCustomer, 10000);
-
-        settingsModal.style.display = "none";
-        playSfx("media/audio/sfx/pop.mp3");
-    }
+    showCustomConfirm("Are you sure you want to wipe your save data for this slot? This cannot be undone.", () => {
+        localStorage.removeItem(`cookinGameData_${currentSaveSlot}`);
+        location.reload();
+    });
 });
 
-document.addEventListener('click', startMusic);
-
-function saveGameData() {
+function saveGameData(slot) {
+    if (!slot) return;
     const gameData = {
         money: money,
         plates: plates,
+        difficulty: difficulty,
     };
-    localStorage.setItem('cookinGameData', JSON.stringify(gameData));
-    console.log('Game data saved.');
+    localStorage.setItem(`cookinGameData_${slot}`, JSON.stringify(gameData));
+    console.log(`Game data saved to slot ${slot}.`);
 }
 
-function loadGameData() {
-    const savedData = localStorage.getItem('cookinGameData');
+function loadGameData(slot) {
+    const savedData = localStorage.getItem(`cookinGameData_${slot}`);
     if (savedData) {
         const gameData = JSON.parse(savedData);
         money = gameData.money;
         plates = gameData.plates;
-
-        updateMoney(money);
-        renderPlates();
-
-        console.log('Game data loaded.')
+        difficulty = gameData.difficulty;
     }
 }
 
-setInterval(saveGameData, 30000);
+setInterval(() => {
+    if (gameState === 'game') {
+        saveGameData(currentSaveSlot);
+    }
+}, 30000);
 
 function playSfx(src){
     sfxAudio.src = src;
-    sfxAudio.play();
+    const masterVol = masterVolumeSlider.value / 100;
+    sfxAudio.volume = (sfxVolumeSlider.value / 100) * masterVol;
+    sfxAudio.play().catch(e => console.error("SFX play failed:", e));
 }
 
-updateMoney(0);
-spawnCustomer();
-loadGameData();
-if (!window.customerSpawnInterval) {
-    window.customerSpawnInterval = setInterval(() => {
-        console.log("spawnCustomer interval running"); 
-        spawnCustomer();
-    }, Math.random() * 3000 + 4000);
+function showCustomConfirm(message, onConfirm) {
+
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.style.zIndex = '100000';
+
+    const modalContent = document.createElement('div');
+    modalContent.style.backgroundColor = '#222226';
+    modalContent.style.padding = '30px';
+    modalContent.style.borderRadius = '10px';
+    modalContent.style.textAlign = 'center';
+    modalContent.style.color = 'white';
+    modalContent.style.maxWidth = '400px';
+    modalContent.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+
+    const messageEl = document.createElement('p');
+    messageEl.textContent = message;
+    messageEl.style.marginBottom = '20px';
+    messageEl.style.fontSize = '1.1em';
+
+    const buttonContainer = document.createElement('div');
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'Yes';
+    confirmBtn.style.marginRight = '10px';
+    confirmBtn.style.padding = '10px 20px';
+    confirmBtn.style.backgroundColor = '#dc3545';
+    confirmBtn.style.color = 'white';
+    confirmBtn.style.border = 'none';
+    confirmBtn.style.borderRadius = '5px';
+    confirmBtn.style.cursor = 'pointer';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'No';
+    cancelBtn.style.padding = '10px 20px';
+    cancelBtn.style.backgroundColor = '#7300ff';
+    cancelBtn.style.color = 'white';
+    cancelBtn.style.border = 'none';
+    cancelBtn.style.borderRadius = '5px';
+    cancelBtn.style.cursor = 'pointer';
+
+    confirmBtn.addEventListener('click', () => {
+        onConfirm();
+        document.body.removeChild(modal);
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    buttonContainer.appendChild(confirmBtn);
+    buttonContainer.appendChild(cancelBtn);
+    modalContent.appendChild(messageEl);
+    modalContent.appendChild(buttonContainer);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
 }
     </script>
 </body>

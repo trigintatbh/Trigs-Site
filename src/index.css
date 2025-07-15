@@ -2,22 +2,38 @@
 
 @theme {
   --color-background: #111114;
+  --color-background-2: #0f0f12;
   --color-card: #27272e;
   --color-border: #1b1b20;
   --color-primary: #26262e;
+  --color-secondary-text: #c0c0c0;
 }
 
 @font-face {
-  font-family: 'Alexandria';
+  font-family: 'Inter';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 600;
   font-display: swap;
-  src: url(/src/assets/Alexandria-VariableFont_wght.ttf);
+  src: url(/src/assets/Inter.ttf);
 }
 
 body {
-  @apply bg-background;
-  font-family: 'Alexandria';
+  background-color: #111; 
+  background-image:
+
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,0.03) 0,
+      rgba(255,255,255,0.03) 1px,
+      transparent 2px,
+      transparent 6px
+    ),
+
+    linear-gradient(180deg, var(--color-background-2) 0%, var(--color-background) 100%);
+  background-repeat: repeat;
+  background-attachment: fixed;
+  font-family: 'Inter';
+  font-weight: 600;
 }
 
 #root {
@@ -29,6 +45,10 @@ body {
   @apply flex w-full justify-between py-4 px-5 border-b-2 select-none;
 }
 
+.header {
+  @apply border-none;
+}
+
 .footer {
   @apply border-b-0 border-t-2;
 }
@@ -36,10 +56,23 @@ body {
 .header__logo,
 .header__nav {
   @apply flex items-center gap-2.5;
+    border-radius: 0.5rem;
+  padding: 0.3rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(1px);
+  border-style: dashed;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.147);
 }
 
 .header__nav {
   @apply gap-5;
+  padding: 0.9rem 1rem;
+  gap: 2rem;
+}
+
+.header__logo {
+  padding-left: 0.3rem;
 }
 
 .header__logo--image {
@@ -60,7 +93,7 @@ body {
 
 .games--window {
   @apply absolute left-0 top-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-1;
-  /* @apply absolute w-1/2 h-1/2 translate-x-[25vw] translate-y-50; */
+
 }
 
 .games--window--bar {
@@ -78,12 +111,36 @@ body {
 
 .games--window--bar svg {
   cursor: pointer;
-  height: 100%;
-  width: 26px;
+  height: 100%; 
+  width: 26px; 
   font-size: large;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  color: white; 
 }
 
 .games--window--bar svg:hover {
+  background-color: rgb(245, 20, 80); 
+  border-top-right-radius: 0.5rem;
+}
+
+.close-icon-wrapper { 
+  height: 100%; 
+  width: 26px; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  cursor: pointer; 
+  color: white; 
+}
+
+.close-icon-wrapper svg { 
+  transform: scale(0.7); 
+  transform-origin: center; 
+}
+
+.close-icon-wrapper:hover { 
   background-color: rgb(245, 20, 80);
   border-top-right-radius: 0.5rem;
 }
@@ -98,6 +155,11 @@ body {
 
 .card {
   @apply p-5 pb-0 bg-card h-50 w-50 lg:h-75 lg:w-75 rounded-lg z-0;
+    background: rgb(31, 31, 31);
+  backdrop-filter: blur(1px);
+  border-style: dashed;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.147);
 }
 
 .card--title {
@@ -105,7 +167,7 @@ body {
 }
 
 .card--content {
-  background-position: center; /* Center the image */
+  background-position: center; 
   background-repeat: no-repeat;
   background-size: contain;
   width: 100%;
@@ -114,18 +176,24 @@ body {
 
 .card--description {
   @apply text-sm h-3/4;
+  font-style: italic;
+  color: var(--color-secondary-text);
 }
 
 .card--footer {
   @apply mt-3 pt-2;
-  position: absolute; /* Change from 'absolute' to 'absolute' but remove `top: 95%` */
-  bottom: 0;         /* Pin to the bottom */
-  left: -5%;           /* Stretch from left */
-  right: 0;          /* Stretch to right */
-  padding: 1rem;     /* Add some padding for spacing, adjust as needed */
-  box-sizing: border-box; /* Ensures padding is included within the width */
+  position: absolute; 
+  bottom: 0;         
+  left: -5%;           
+  right: 0;          
+  padding: 1rem;     
+  box-sizing: border-box; 
 }
 
 * {
-  @apply border-border text-white;
+  @apply border-border;
+}
+
+body, #root {
+  @apply text-white;
 }

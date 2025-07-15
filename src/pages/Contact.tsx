@@ -87,7 +87,7 @@ export default function Contact() {
                         <div className="w-full flex flex-col sm:flex-row gap-4">
                             <a href="mailto:triginta777@gmail.com" target="_blank" className="w-full flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 border border-neutral-800 rounded-lg backdrop-blur-sm">
                                 <div className="w-10 h-10 flex items-center justify-center bg-neutral-700 bg rounded-full">
-                                    <img src="../assets/logo.webp" alt="Logo" className="h-6 w-6" />
+                                    <img src="../src/assets/logo.webp" alt="Logo" className="h-10 w-10 rounded-full" />
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-white text-base">triginta</span>

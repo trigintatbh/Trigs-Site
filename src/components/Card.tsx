@@ -14,11 +14,11 @@ export default function Card(props: ICard) {
                 <h2>{props.title}</h2>
             </div>
             <div className="card--content" style={{ backgroundImage: `url(${props.thumbnail})` }}>
-                <div className="group-hover:backdrop-blur-md duration-500 h-full rounded-lg" style={{ height: '120%' }}>
-                    <div className="opacity-0 group-hover:opacity-100 duration-500 card--description">
+                <div className="group-hover:backdrop-blur-xs duration-250 h-full rounded-lg" style={{ height: '120%' }}>
+                    <div className="opacity-0 group-hover:opacity-100 duration-250 card--description" style={{ color: "var(--color-secondary-text)"}}>
                         <p>{props.description}</p>
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 duration-500 card--footer">
+                    <div className="opacity-0 group-hover:opacity-100 duration-250 card--footer">
                         {props.footer}
                     </div>
                 </div>

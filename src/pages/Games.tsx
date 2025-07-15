@@ -9,7 +9,7 @@ import SlotzThumbnail from "../assets/thumb/Slotz.png";
 
 import Card from "../components/Card";
 import { FaArrowDown, FaPlay } from "react-icons/fa";
-import { MdClose } from "react-icons/md";
+import { IoClose } from "react-icons/io5";
 import { useState } from "react";
 
 export default function Games() {
@@ -23,11 +23,22 @@ export default function Games() {
                     <div className="games--window--bar">
                         <span/>
                         <span>{windowTitle}</span>
-                        <MdClose onClick={() => setWindowURL(null)} />
+                        <span className="close-icon-wrapper" onClick={() => setWindowURL(null)}>
+                            <IoClose />
+                        </span>
                     </div>
                     <iframe src={windowURL || ""} />
                 </div>
             </div>
+            <Card title="Trig's Cafe" description="drink up pal it's laced" thumbnail={TrigCafeThumbnail} footer={
+                <div className="flex gap-2">
+                    <FaPlay onClick={() => {
+                        setWindowURL("games/Trig's%20Cafe/index.html");
+                        setWindowTitle("Trig's Cafe");
+                    }} />
+                    <FaArrowDown />
+                </div>
+            } />
             <Card title="Cometbrick" description="bounce balls on bricks" thumbnail={CometbrickThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
@@ -37,47 +48,11 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
             } />
-            <Card title="Defr4g" description="defragment like it's 2001" thumbnail={DefragThumbnail} footer={
+            <Card title='Slotz' description="LETS GO GAMBLING" thumbnail={SlotzThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL("games/Defrag/index.html");
-                        setWindowTitle("Defrag");
-                    }} />
-                    <FaArrowDown />
-                </div>
-            } />
-            <Card title="Lightsim" description="the worst light ray simulation you've ever seen" thumbnail={LightsimThumbnail} footer={
-                <div className="flex gap-2">
-                    <FaPlay onClick={() => {
-                        setWindowURL("games/lightsim/lightsim.html");
-                        setWindowTitle("Lightsim");
-                    }} />
-                    <FaArrowDown />
-                </div>
-            } />
-            <Card title="Running Game" description="chrome dino? where are you?" thumbnail={RunningGameThumbnail} footer={
-                <div className="flex gap-2">
-                    <FaPlay onClick={() => {
-                        setWindowURL("games/Running%20Game/index.html");
-                        setWindowTitle("Running Game");
-                    }} />
-                    <FaArrowDown />
-                </div>
-            } />
-            <Card title="Terram" description="didn't know you could make terraria so bad" thumbnail={TerramThumbnail} footer={
-                <div className="flex gap-2">
-                    <FaPlay onClick={() => {
-                        setWindowURL("games/Terram/index.html");
-                        setWindowTitle("Terram");
-                    }} />
-                    <FaArrowDown />
-                </div>
-            } />
-            <Card title="Trig's Cafe" description="a cafe that crashes a lot for some reason" thumbnail={TrigCafeThumbnail} footer={
-                <div className="flex gap-2">
-                    <FaPlay onClick={() => {
-                        setWindowURL("games/Trig's%20Cafe/index.html");
-                        setWindowTitle("Trig's Cafe");
+                        setWindowURL("games/Slotz/index.html");
+                        setWindowTitle("Slotz");
                     }} />
                     <FaArrowDown />
                 </div>
@@ -91,11 +66,38 @@ export default function Games() {
                     <FaArrowDown />
                 </div>
                 } />
-            <Card title='Slotz' description="LETS GO GAMBLING" thumbnail={SlotzThumbnail} footer={
+            <Card title="Defr4g" description="defragment like it's 2001" thumbnail={DefragThumbnail} footer={
                 <div className="flex gap-2">
                     <FaPlay onClick={() => {
-                        setWindowURL("games/Slotz/index.html");
-                        setWindowTitle("Slotz");
+                        setWindowURL("games/Defrag/index.html");
+                        setWindowTitle("Defrag");
+                    }} />
+                    <FaArrowDown />
+                </div>
+            } />
+            <Card title="Terram" description="didn't know you could make terraria so bad" thumbnail={TerramThumbnail} footer={
+                <div className="flex gap-2">
+                    <FaPlay onClick={() => {
+                        setWindowURL("games/Terram/index.html");
+                        setWindowTitle("Terram");
+                    }} />
+                    <FaArrowDown />
+                </div>
+            } />
+            <Card title="Running Game" description="chrome dino? where are you?" thumbnail={RunningGameThumbnail} footer={
+                <div className="flex gap-2">
+                    <FaPlay onClick={() => {
+                        setWindowURL("games/Running%20Game/index.html");
+                        setWindowTitle("Running Game");
+                    }} />
+                    <FaArrowDown />
+                </div>
+            } />
+            <Card title="Lightsim" description="the worst light ray simulation you've ever seen" thumbnail={LightsimThumbnail} footer={
+                <div className="flex gap-2">
+                    <FaPlay onClick={() => {
+                        setWindowURL("games/lightsim/lightsim.html");
+                        setWindowTitle("Lightsim");
                     }} />
                     <FaArrowDown />
                 </div>

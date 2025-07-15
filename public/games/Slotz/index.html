@@ -1043,11 +1043,8 @@
 
     function calculateJackpotChance(currentLuck) {
       const baseChance = 0.001;
-      const multiplierBase = 6.4797;
+      const multiplierBase = 3.4797;
       let chance = baseChance * Math.pow(multiplierBase, currentLuck / 5);
-      if (ownedArtifacts.some(a => a.id === 'horseshoe')) {
-        chance *= 1.35;
-      }
       return chance;
     }
 
@@ -1055,9 +1052,6 @@
       const baseChance = 0.45;
       const multiplierBase = 0.982;
       let chance = baseChance * Math.pow(multiplierBase, currentLuck);
-      if (ownedArtifacts.some(a => a.id === 'horseshoe')) {
-        chance *= 1.35;
-      }
       return chance;
     }
 
@@ -1065,9 +1059,6 @@
       const baseChance = 0.35;
       const multiplierBase = 1.2487;
       let chance = baseChance * Math.pow(multiplierBase, currentLuck);
-      if (ownedArtifacts.some(a => a.id === 'horseshoe')) {
-        chance *= 1.35;
-      }
       return chance;
     }
 
