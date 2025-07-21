@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atombox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+        canvas {
+            background-color: #000000;
+            touch-action: none;
+            border-radius: 0.5rem;
+        }
+        canvas.matchbox-cursor {
+            cursor: crosshair;
+        }
+        .achievement-toast {
+            transform: translateY(150%);
+            transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+        .achievement-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .sidebar-panel {
+            scrollbar-width: thin;
+            scrollbar-color: #4b5563 #1f2937;
+        }
+
+        /* --- Glassmorphism Styles --- */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.55); /* slate-900 @ 55% opacity */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 1rem; /* 16px */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-button {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease, border 0.3s ease;
+        }
+
+        .glass-button:hover {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .tool-btn.active {
+             background-color: rgba(77, 14, 144, 0.7) !important; /* cyan-700 with opacity */
+             box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.6);
+             border-color: rgba(150, 100, 220, 0.5);
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .shake {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+        }
+    </style>
+</head>
+<body class="text-white h-screen flex flex-col md:flex-row antialiased" style="background-image: linear-gradient(to top right, #000000, #1c0075, #4616a1);">
+
+    <div class="w-full md:w-96 p-4 flex flex-col space-y-4 border-b-2 md:border-b-0 md:border-r-2 border-white/10 overflow-y-auto" style="scrollbar-width: none;">
+        <div class="text-center mb-2">
+            <h1 class="text-4xl font-bold text-[#d18eff]" style="text-shadow: rgba(0, 0, 0, 0.5) 0px 3px 4px;">Atombox</h1>
+        </div>
+
+        <div class="glass-panel p-4">
+            <h2 class="text-lg font-semibold mb-3 border-b border-white/10 pb-2">Tools</h2>
+            <div class="grid grid-cols-2 gap-2">
+                <button id="pointer-tool" class="tool-btn glass-button w-full text-white font-bold py-2 px-4 rounded-lg transition-colors">Pointer</button>
+                <button id="matchbox-tool" class="tool-btn glass-button w-full text-white font-bold py-2 px-4 rounded-lg transition-colors">Matchbox</button>
+            </div>
+            <button id="toggle-charges-btn" class="tool-btn glass-button w-full text-white font-bold py-2 px-4 rounded-lg transition-colors mt-2">Show Charge: ON</button>
+        </div>
+
+        <div class="glass-panel p-4">
+            <h2 class="text-lg font-semibold border-b border-white/10 pb-2 mb-2">Atoms</h2>
+            <div id="spawner-container" class="grid grid-cols-5 gap-1 p-2 max-w-xs mx-auto">
+            </div>
+        </div>
+
+        <div class="glass-panel p-4">
+            <h2 class="text-lg font-semibold mb-3 border-b border-white/10 pb-2">Actions</h2>
+            <div class="space-y-2">
+                <button id="bond-btn" class="w-full glass-button text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-600/50 disabled:cursor-not-allowed">Bond Selected</button>
+                <button id="unbond-btn" class="w-full glass-button text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-600/50 disabled:cursor-not-allowed">Unbond Molecule</button>
+                <button id="delete-btn" class="w-full glass-button text-red-400 hover:bg-red-900/50 border-red-500/20 hover:border-red-500/40 font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-gray-600/50 disabled:cursor-not-allowed disabled:text-white disabled:border-white/10">Delete Selected</button>
+                <div class="pt-2">
+                    <label for="temp-slider" class="text-sm text-gray-300">Ambient Temp: <span id="temp-value">298</span> K</label>
+                    <input id="temp-slider" type="range" min="0" max="50" value="2.98" step="0.001" class="w-full h-2 bg-gray-700/50 rounded-lg cursor-pointer">
+                </div>
+                <label for="grav-slider" class="text-sm text-gray-300">Gravity: <span id="grav-value">9.81</span> m/s²</label>
+                <input id="grav-slider" type="range" min="0" max="20" value="9.81" step="0.1" class="w-full h-2 bg-gray-700/50 rounded-lg cursor-pointer">
+                <button id="clear-btn" class="w-full glass-button text-white font-bold py-2 px-4 rounded-lg transition-colors mt-2">Clear Canvas</button>
+            </div>
+        </div>
+
+        <div id="info-panel" class="info-panel hidden glass-panel p-4">
+            <h3 id="info-name" class="text-lg font-bold"></h3>
+            <p id="info-formula" class="text-sm"></p>
+            <p id="info-temp" class="text-sm"></p>
+            <p id="info-state" class="text-sm"></p>
+            <p id="info-points" class="text-xs text-gray-400"></p>
+        </div>
+        
+        <div class="glass-panel p-4 flex-grow flex flex-col">
+            <h2 class="text-lg font-semibold mb-2 border-b border-white/10 pb-2">Discoveries</h2>
+            <div id="achievements-list" class="flex-grow overflow-y-auto space-y-2 sidebar-panel pr-2">
+                 <p class="text-gray-400 text-sm">No discoveries yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-grow flex items-center justify-center bg-transparent p-0 m-0">
+        <canvas id="atomCanvas"></canvas>
+    </div>
+
+    <div id="achievement-toast" class="achievement-toast fixed bottom-5 right-5 text-white py-3 px-6 shadow-lg max-w-sm glass-panel">
+        <h3 class="font-bold text-cyan-300">Discovery!</h3>
+        <p id="achievement-text"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Canvas & Context Setup ---
+            const canvas = document.getElementById('atomCanvas');
+            const ctx = canvas.getContext('2d');
+            const container = canvas.parentElement;
+
+            // --- Game State & Physics ---
+            let atoms = {}; 
+            let molecules = {}; 
+            let selectedMoleculeIds = new Set();
+            let draggedObject = null; 
+            let nextAtomId = 0;
+            let nextMoleculeId = 0;
+            let discoveredMolecules = new Set();
+            let selectedAtomId = null; // Stores the ID of the atom currently displayed in the info panel
+            
+            let currentTool = 'pointer'; 
+            let isMouseDown = false;
+            let mousePos = { x: 0, y: 0 };
+            let chargeVisualsEnabled = true;
+            let ambientTemperature = 2.98;
+
+            // --- Constants ---
+            const SPATIAL_GRID_CELL_SIZE = 150; 
+            const VIBRATION_BASE = 0.05;
+            const REPULSION_STRENGTH = 600000;
+            const IONIC_FORCE_STRENGTH = 1500;
+            const VELOCITY_DAMPING = 0.05;
+            let isMatchboxActive = false;
+            let heatRadius = 70; 
+            const MIN_HEAT_RADIUS = 20;
+            const MAX_HEAT_RADIUS = 250;
+            const HEAT_PER_FRAME = 0.1;
+            const heatTransferCoefficient = 0.1;
+            const HEAT_BOND_THRESHOLD = 19; 
+            const TORQUE_STRENGTH = 0.5;
+            let visualEffects = [];
+            let gravityStrength = 9.81;
+            let isDraggingExistingObject = false; 
+            let lastMousePos = { x: 0, y: 0 }; 
+            const THROW_STRENGTH = 3;
+            const THROW_VELOCITY_THRESHOLD = 2;
+            const THERMAL_GAS_STRENGTH = 50; // New constant for gas thermal motion
+            const THERMAL_LIQUID_STRENGTH = 15; // New constant for liquid thermal motion
+            const THERMAL_SOLID_STRENGTH = 2; // New constant for solid thermal motion
+
+// --- Element Configuration ---
+const ELEMENT_CONFIG = {
+  'H':  { color: '#E0E0E0', radius: 12, name: 'Hydrogen',     mass: 1,   charge:  0.20, melt: 13.99,  boil: 20.271 },  // δ⁺
+  'He': { color: '#FECDD3', radius: 10, name: 'Helium',       mass: 4,   charge:  0.00, melt: 0.95,   boil: 4.222 },
+  'Li': { color: '#C4B5FD', radius: 18, name: 'Lithium',      mass: 7,   charge:  0.10, melt: 453.65,  boil: 1603 },
+  'Be': { color: '#A7F3D0', radius: 16, name: 'Beryllium',    mass: 9,   charge:  0.25, melt: 1560,    boil: 2742 },
+  'B':  { color: '#F472B6', radius: 16, name: 'Boron',        mass: 11,  charge:  0.05, melt: 2349,    boil: 4200 },
+  'C':  { color: '#6B7280', radius: 18, name: 'Carbon',       mass: 12,  charge:  0.00, melt: 4098,    boil: 4098 }, // Sublimes usually
+  'N':  { color: '#60A5FA', radius: 15, name: 'Nitrogen',     mass: 14,  charge: -0.30, melt: 63.15,   boil: 77.355 },
+  'O':  { color: '#EF4444', radius: 16, name: 'Oxygen',       mass: 16,  charge: -0.40, melt: 54.36,   boil: 90.188 },
+  'F':  { color: '#86EFAC', radius: 14, name: 'Fluorine',     mass: 19,  charge: -0.50, melt: 53.48,   boil: 85.03 },
+  'Ne': { color: '#F9A8D4', radius: 13, name: 'Neon',         mass: 20,  charge:  0.00, melt: 24.56,   boil: 27.07 },
+  'Na': { color: '#A78BFA', radius: 22, name: 'Sodium',       mass: 23,  charge:  0.20, melt: 370.87,  boil: 1156 },
+  'Mg': { color: '#93C5FD', radius: 25, name: 'Magnesium',    mass: 24,  charge:  0.20, melt: 923,     boil: 1363 },
+  'Al': { color: '#D1D5DB', radius: 26, name: 'Aluminum',     mass: 27,  charge:  0.30, melt: 933.47,  boil: 2792 },
+  'Si': { color: '#9CA3AF', radius: 22, name: 'Silicon',      mass: 28,  charge:  0.00, melt: 1687,    boil: 3538 },
+  'P':  { color: '#FDBA74', radius: 19, name: 'Phosphorus',   mass: 31,  charge: -0.10, melt: 317.3,   boil: 553.65 },
+  'S':  { color: '#FDE047', radius: 20, name: 'Sulfur',       mass: 32,  charge: -0.20, melt: 388.36,  boil: 717.8 },
+  'Cl': { color: '#86EFAC', radius: 18, name: 'Chlorine',     mass: 35.5,charge: -0.20, melt: 171.6,   boil: 239.11 },
+  'Ar': { color: '#E9D5FF', radius: 17, name: 'Argon',        mass: 40,  charge:  0.00, melt: 83.81,   boil: 87.302 },
+  'K':  { color: '#C084FC', radius: 28, name: 'Potassium',    mass: 39,  charge:  0.20, melt: 336.53,  boil: 1032 },
+  'Ca': { color: '#A5B4FC', radius: 29, name: 'Calcium',      mass: 40,  charge:  0.20, melt: 1115,    boil: 1757 },
+  'Sc': { color: '#E5E7EB', radius: 26, name: 'Scandium',     mass: 45,  charge:  0.10, melt: 1814,    boil: 3109 },
+  'Ti': { color: '#9CA3AF', radius: 25, name: 'Titanium',     mass: 48,  charge:  0.10, melt: 1941,    boil: 3560 },
+  'V':  { color: '#60A5FA', radius: 24, name: 'Vanadium',     mass: 51,  charge:  0.10, melt: 2183,    boil: 3680 },
+  'Cr': { color: '#A78BFA', radius: 23, name: 'Chromium',     mass: 52,  charge:  0.10, melt: 2180,    boil: 2944 },
+  'Mn': { color: '#F472B6', radius: 22, name: 'Manganese',    mass: 55,  charge:  0.10, melt: 1519,    boil: 2334 },
+  'Fe': { color: '#9CA3AF', radius: 25, name: 'Iron',         mass: 56,  charge:  0.10, melt: 1811,    boil: 3134 },
+  'Co': { color: '#8B5CF6', radius: 22, name: 'Cobalt',       mass: 59,  charge:  0.10, melt: 1768,    boil: 3200 },
+  'Ni': { color: '#6EE7B7', radius: 21, name: 'Nickel',       mass: 59,  charge:  0.10, melt: 1728,    boil: 3186 },
+  'Cu': { color: '#FBBF24', radius: 24, name: 'Copper',       mass: 64,  charge:  0.10, melt: 1357.77, boil: 2835 },
+  'Zn': { color: '#FCD34D', radius: 24, name: 'Zinc',         mass: 65,  charge:  0.10, melt: 692.68,  boil: 1180 },
+  'Br': { color: '#FCA5A5', radius: 20, name: 'Bromine',      mass: 80,  charge: -0.30, melt: 265.8,   boil: 332.0 },
+  'I':  { color: '#A78BFA', radius: 21, name: 'Iodine',       mass: 127, charge: -0.20, melt: 386.85,  boil: 457.4 },
+  'Ba': { color: '#C4B5FD', radius: 35, name: 'Barium',       mass: 137, charge:  0.10, melt: 1000,    boil: 2170 },
+  'Ag': { color: '#D1D5DB', radius: 26, name: 'Silver',       mass: 108, charge:  0.10, melt: 1234.93, boil: 2435 },
+  'Au': { color: '#FACC15', radius: 28, name: 'Gold',         mass: 197, charge:  0.10, melt: 1337.33, boil: 3129 },
+  'Se': { color: '#FEE2E2', radius: 22, name: 'Selenium',    mass: 79,  charge: -0.20, melt: 494,    boil: 958 },
+  'Kr': { color: '#E0F2FE', radius: 18, name: 'Krypton',     mass: 84,  charge:  0.00, melt: 116,    boil: 120 },
+  'Rb': { color: '#FDE68A', radius: 28, name: 'Rubidium',    mass: 85,  charge:  0.15, melt: 312.5,  boil: 961 },
+  'Sr': { color: '#DBEAFE', radius: 30, name: 'Strontium',   mass: 88,  charge:  0.15, melt: 1050,   boil: 1655 },
+  'Mo': { color: '#D9F99D', radius: 24, name: 'Molybdenum', mass: 96,  charge:  0.10, melt: 2896,   boil: 4912 },
+  'Sn': { color: '#FCE7F3', radius: 25, name: 'Tin',         mass: 119, charge:  0.10, melt: 505.1,  boil: 2875 },
+  'Pb': { color: '#E5E7EB', radius: 28, name: 'Lead',        mass: 207, charge:  0.10, melt: 600.6,  boil: 2022 },
+  'Hg': { color: '#CBD5E1', radius: 30, name: 'Mercury',     mass: 200, charge:  0.00, melt: 234.3,  boil: 629.9 },
+  'Pt': { color: '#F3F4F6', radius: 27, name: 'Platinum',    mass: 195, charge:  0.10, melt: 2041.4, boil: 4098 },
+  'U':  { color: '#EDE9FE', radius: 33, name: 'Uranium',     mass: 238, charge:  0.05, melt: 1405.3, boil: 4404 },
+  'W': { color: '#6B7280', radius: 24, name: 'Tungsten', mass: 184, charge: 0.10, melt: 3695, boil: 6203 },
+  'Xe': { color: '#A78BFA', radius: 22, name: 'Xenon', mass: 131, charge: 0.00, melt: 161.4, boil: 165.05 },
+  'As': { color: '#F472B6', radius: 20, name: 'Arsenic', mass: 75, charge: -0.05, melt: 1090, boil: 887 }, // Sublimes
+  'Ge': { color: '#9CA3AF', radius: 23, name: 'Germanium', mass: 73, charge: 0.05, melt: 1211.4, boil: 3106 },
+  'Se': { color: '#34D399', radius: 21, name: 'Selenium', mass: 79, charge: -0.20, melt: 494, boil: 958 },
+  'Sb': { color: '#FBBF24', radius: 24, name: 'Antimony', mass: 122, charge: 0.05, melt: 903.78, boil: 1908 },
+  'Te': { color: '#F472B6', radius: 25, name: 'Tellurium', mass: 128, charge: -0.10, melt: 722.66, boil: 1261 },
+  'Cs': { color: '#C084FC', radius: 30, name: 'Caesium', mass: 133, charge: 0.15, melt: 301.7, boil: 944 }
+};
+
+const MOLECULE_RECIPES = {
+  'H,H': {
+    name: 'Hydrogen Gas', formula: 'H₂', canBondByHeat: true,
+    structure: [{ s: 'H', x: -12, y: 0 }, { s: 'H', x: 12, y: 0 }],
+    melt: 13.99, boil: 20.271
+  },
+  'O,O': {
+    name: 'Oxygen Gas', formula: 'O₂', canBondByHeat: true,
+    structure: [{ s: 'O', x: -16, y: 0 }, { s: 'O', x: 16, y: 0 }],
+    melt: 54.36, boil: 90.188
+  },
+  'N,N': {
+    name: 'Nitrogen Gas', formula: 'N₂', canBondByHeat: true,
+    structure: [{ s: 'N', x: -15, y: 0 }, { s: 'N', x: 15, y: 0 }],
+    melt: 63.15, boil: 77.355
+  },
+  'F,F': {
+    name: 'Fluorine Gas', formula: 'F₂', canBondByHeat: true,
+    structure: [{ s: 'F', x: -14, y: 0 }, { s: 'F', x: 14, y: 0 }],
+    melt: 53.48, boil: 85.03
+  },
+  'Cl,Cl': {
+    name: 'Chlorine Gas', formula: 'Cl₂', canBondByHeat: true,
+    structure: [{ s: 'Cl', x: -18, y: 0 }, { s: 'Cl', x: 18, y: 0 }],
+    melt: 171.6, boil: 239.11
+  },
+  'H,H,O': {
+    name: 'Water', formula: 'H₂O', pKa: 15.7, pKb: 15.7, canBondByHeat: false,
+    structure: [{ s: 'O', x: 0, y: 5 }, { s: 'H', x: -22, y: -10 }, { s: 'H', x: 22, y: -10 }],
+    melt: 273.15, boil: 373.15
+  },
+  'H,H,H,O': {
+    name: 'Hydronium', formula: 'H₃O⁺', pKa: -1.7, canBondByHeat: false,
+    structure: [{ s: 'O', x: 0, y: 0 }, { s: 'H', x: 0, y: -28 }, { s: 'H', x: 24, y: 14 }, { s: 'H', x: -24, y: 14 }],
+    melt: null, boil: null
+  },
+  'C,O,O': {
+    name: 'Carbon Dioxide', formula: 'CO₂', canBondByHeat: false,
+    structure: [{ s: 'C', x: 0, y: 0 }, { s: 'O', x: -34, y: 0 }, { s: 'O', x: 34, y: 0 }],
+    melt: 216.6, boil: 194.65
+  },
+  'C,H,H,H,H': {
+    name: 'Methane', formula: 'CH₄', canBondByHeat: false,
+    structure: [{ s: 'C', x: 0, y: 0 }, { s: 'H', x: 0, y: -30 }, { s: 'H', x: 26, y: 15 }, { s: 'H', x: -26, y: 15 }, { s: 'H', x: 0, y: 30 }],
+    melt: 90.67, boil: 111.66
+  },
+  'H,H,H,N': {
+    name: 'Ammonia', formula: 'NH₃', pKb: 4.75, canBondByHeat: false,
+    structure: [{ s: 'N', x: 0, y: 0 }, { s: 'H', x: 0, y: -27 }, { s: 'H', x: 23, y: 14 }, { s: 'H', x: -23, y: 14 }],
+    melt: 195.4, boil: 239.68
+  },
+  'Cl,Na': {
+    name: 'Salt', formula: 'NaCl', canBondByHeat: false,
+    structure: [{ s: 'Na', x: -20, y: 0 }, { s: 'Cl', x: 20, y: 0 }],
+    melt: 1074, boil: 1686
+  },
+  'F,Li': {
+    name: 'Lithium Fluoride', formula: 'LiF', canBondByHeat: false,
+    structure: [{ s: 'Li', x: -16, y: 0 }, { s: 'F', x: 16, y: 0 }],
+    melt: 1118, boil: 1676
+  },
+  'H,F': {
+    name: 'Hydrogen Fluoride', formula: 'HF', pKa: 3.2, canBondByHeat: true,
+    structure: [{ s: 'H', x: -13, y: 0 }, { s: 'F', x: 13, y: 0 }],
+    melt: 190, boil: 293.75
+  },
+  'H,Cl': {
+    name: 'Hydrogen Chloride', formula: 'HCl', pKa: -6.3, melt: 158.9, boil: 188.1,
+    structure: [{ s: 'H', x: -18, y: 0 }, { s: 'Cl', x: 18, y: 0 }]
+  },
+  'B,F,F,F': {
+    name: 'Boron Trifluoride', formula: 'BF₃', canBondByHeat: false,
+    structure: [{ s: 'B', x: 0, y: 0 }, { s: 'F', x: 0, y: -30 }, { s: 'F', x: 26, y: 15 }, { s: 'F', x: -26, y: 15 }],
+    melt: 146, boil: 173.15
+  },
+  'Cl,K': {
+    name: 'Potassium Chloride', formula: 'KCl', canBondByHeat: false,
+    structure: [{ s: 'K', x: -24, y: 0 }, { s: 'Cl', x: 24, y: 0 }],
+    melt: 1043, boil: 1685
+  },
+  'C,K,N': {
+    name: 'Potassium Cyanide',
+    formula: 'KCN',
+    canBondByHeat: true,
+    structure: [
+      { s: 'K', x: -38, y: 0 },
+      { s: 'C', x: 0, y: 0 },
+      { s: 'N', x: 32, y: 0 }
+    ],
+    melt: 863,
+    boil: 1623
+  },
+  'O,Ca': {
+    name: 'Calcium Oxide', formula: 'CaO', canBondByHeat: false,
+    structure: [{ s: 'Ca', x: -22, y: 0 }, { s: 'O', x: 22, y: 0 }],
+    melt: 2845, boil: 3120
+  },
+  'O,O,O': {
+    name: 'Ozone', formula: 'O₃', canBondByHeat: false,
+    structure: [{ s: 'O', x: 0, y: 0 }, { s: 'O', x: -18, y: -10 }, { s: 'O', x: 18, y: -10 }],
+    melt: 80.7, boil: 161
+  },
+  'C,O': {
+    name: 'Carbon Monoxide', formula: 'CO', canBondByHeat: true,
+    structure: [{ s: 'C', x: -15, y: 0 }, { s: 'O', x: 15, y: 0 }],
+    melt: 68, boil: 81.6
+  },
+  'Mg,O': {
+    name: 'Magnesium Oxide', formula: 'MgO', canBondByHeat: false,
+    structure: [{ s: 'Mg', x: -22, y: 0 }, { s: 'O', x: 22, y: 0 }],
+    melt: 3125, boil: 3873
+  },
+  'N,O': {
+    name: 'Nitric Oxide', formula: 'NO', canBondByHeat: true,
+    structure: [{ s: 'N', x: -15, y: 0 }, { s: 'O', x: 15, y: 0 }],
+    melt: 109.5, boil: 121.3
+  },
+  'N,O,O': {
+    name: 'Nitrogen Dioxide', formula: 'NO₂', canBondByHeat: true,
+    structure: [{ s: 'N', x: 0, y: 5 }, { s: 'O', x: -22, y: -10 }, { s: 'O', x: 22, y: -10 }],
+    melt: 261.9, boil: 294.2
+  },
+  'S,O,O': {
+    name: 'Sulfur Dioxide', formula: 'SO₂', canBondByHeat: true,
+    structure: [{ s: 'S', x: 0, y: 5 }, { s: 'O', x: -24, y: -12 }, { s: 'O', x: 24, y: -12 }],
+    melt: 197.6, boil: 263.1
+  },
+  'S,O,O,O': {
+    name: 'Sulfur Trioxide', formula: 'SO₃', canBondByHeat: false,
+    structure: [{ s: 'S', x: 0, y: 0 }, { s: 'O', x: 0, y: -30 }, { s: 'O', x: 26, y: 15 }, { s: 'O', x: -26, y: 15 }],
+    melt: 290, boil: 318
+  },
+  'H,H,S': {
+    name: 'Hydrogen Sulfide', formula: 'H₂S', canBondByHeat: true,
+    structure: [{ s: 'S', x: 0, y: 5 }, { s: 'H', x: -22, y: -10 }, { s: 'H', x: 22, y: -10 }],
+    melt: 187.6, boil: 213.5
+  },
+  'C,N': {
+    name: 'Cyanide', formula: 'CN⁻', canBondByHeat: false,
+    structure: [{ s: 'C', x: -14, y: 0 }, { s: 'N', x: 14, y: 0 }],
+    melt: null, boil: null
+  },
+  'C,H,H,O': {
+    name: 'Formaldehyde', formula: 'CH₂O', canBondByHeat: false,
+    structure: [{ s: 'C', x: 0, y: 5 }, { s: 'O', x: 0, y: -24 }, { s: 'H', x: -20, y: 15 }, { s: 'H', x: 20, y: 15 }],
+    melt: 155, boil: 254
+  },
+  'H,C,N': {
+    name: 'Hydrogen Cyanide', formula: 'HCN', canBondByHeat: false,
+    structure: [{ s: 'H', x: -28, y: 0 }, { s: 'C', x: 0, y: 0 }, { s: 'N', x: 26, y: 0 }],
+    melt: 260, boil: 299
+  },
+  'N,H,H,H,H': {
+    name: 'Ammonium', formula: 'NH₄⁺', pKa: 9.25, canBondByHeat: false,
+    structure: [{ s: 'N', x: 0, y: 0 }, { s: 'H', x: 0, y: -28 }, { s: 'H', x: 26, y: 16 }, { s: 'H', x: -26, y: 16 }, { s: 'H', x: 0, y: 20 }],
+    melt: null, boil: null
+  },
+  'H,Br': {
+    name: 'Hydrogen Bromide', formula: 'HBr', pKa: -8.7, canBondByHeat: true,
+    structure: [{ s: 'H', x: -18, y: 0 }, { s: 'Br', x: 18, y: 0 }],
+    melt: 186, boil: 206
+  },
+  'H,I': {
+    name: 'Hydrogen Iodide', formula: 'HI', pKa: -9.3, canBondByHeat: true,
+    structure: [{ s: 'H', x: -12, y: 0 }, { s: 'I', x: 12, y: 0 }],
+    melt: 222, boil: 238
+  },
+  'C,C,H,H,H,H,H,H': {
+    name: 'Ethane', formula: 'C₂H₆', canBondByHeat: false,
+    structure: [ { s: 'C', x: -18, y: 0 }, { s: 'C', x: 18, y: 0 }, { s: 'H', x: -24, y: -22 }, { s: 'H', x: -24, y: 22 }, { s: 'H', x: -36, y: 0 }, { s: 'H', x: 24, y: -22 }, { s: 'H', x: 24, y: 22 }, { s: 'H', x: 36, y: 0 } ],
+    melt: 101, boil: 184.6
+  },
+  'C,C,H,H,H,H,H,O,H': {
+    name: 'Ethanol', formula: 'C₂H₅OH', pKa: 16, canBondByHeat: false,
+    structure: [ { s: 'C', x: -24, y: 10 }, { s: 'C', x: 8, y: -5 }, { s: 'O', x: 28, y: 12 }, { s: 'H', x: 44, y: 4 }, { s: 'H', x: -30, y: -12 }, { s: 'H', x: -40, y: 15 }, { s: 'H', x: 12, y: -28 }, { s: 'H', x: -2, y: -20 }, { s: 'H', x: 10, y: 15 } ],
+    melt: 158.5, boil: 351.6
+  },
+  'Ca,Cl,Cl': {
+    name: 'Calcium Chloride', formula: 'CaCl₂', canBondByHeat: false,
+    structure: [ { s: 'Ca', x: 0, y: 0 }, { s: 'Cl', x: -30, y: 0 }, { s: 'Cl', x: 30, y: 0 } ],
+    melt: 1045, boil: 2208
+  },
+   'H,H,S,O,O,O,O': { name: 'Sulfuric Acid', formula: 'H₂SO₄', pKa: -3.0, melt: 283, boil: 610, structure: [ { s: 'S', x: 0, y: 0 }, { s: 'O', x: 0, y: 34 }, { s: 'O', x: 0, y: -34 }, { s: 'O', x: 30, y: 16 }, { s: 'H', x: 48, y: 16 }, { s: 'O', x: -30, y: 16 }, { s: 'H', x: -48, y: 16 } ] },
+   'H,S,O,O,O,O': { name: 'Bisulfate', formula: 'HSO₄⁻', pKa: 1.99, melt: null, boil: null, structure: [ { s: 'S', x: 0, y: 0 }, { s: 'O', x: 0, y: 34 }, { s: 'O', x: 0, y: -34 }, { s: 'O', x: 30, y: 16 }, { s: 'H', x: 48, y: 16 }, { s: 'O', x: -30, y: 16 } ]},
+   'F': { name: 'Fluoride Ion', formula: 'F⁻', pKb: 10.8, melt: null, boil: null, structure: [{ s: 'F', x: 0, y: 0 }] },
+   'Cl': { name: 'Chloride Ion', formula: 'Cl⁻', pKb: 20.3, melt: null, boil: null, structure: [{ s: 'Cl', x: 0, y: 0 }] },
+  'C,C,C,H,H,H,H,H,H,H,H': {
+    name: 'Propane', formula: 'C₃H₈', canBondByHeat: false,
+    structure: [ { s: 'C', x: -30, y: 0 }, { s: 'C', x: 0, y: 0 }, { s: 'C', x: 30, y: 0 }, { s: 'H', x: -50, y: 0 }, { s: 'H', x: -28, y: -22 }, { s: 'H', x: -28, y: 22 }, { s: 'H', x: 0, y: -24 }, { s: 'H', x: 0, y: 24 }, { s: 'H', x: 28, y: -22 }, { s: 'H', x: 28, y: 22 }, { s: 'H', x: 50, y: 0 } ],
+    melt: 85.5, boil: 231.1
+  },
+  'H,H,O,O': {
+    name: 'Hydrogen Peroxide', formula: 'H₂O₂', pKa: 11.6, canBondByHeat: false,
+    structure: [ { s: 'O', x: -14, y: 5 }, { s: 'O', x: 14, y: -5 }, { s: 'H', x: -30, y: -10 }, { s: 'H', x: 30, y: 10 } ],
+    melt: 272.4, boil: 423.2,
+    decomposeTemp: 424,
+    products: ['H,H,O', 'O']
+  },
+  'C,H,H,H,O,H': {
+  	name: 'Methanol', formula: 'CH₃OH', pKa: 15.5, canBondByHeat: false,
+  	structure: [ { s: 'C', x: 0, y: 0 }, { s: 'O', x: 28, y: 10 }, { s: 'H', x: 42, y: -2 }, { s: 'H', x: -8, y: -24 }, { s: 'H', x: -20, y: 10 }, { s: 'H', x: 8, y: 20 } ],
+  	melt: 175.6, boil: 337.8
+  },
+  'C,C,H,H,H,H': {
+  	name: 'Ethylene', formula: 'C₂H₄', canBondByHeat: false,
+  	structure: [ { s: 'C', x: -16, y: 0 }, { s: 'C', x: 16, y: 0 }, { s: 'H', x: -28, y: -20 }, { s: 'H', x: -28, y: 20 }, { s: 'H', x: 28, y: -20 }, { s: 'H', x: 28, y: 20 } ],
+  	melt: 104, boil: 169.4
+  },
+  'C,C,H,H': {
+  	name: 'Acetylene', formula: 'C₂H₂', canBondByHeat: false,
+  	structure: [ { s: 'C', x: -14, y: 0 }, { s: 'C', x: 14, y: 0 }, { s: 'H', x: -36, y: 0 }, { s: 'H', x: 36, y: 0 } ],
+  	melt: 189.15, boil: 192.45
+  },
+  'C,C,C,C,H,H,H,H,H,H,H,H,H,H': {
+  	name: 'Butane', formula: 'C₄H₁₀', canBondByHeat: false,
+  	structure: [ { s: 'C', x: -45, y: 0 }, { s: 'C', x: -15, y: 0 }, { s: 'C', x: 15, y: 0 }, { s: 'C', x: 45, y: 0 }, { s: 'H', x: -65, y: 0 }, { s: 'H', x: -43, y: -22 }, { s: 'H', x: -43, y: 22 }, { s: 'H', x: -13, y: -22 }, { s: 'H', x: -13, y: 22 }, { s: 'H', x: 13, y: -22 }, { s: 'H', x: 13, y: 22 }, { s: 'H', x: 65, y: 0 }, { s: 'H', x: 43, y: -22 }, { s: 'H', x: 43, y: 22 } ],
+  	melt: 134.8, boil: 272.5
+  },
+  'C,C,C,H,H,H,H,H,H': {
+  	name: 'Propene', formula: 'C₃H₆', canBondByHeat: false,
+  	structure: [ { s: 'C', x: -30, y: 0 }, { s: 'C', x: 0, y: 0 }, { s: 'C', x: 30, y: 0 }, { s: 'H', x: -50, y: -4 }, { s: 'H', x: -28, y: -22 }, { s: 'H', x: -28, y: 22 }, { s: 'H', x: 0, y: 24 }, { s: 'H', x: 28, y: -22 }, { s: 'H', x: 28, y: 22 }, { s: 'H', x: 50, y: 4 } ],
+  	melt: 87.9, boil: 225.5
+  },
+  'N,N,O': {
+  	name: 'Nitrous Oxide', formula: 'N₂O', canBondByHeat: false,
+  	structure: [ { s: 'N', x: -24, y: 0 }, { s: 'N', x: 0, y: 0 }, { s: 'O', x: 22, y: 0 } ],
+  	melt: 182.3, boil: 184.7,
+  	decomposeTemp: 873,
+  	products: ['N,N', 'O']
+  },
+  'C,C,C,C,C,C,H,H,H,H,H,H,O,O,O,O,O,O': {
+  	name: 'Glucose', formula: 'C₆H₁₂O₆', pKa: 12.28, melt: 419.15,
+  	structure: [ { s: 'C', x: 30, y: 0 }, { s: 'C', x: 15, y: 26 }, { s: 'C', x: -15, y: 26 }, { s: 'C', x: -30, y: 0 }, { s: 'C', x: -15, y: -26 }, { s: 'O', x: 15, y: -26 }, { s: 'C', x: -30, y: -52 }, { s: 'O', x: 45, y: 15 }, { s: 'H', x: 55, y: 5 }, { s: 'O', x: 15, y: 52 }, { s: 'H', x: 25, y: 62 }, { s: 'O', x: -15, y: 52 }, { s: 'H', x: -25, y: 62 }, { s: 'O', x: -45, y: 15 }, { s: 'H', x: -55, y: 5 }, { s: 'O', x: -45, y: -67 }, { s: 'H', x: -55, y: -57 }, { s: 'H', x: 45, y: -10 }, { s: 'H', x: 30, y: 41 }, { s: 'H', x: -30, y: 41 }, { s: 'H', x: -45, y: -10 }, { s: 'H', x: -5, y: -41 }, { s: 'H', x: -20, y: -67 } ],
+  	boil: 474,
+  	decomposeTemp: 474,
+  	products: ['C','C','C','C','C','C', 'H,H,O','H,H,O','H,H,O','H,H,O','H,H,O','H,H,O']
+  },
+  // --- NEW MOLECULES ---
+  'C,Ca,O,O,O': {
+  	name: 'Calcium Carbonate', formula: 'CaCO₃', canBondByHeat: false,
+  	structure: [ { s: 'Ca', x: 0, y: 30 }, { s: 'C', x: 0, y: -5 }, { s: 'O', x: 0, y: -35 }, { s: 'O', x: 26, y: 5 }, { s: 'O', x: -26, y: 5 } ],
+  	melt: 1612,
+  	boil: 3108,
+  	decomposeTemp: 1173,
+  	products: ['O,Ca', 'C,O,O']
+  },
+  'Ca,H,H,O,O': {
+  	name: 'Calcium Hydroxide', formula: 'Ca(OH)₂', canBondByHeat: false,
+  	structure: [ { s: 'Ca', x: 0, y: 0 }, { s: 'O', x: -30, y: 15 }, { s: 'H', x: -45, y: 20 }, { s: 'O', x: 30, y: -15 }, { s: 'H', x: 45, y: -20 } ],
+  	melt: 853,
+  	boil: 3123,
+  	decomposeTemp: 853,
+  	products: ['O,Ca', 'H,H,O']
+  },
+  'O': {
+  	name: 'Atomic Oxygen', formula: 'O', canBondByHeat: false,
+  	structure: [{ s: 'O', x: 0, y: 0, }],
+  	melt: 54.36, boil: 90.188
+  }
+};
+
+const COMBINATION_REACTIONS = {
+    // Reactant keys are their recipeKeys, sorted alphabetically, and joined with '_'
+    // Format: { product: 'PRODUCT_RECIPE_KEY', temp_req: KELVIN_TEMPERATURE }
+    'C,C,H,H,H,H_H,H': { product: 'C,C,H,H,H,H,H,H', temp_req: 473 }, // Ethylene + Hydrogen -> Ethane (usually ~200°C with catalyst)
+    'H,H,O_S,O,O,O': { product: 'H,H,S,O,O,O,O', temp_req: 297 }, // Water + SO3 -> H2SO4 (exothermic, can happen ~room temp but initiates around 25°C)
+    'H,H,O_O,Ca': { product: 'Ca,H,H,O,O', temp_req: 323 }, // Water + CaO -> Ca(OH)₂ (exothermic but requires warm start)
+    'C,O_O': { product: 'C,O,O', temp_req: 1100 }, // CO + O -> CO2 (combustion, typically ~800–1200K)
+    'N,O_O': { product: 'N,O,O', temp_req: 1000 }, // NO + O -> NO2 (atmospheric reaction, fast at high temp)
+    'O_O': { product: 'O,O', temp_req: 400 }, // O + O -> O2 (low energy requirement, simplified)
+    'H_H': { product: 'H,H', temp_req: 450 }, // H + H -> H2 (same as above)
+    'N_N': { product: 'N,N', temp_req: 9000 }, // N + N -> N2 (needs lots of energy since N is chill on it's own)
+    'C,H,H,H,H_O,O': { product: 'C,H,H,O', temp_req: 1500, byproducts: ['H,H,O'] } // Methane combustion requires ~1200–1500K 
+};
+
+            function saveDiscoveries() {
+                try {
+                    // Convert the Set to an Array for JSON stringification
+                    const discoveriesArray = Array.from(discoveredMolecules);
+                    localStorage.setItem('atombox_discoveries', JSON.stringify(discoveriesArray));
+                } catch (e) {
+                }
+            }
+
+            /**
+             * Loads discovered molecules from localStorage into the discoveredMolecules Set.
+             */
+            function loadDiscoveries() {
+                try {
+                    const savedData = localStorage.getItem('atombox_discoveries');
+                    if (savedData) {
+                        const discoveriesArray = JSON.parse(savedData);
+                        // Populate the Set from the loaded array
+                        discoveredMolecules = new Set(discoveriesArray);
+                    } else {
+                    }
+                } catch (e) {
+                    // Clear corrupted data if parsing fails
+                    localStorage.removeItem('atombox_discoveries');
+                    discoveredMolecules = new Set(); // Reset to empty set
+                }
+            }
+
+function extendPhasePoints() {
+  Object.values(ELEMENT_CONFIG).forEach(val => {
+    if (val.melt === undefined) val.melt = 250;  // default melt
+    if (val.boil === undefined) val.boil = 400;  // default boil
+  });
+  Object.values(MOLECULE_RECIPES).forEach(rec => {
+    if (rec.melt === undefined) rec.melt = 250;
+    if (rec.boil === undefined) rec.boil = 400;
+  });
+}
+
+function generateUniqueId() {
+  return '_' + Math.random().toString(36).substr(2, 9);
+}
+
+        canvas.addEventListener('click', e => {
+  const atom = findAtomAt(e.offsetX, e.offsetY);
+  
+  if (atom) {
+    selectedAtomId = atom.id; // Set the selected atom
+  } else {
+    selectedAtomId = null; // Clear selection if no atom clicked
+  }
+  
+  updateInfoPanel(); // Update the panel based on the new selection
+});
+            
+            // --- UI Elements ---
+            const bondBtn = document.getElementById('bond-btn');
+            const unbondBtn = document.getElementById('unbond-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const achievementsList = document.getElementById('achievements-list');
+            const toast = document.getElementById('achievement-toast');
+            const toastText = document.getElementById('achievement-text');
+            const pointerToolBtn = document.getElementById('pointer-tool');
+            const matchboxToolBtn = document.getElementById('matchbox-tool');
+            const toggleChargesBtn = document.getElementById('toggle-charges-btn');
+            const tempSlider = document.getElementById('temp-slider');
+            const tempValue = document.getElementById('temp-value');
+            const gravSlider = document.getElementById('grav-slider');
+            const gravValue  = document.getElementById('grav-value');
+
+            gravSlider.addEventListener('input', e => {
+  gravityStrength = parseFloat(e.target.value);
+  gravValue.textContent = gravityStrength.toFixed(1);
+});
+
+let lastFrameTime = performance.now();
+
+function getMoleculeReferenceData(mol) {
+  const isSingle = mol.atom_ids.length === 1;
+  let ref;
+
+  if (isSingle) {
+    // For single atoms, directly use the atom's config which includes extended phase points
+    ref = atoms[mol.atom_ids[0]].cfg;
+  } else { // It's a multi-atom molecule
+    // Try to find the recipe using mol.recipeKey first, if it's a valid key
+    if (mol.recipeKey && typeof mol.recipeKey === 'string' && MOLECULE_RECIPES[mol.recipeKey]) {
+      ref = MOLECULE_RECIPES[mol.recipeKey];
+    } else {
+      // Fallback: If recipeKey is null/undefined/invalid, or not found, try finding by name
+      // Use mol.name as the 'name' argument for consistency with the log message
+      ref = Object.values(MOLECULE_RECIPES).find(r => r.name === mol.name);
+    }
+  }
+
+  // Fallback for cases where a recipe isn't found (e.g., custom/unlisted combinations)
+  if (!ref) {
+    // The specific formula for the warning depends on what mol.formula is at this point
+    // For molecules, mol.name is more reliable for logging
+    ref = { melt: 250, boil: 400 }; // Default values
+  }
+  return ref;
+}
+
+function updateInfoPanel() {
+    const info = document.getElementById('info-panel');
+
+    if (!selectedAtomId) {
+        info.classList.add('hidden');
+        return;
+    }
+
+    const atom = atoms[selectedAtomId];
+    if (!atom) { // Atom might have been removed
+        selectedAtomId = null;
+        info.classList.add('hidden');
+        return;
+    }
+
+    const mol = molecules[atom.moleculeId];
+    if (!mol) { // Molecule might have been removed (e.g., if last atom of molecule removed)
+        selectedAtomId = null;
+        info.classList.add('hidden');
+        return;
+    }
+
+    const isSingle = mol.atom_ids.length === 1;
+    const name = isSingle ? atom.cfg.name : mol.name;
+    const formula = isSingle ? atom.symbol : mol.formula;
+    
+    // Calculate temperature based on atom.heat or average of molecule's atoms
+    let currentTemperature;
+    if (isSingle) {
+        currentTemperature = atom.heat;
+    } else {
+        // Average the heat of all atoms in the molecule
+        const totalHeat = mol.atom_ids.reduce((sum, id) => sum + atoms[id].heat, 0);
+        currentTemperature = totalHeat / mol.atom_ids.length;
+    }
+    const T = (currentTemperature * 100).toFixed(1) + ' K'; // Scale and format
+
+    // Use the shared helper to get reference data for display
+    const ref = getMoleculeReferenceData(mol);
+
+    document.getElementById('info-name').textContent = name;
+    document.getElementById('info-formula').textContent = `Formula: ${formula}`;
+    document.getElementById('info-temp').textContent = `Temp: ${T}`;
+    document.getElementById('info-state').textContent = `State: ${mol.state}`; // Use the state calculated by updateStates
+    document.getElementById('info-points').textContent = `M.P.: ${ref.melt} K | B.P.: ${ref.boil} K`;
+
+    info.classList.remove('hidden');
+}
+
+function applyHeat(dt) {
+    Object.values(atoms).forEach(atom => {
+        // Calculate the temperature difference
+        const tempDifference = ambientTemperature - atom.heat;
+
+        // Apply a fraction of the temperature difference over time
+        // This makes atoms gradually reach ambient temperature
+        if (tempDifference > 0) {
+            atom.heat += tempDifference * (heatTransferCoefficient * 0.75) * dt;
+        } else {
+        atom.heat += tempDifference * heatTransferCoefficient * dt;
+        }
+
+        // Optional: Prevent temperature from going below absolute zero (0 Kelvin)
+        if (atom.heat < 0) {
+            atom.heat = 0;
+        }
+    });
+}
+
+function applyMatchboxHeat(mouseX, mouseY) {
+    const affectedRadius = heatRadius; // Use the adjustable heatRadius
+    const affectedRadiusSq = affectedRadius * affectedRadius;
+    const heatStrength = 2; // How much heat to add per call (adjust this value)
+
+    Object.values(atoms).forEach(atom => {
+        const absPos = getAtomAbsPos(atom); 
+        
+        const distSq = (absPos.x - mouseX)**2 + (absPos.y - mouseY)**2;
+
+        if (distSq < affectedRadiusSq) {
+            // Calculate proximity: closer to center means more heat
+            const proximity = 1 - (distSq / affectedRadiusSq); // 1 at center, 0 at edge
+            atom.heat += heatStrength * proximity;
+
+            // Optional: Also add some kinetic energy (vibration) to make it more visually dynamic
+            // This translates to a 'hotter' visual appearance
+            atom.vx += (Math.random() - 0.5) * (heatStrength * 0.01) * proximity;
+            atom.vy += (Math.random() - 0.5) * (heatStrength * 0.01) * proximity;
+        }
+    });
+}
+
+canvas.addEventListener('mousedown', e => {
+    if (currentTool === 'heat') { // Check if the matchbox tool is active
+        isMatchboxActive = true; // Set the flag to true
+        applyMatchboxHeat(e.offsetX, e.offsetY); // Apply heat immediately on click
+    }
+    // ... (your existing mousedown logic for other tools or drag/drop)
+});
+
+canvas.addEventListener('mousemove', e => {
+    if (isMatchboxActive && currentTool === 'heat') { // Only apply heat if matchbox is active and mouse is down
+        applyMatchboxHeat(e.offsetX, e.offsetY); // Continuously apply heat while dragging
+    }
+    // ... (your existing mousemove logic for other tools or drag/drop)
+});
+
+canvas.addEventListener('mouseup', () => {
+    isMatchboxActive = false; // Reset the flag when mouse button is released
+    // ... (your existing mouseup logic for other tools or drag/drop)
+});
+
+canvas.addEventListener('mouseleave', () => {
+    isMatchboxActive = false; // Reset the flag if mouse leaves canvas area
+});
+
+function generateSpawnerButtons() {
+                const spawnerContainer = document.getElementById('spawner-container');
+                if (!spawnerContainer) {
+                    return;
+                }
+                spawnerContainer.innerHTML = ''; // Clear any existing content
+
+                // Iterate through each atom defined in ELEMENT_CONFIG, getting both the symbol (key) and the config object (value)
+                Object.entries(ELEMENT_CONFIG).forEach(([symbol, config]) => { // <--- Corrected: Using Object.entries to get both symbol and config
+                    // Create the main wrapper for the button and its full name
+                    const buttonWrapper = document.createElement('div');
+                    buttonWrapper.className = 'flex flex-col items-center justify-center p-1'; // Minimal padding, centered content
+
+                    // Create the square button element itself
+                    const atomButton = document.createElement('div');
+                    atomButton.className = 'w-16 h-16 bg-black/20 hover:bg-black/30 rounded-lg shadow-md flex items-center justify-center relative transition-colors'; // Square, styled button
+                    atomButton.style.width = '48px';
+                    atomButton.style.height = '48px';
+                    
+                    // Store the atom symbol in a dataset for easy access during drag operations
+                    atomButton.dataset.atom = symbol; // <--- Corrected: Use 'symbol' directly
+
+                    // Create the inner colored circle
+                    const colorCircle = document.createElement('div');
+                    colorCircle.className = 'rounded-full flex items-center justify-center text-lg font-bold text-white'; // Larger circle, centered text
+                    colorCircle.style.width = `${config.radius * 1.2}px`;
+                    colorCircle.style.height = `${config.radius * 1.2}px`;
+                    colorCircle.style.backgroundColor = config.color; // <--- Corrected: Use 'config.color' directly
+
+                    // Create the atom symbol text (e.g., 'H', 'O')
+                    const atomSymbol = document.createElement('span');
+                    atomSymbol.textContent = symbol; // <--- Corrected: Use 'symbol' directly
+                    atomSymbol.className = 'select-none'; // Prevent text selection on drag
+                    atomSymbol.style.font = `bold ${config.radius * 0.7}px Inter`;
+                    atomSymbol.style.textShadow = '0px 1px 2px rgba(0,0,0,0.5)';
+
+
+                    colorCircle.appendChild(atomSymbol);
+                    atomButton.appendChild(colorCircle);
+                    buttonWrapper.appendChild(atomButton);
+
+                    // Create the full name text below the button (e.g., 'Hydrogen')
+                    const atomFullName = document.createElement('p');
+                    atomFullName.textContent = config.name; // <--- Corrected: Use 'config.name' directly
+                    atomFullName.className = 'text-[10px] text-gray-300 mt-1 select-none text-center'; // Small text, centered
+
+                    buttonWrapper.appendChild(atomFullName);
+
+                    // Attach the pointerdown event listener to the *square button*
+                    // This is crucial for initiating the drag-to-spawn behavior
+                    atomButton.addEventListener('pointerdown', (e) => onSpawnerDragStart(e, symbol)); // <--- Corrected: Pass 'symbol' directly
+
+                    // Append the entire button structure to the spawner container
+                    spawnerContainer.appendChild(buttonWrapper);
+                });
+            }
+
+                        function createFlashEffect(x, y) {
+                visualEffects.push({
+                    type: 'flash',
+                    x: x,
+                    y: y,
+                    maxRadius: 80,
+                    life: 0,
+                    maxLife: 350 // Duration in milliseconds
+                });
+            }
+// --- Add this new function anywhere before the init() function ---
+function handleDeleteSelected() {
+    selectedMoleculeIds.forEach(molId => {
+        const mol = molecules[molId];
+        if (mol) {
+            // Remove all atoms belonging to this molecule from the global atoms object
+            mol.atom_ids.forEach(atomId => {
+                delete atoms[atomId];
+            });
+            // Remove the molecule itself from the global molecules object
+            delete molecules[molId];
+        }
+    });
+    
+    // If the atom currently shown in the info panel was deleted, clear the panel
+    if (selectedAtomId && !atoms[selectedAtomId]) {
+        selectedAtomId = null;
+        updateInfoPanel();
+    }
+
+    // Clear the set of selected IDs and update the UI buttons
+    selectedMoleculeIds.clear();
+    updateButtonStates();
+}
+
+
+// --- Replace the existing init() function ---
+function init() {
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    canvas.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
+
+    generateSpawnerButtons();
+    
+    // Add the deleteBtn event listener
+    const deleteBtn = document.getElementById('delete-btn');
+    bondBtn.addEventListener('click', handleBonding);
+    unbondBtn.addEventListener('click', handleUnbonding);
+    deleteBtn.addEventListener('click', handleDeleteSelected); // <-- Add this line
+    clearBtn.addEventListener('click', clearAll);
+
+    pointerToolBtn.addEventListener('click', () => setTool('pointer'));
+    matchboxToolBtn.addEventListener('click', () => setTool('heat'));
+    toggleChargesBtn.addEventListener('click', toggleChargeVisuals);
+
+    tempSlider.addEventListener('input', (e) => {
+        ambientTemperature = parseFloat(e.target.value);
+        tempValue.textContent = (ambientTemperature * 100).toFixed(0);
+    });
+
+    // 1. Load discoveries from localStorage
+    loadDiscoveries(); 
+    
+    // 2. Then, update the UI to display the newly loaded discoveries
+    updateAchievementsList(); 
+
+    setTool('pointer'); 
+    updateButtonStates(); 
+    gameLoop();
+}
+
+            function resizeCanvas() {
+                canvas.width = container.clientWidth - 10;
+                canvas.height = container.clientHeight - 10;
+            }
+
+/// --- Replace the existing updateStates function ---
+function updateStates(dt) {
+    let moleculesToDecompose = [];
+    Object.values(molecules).forEach(mol => {
+        const ref = getMoleculeReferenceData(mol);
+        let T;
+        if (mol.atom_ids.length === 1) {
+            // For single atoms, get heat directly. Use a high multiplier if it's an atom, as heat is less distributed.
+            T = atoms[mol.atom_ids[0]].heat * 150;
+        } else {
+            const totalHeat = mol.atom_ids.reduce((sum, id) => sum + atoms[id].heat, 0);
+            T = (totalHeat / mol.atom_ids.length) * 100;
+        }
+
+        // --- NEW: Check for decomposition ---
+        // Ensure ref.decomposeTemp exists and is a number
+        if (typeof ref.decomposeTemp === 'number' && T > ref.decomposeTemp) {
+            moleculesToDecompose.push(mol);
+            return; // Skip phase check if it's decomposing
+        }
+
+        // set phase
+        mol.state = T < ref.melt
+            ? 'solid'
+            : T < ref.boil
+                ? 'liquid'
+                : 'gas';
+    });
+
+    // Decompose molecules outside the main loop to avoid modifying the collection while iterating
+    if (moleculesToDecompose.length > 0) {
+        moleculesToDecompose.forEach(mol => handleDecomposition(mol));
+    }
+}
+            extendPhasePoints();
+function gameLoop(now) {
+    let dt = (now - lastTime) / 1000; // delta time in seconds
+    lastTime = now;
+
+    // Cap dt to prevent physics explosions from lag spikes (e.g., tab backgrounding)
+    const MAX_DT = 1 / 30; // Maximum delta time, corresponds to 30 FPS
+    if (dt > MAX_DT) {
+        dt = MAX_DT;
+    }
+
+    // Update the state of all visual effects
+    for (let i = visualEffects.length - 1; i >= 0; i--) {
+        const effect = visualEffects[i];
+        effect.life += dt * 1000;
+        if (effect.life >= effect.maxLife) {
+            visualEffects.splice(i, 1); // Remove expired effect
+        }
+    }
+
+    updateStates(dt);
+    applyPhysics(dt);
+    draw();
+    updateInfoPanel();
+
+    requestAnimationFrame(gameLoop);
+}
+// kick it off:
+lastTime = performance.now();
+requestAnimationFrame(gameLoop);
+            
+function applyPhysics(dt) {
+    applyHeat(dt);
+
+    Object.values(molecules).forEach(mol => {
+        if (draggedObject && draggedObject.type === 'existing_molecule' && draggedObject.mol?.id === mol.id) {
+            mol.vx = mol.vy = mol.v_rot = 0;
+        } else {
+            // --- Velocity Damping for stability ---
+            mol.vx *= (1 - VELOCITY_DAMPING * dt);
+            mol.vy *= (1 - VELOCITY_DAMPING * dt);
+
+            // --- Thermal Motion based on Temperature and Phase ---
+            const avgHeat = mol.atom_ids.reduce((sum, id) => sum + (atoms[id] ? atoms[id].heat : 0), 0) / mol.atom_ids.length;
+            if (avgHeat > 0.01) { // Apply motion only if temperature is meaningfully above zero
+                let motionStrength = 0;
+                if (mol.state === 'gas') {
+                    motionStrength = THERMAL_GAS_STRENGTH;
+                } else if (mol.state === 'liquid') {
+                    motionStrength = THERMAL_LIQUID_STRENGTH;
+                } else { // 'solid'
+                    motionStrength = THERMAL_SOLID_STRENGTH;
+                }
+                
+                const forceMagnitude = Math.sqrt(avgHeat) * motionStrength;
+                const angle = Math.random() * 2 * Math.PI;
+                
+                // Apply thermal force to the molecule's velocity
+                mol.vx += Math.cos(angle) * forceMagnitude * dt / (1 + Math.log1p(mol.mass));
+                mol.vy += Math.sin(angle) * forceMagnitude * dt / (1 + Math.log1p(mol.mass));
+            }
+            
+            mol.vy += gravityStrength * dt;
+            mol.x += mol.vx;
+            mol.y += mol.vy;
+            mol.rotation += mol.v_rot;
+            mol.v_rot *= 0.95;
+
+            const bounds = getMoleculeBounds(mol);
+            if (bounds.minX < 0) { mol.x += -bounds.minX; mol.vx *= -0.4; }
+            if (bounds.maxX > canvas.width) { mol.x -= (bounds.maxX - canvas.width); mol.vx *= -0.4; }
+            if (bounds.minY < 0) { mol.y += -bounds.minY; mol.vy *= -0.4; }
+            if (bounds.maxY > canvas.height) { mol.y -= (bounds.maxY - canvas.height); mol.vy *= -0.4; }
+        }
+    });
+    
+    const grid = {};
+    Object.values(molecules).forEach(mol => {
+        const bounds = getMoleculeBounds(mol);
+        const startX = Math.floor(bounds.minX / SPATIAL_GRID_CELL_SIZE);
+        const endX = Math.floor(bounds.maxX / SPATIAL_GRID_CELL_SIZE);
+        const startY = Math.floor(bounds.minY / SPATIAL_GRID_CELL_SIZE);
+        const endY = Math.floor(bounds.maxY / SPATIAL_GRID_CELL_SIZE);
+
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                const key = `${x}_${y}`;
+                if (!grid[key]) grid[key] = [];
+                grid[key].push(mol);
+            }
+        }
+    });
+
+    const processedPairs = new Set();
+    const moleculesInvolvedInReaction = new Set();
+    const reactionsToProcess = [];
+
+    for (const key in grid) {
+        const cellMolecules = grid[key];
+        if (cellMolecules.length < 2) continue;
+
+        for (let i = 0; i < cellMolecules.length; i++) {
+            for (let j = i + 1; j < cellMolecules.length; j++) {
+                const m1 = cellMolecules[i];
+                const m2 = cellMolecules[j];
+
+                const pairKey = m1.id < m2.id ? `${m1.id}-${m2.id}` : `${m2.id}-${m1.id}`;
+                if (processedPairs.has(pairKey) || moleculesInvolvedInReaction.has(m1.id) || moleculesInvolvedInReaction.has(m2.id)) {
+                    continue;
+                }
+                processedPairs.add(pairKey);
+
+                let totalForceOnM1 = { x: 0, y: 0 }, totalTorqueOnM1 = 0;
+                let totalForceOnM2 = { x: 0, y: 0 }, totalTorqueOnM2 = 0;
+               
+                m1.atom_ids.forEach(id1 => {
+                    const a1 = atoms[id1];
+                    const a1_pos = getAtomAbsPos(a1);
+                    m2.atom_ids.forEach(id2 => {
+                        const a2 = atoms[id2];
+                        const a2_pos = getAtomAbsPos(a2);
+
+                        const f_dx = a1_pos.x - a2_pos.x;
+                        const f_dy = a1_pos.y - a2_pos.y;
+                        let f_dist = Math.sqrt(f_dx * f_dx + f_dy * f_dy);
+                        
+                        if (f_dist < 0.1) {
+                            f_dist = 0.1;
+                            m1.x += (Math.random() - 0.5) * 0.2;
+                            m1.y += (Math.random() - 0.5) * 0.2;
+                        }
+                        
+                        let f_dist_sq = f_dist * f_dist;
+                        const min_dist_sq = (a1.cfg.radius + a2.cfg.radius)**2 * 0.25;
+                        if (f_dist_sq < min_dist_sq) f_dist_sq = min_dist_sq;
+                        
+                        const repulsion_force = REPULSION_STRENGTH / (f_dist_sq * f_dist_sq);
+                        const ionic_force = (IONIC_FORCE_STRENGTH * a1.cfg.charge * a2.cfg.charge) / f_dist_sq;
+                        const force_mag = repulsion_force + ionic_force;
+                        
+                        const fx = (f_dx / f_dist) * force_mag;
+                        const fy = (f_dy / f_dist) * force_mag;
+                        
+                        totalForceOnM1.x += fx; totalForceOnM1.y += fy;
+                        totalForceOnM2.x -= fx; totalForceOnM2.y -= fy;
+                        
+                        const r1_x = a1_pos.x - m1.x; const r1_y = a1_pos.y - m1.y;
+                        totalTorqueOnM1 += (r1_x * fy - r1_y * fx);
+                        
+                        const r2_x = a2_pos.x - m2.x; const r2_y = a2_pos.y - m2.y;
+                        totalTorqueOnM2 -= (r2_x * fy - r2_y * fx);
+                    });
+                });
+                
+                m1.vx += totalForceOnM1.x / m1.mass; m1.vy += totalForceOnM1.y / m1.mass;
+                m2.vx += totalForceOnM2.x / m2.mass; m2.vy += totalForceOnM2.y / m2.mass;
+                if (m1.momentOfInertia > 0) m1.v_rot += (totalTorqueOnM1 / m1.momentOfInertia) * TORQUE_STRENGTH;
+                if (m2.momentOfInertia > 0) m2.v_rot += (totalTorqueOnM2 / m2.momentOfInertia) * TORQUE_STRENGTH;
+
+                const LATTICE_STRENGTH = 0, ALIGNMENT_STRENGTH = 0.2, LIQUID_COHESION_STRENGTH = 250000;
+                if (m1.recipeKey && m1.recipeKey === m2.recipeKey) {
+                    const m1IsIon = m1.atom_ids.length === 1 && atoms[m1.atom_ids[0]].cfg.charge !== 0;
+                    const m2IsIon = m2.atom_ids.length === 1 && atoms[m2.atom_ids[0]].cfg.charge !== 0;
+
+                    if (!(m1IsIon && m2IsIon)) {
+                         const dx = m1.x - m2.x, dy = m1.y - m2.y;
+                         const distSq = dx * dx + dy * dy;
+                         if (m1.state === 'solid' && m2.state === 'solid') {
+                             const idealDist = m1.avgR + m2.avgR;
+                             const dist = Math.sqrt(distSq);
+                             if (dist > 0.1) {
+                                 const forceMag = -LATTICE_STRENGTH * (dist - idealDist);
+                                 const forceX = (dx / dist) * forceMag; const forceY = (dy / dist) * forceMag;
+                                 m1.vx += forceX / m1.mass; m1.vy += forceY / m1.mass;
+                                 m2.vx -= forceX / m2.mass; m2.vy -= forceY / m2.mass;
+                             }
+                             let rotationDiff = (m1.rotation - m2.rotation + Math.PI) % (2 * Math.PI) - Math.PI;
+                             const torque = -ALIGNMENT_STRENGTH * rotationDiff;
+                             if (m1.momentOfInertia > 0) m1.v_rot += torque / m1.momentOfInertia;
+                             if (m2.momentOfInertia > 0) m2.v_rot -= torque / m2.momentOfInertia;
+                         } else if (m1.state === 'liquid' && m2.state === 'liquid') {
+                             const idealDist = m1.avgR + m2.avgR;
+                             if (distSq < (idealDist * 1.5)**2 && distSq > (idealDist * 0.9)**2) {
+                                 const dist = Math.sqrt(distSq);
+                                 const forceMag = -LIQUID_COHESION_STRENGTH / (distSq * dist);
+                                 const forceX = (dx / dist) * forceMag; const forceY = (dy / dist) * forceMag;
+                                 m1.vx += forceX / m1.mass; m1.vy += forceY / m1.mass;
+                                 m2.vx -= forceX / m2.mass; m2.vy -= forceY / m2.mass;
+                             }
+                         }
+                    }
+                }
+
+                if (m1.recipeKey && m2.recipeKey) {
+                    const reactionKey = [m1.recipeKey, m2.recipeKey].sort().join('_');
+                    const reaction = COMBINATION_REACTIONS[reactionKey];
+                    if (reaction) {
+                        const distSq = (m1.x - m2.x)**2 + (m1.y - m2.y)**2;
+                        const reactionDistSq = ((m1.avgR + m2.avgR) * 1.2)**2;
+                        if (distSq < reactionDistSq) {
+                            const avgHeat = (atoms[m1.atom_ids[0]].heat + atoms[m2.atom_ids[0]].heat) / 2;
+                            if (avgHeat * 100 >= reaction.temp_req) {
+                                reactionsToProcess.push({ type: 'combination', reactants: [m1, m2], config: reaction });
+                                moleculesInvolvedInReaction.add(m1.id).add(m2.id);
+                                continue;
+                            }
+                        }
+                    }
+                }
+                
+                const recipe1 = getMoleculeReferenceData(m1);
+                const recipe2 = getMoleculeReferenceData(m2);
+                if (recipe1 && recipe2 && ((recipe1.pKa && recipe2.pKb) || (recipe2.pKa && recipe1.pKb))) {
+                    const distSq = (m1.x - m2.x)**2 + (m1.y - m2.y)**2;
+                    if (distSq < (m1.avgR + m2.avgR)**2) {
+                        const acidMol = recipe1.pKa ? m1 : m2;
+                        const acidRecipe = recipe1.pKa ? recipe1 : recipe2;
+                        const baseMol = recipe1.pKa ? m2 : m1;
+                        if (baseMol.name === 'Water' && acidRecipe.pKa < -1.7) {
+                            let conjugateBaseRecipeKey = null;
+                            if (acidMol.name === 'Sulfuric Acid') conjugateBaseRecipeKey = 'H,S,O,O,O,O';
+                            else if (acidMol.name === 'Hydrogen Chloride') conjugateBaseRecipeKey = 'Cl';
+                            
+                            if (conjugateBaseRecipeKey) {
+                                reactionsToProcess.push({
+                                    type: 'acidbase',
+                                    reactants: [acidMol, baseMol],
+                                    products: [
+                                        { key: 'H,H,H,O' },
+                                        { key: conjugateBaseRecipeKey }
+                                    ]
+                                });
+                                moleculesInvolvedInReaction.add(acidMol.id).add(baseMol.id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (reactionsToProcess.length > 0) {
+        reactionsToProcess.forEach(reaction => {
+            let totalMass = 0, comX = 0, comY = 0, momentumX = 0, momentumY = 0;
+            reaction.reactants.forEach(mol => {
+                totalMass += mol.mass;
+                comX += mol.x * mol.mass;
+                comY += mol.y * mol.mass;
+                momentumX += mol.vx * mol.mass;
+                momentumY += mol.vy * mol.mass;
+            });
+            const finalPos = { x: comX / totalMass, y: comY / totalMass };
+            const finalVel = { x: momentumX / totalMass, y: momentumY / totalMass };
+            reaction.reactants.forEach(mol => {
+                mol.atom_ids.forEach(atomId => delete atoms[atomId]);
+                delete molecules[mol.id];
+            });
+            if (reaction.type === 'combination') {
+                const productRecipe = MOLECULE_RECIPES[reaction.config.product];
+                if (productRecipe) {
+                    const newMol = createMoleculeFromStructure(productRecipe, finalPos.x, finalPos.y, reaction.config.product, finalVel.x, finalVel.y);
+                    if (reaction.config.byproducts) {
+                        reaction.config.byproducts.forEach(key => {
+                            const byproductRecipe = MOLECULE_RECIPES[key];
+                            if(byproductRecipe) {
+                                const newX = finalPos.x + (Math.random() - 0.5) * newMol.avgR * 2;
+                                const newY = finalPos.y + (Math.random() - 0.5) * newMol.avgR * 2;
+                                createMoleculeFromStructure(byproductRecipe, newX, newY, key, finalVel.x, finalVel.y);
+                            }
+                        });
+                    }
+                }
+            } else if (reaction.type === 'acidbase') {
+                reaction.products.forEach((prod, index) => {
+                    const productRecipe = MOLECULE_RECIPES[prod.key];
+                    if (productRecipe) {
+                        const offsetX = (index === 0) ? -20 : 20;
+                        createMoleculeFromStructure(productRecipe, finalPos.x + offsetX, finalPos.y, prod.key, finalVel.x, finalVel.y);
+                    }
+                });
+            }
+            createFlashEffect(finalPos.x, finalPos.y);
+        });
+    }
+}
+
+            // --- Drawing Functions ---
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                Object.values(atoms).sort((a,b) => a.cfg.mass - b.cfg.mass).forEach(atom => {
+                    const mol = molecules[atom.moleculeId];
+                    if (!mol) return;
+
+                    const vibration = (atom.heat) * VIBRATION_BASE;
+                    const vibX = (Math.random() - 0.5) * vibration * atom.cfg.radius;
+                    const vibY = (Math.random() - 0.5) * vibration * atom.cfg.radius;
+
+                    const {x: drawX, y: drawY} = getAtomAbsPos(atom, vibX, vibY);
+
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, atom.cfg.radius, 0, Math.PI * 2);
+                    if (selectedMoleculeIds.has(mol.id)) {
+                        ctx.fillStyle = atom.cfg.color;
+                        ctx.fill();
+                        ctx.strokeStyle = '#d18eff';
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+                    } else {
+                        ctx.fillStyle = atom.cfg.color;
+                        ctx.fill();
+                    }
+
+                    // --- Text Shadow Implementation ---
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 1;
+                    ctx.shadowBlur = 2;
+
+                    if (chargeVisualsEnabled && atom.cfg.charge !== 0) {
+                        ctx.fillStyle = atom.cfg.charge > 0 ? '#85ff9b' : '#ff8594';
+                        ctx.font = `bold ${atom.cfg.radius * 0.8}px Inter`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const chargeText = Math.abs(atom.cfg.charge) < 1 ? (atom.cfg.charge > 0 ? 'δ+' : 'δ-') : (atom.cfg.charge > 0 ? `${atom.cfg.charge}+` : `${Math.abs(atom.cfg.charge)}-`);
+                        ctx.fillText(chargeText, drawX + atom.cfg.radius * 0.6, drawY - atom.cfg.radius * 0.6);
+                    }
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = `bold ${atom.cfg.radius}px Inter`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(atom.symbol, drawX, drawY);
+
+                    // --- Reset Shadow ---
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                });
+                
+                // --- Draw Visual Effects ---
+                visualEffects.forEach(effect => {
+                    if (effect.type === 'flash') {
+                        const progress = effect.life / effect.maxLife;
+                        const currentRadius = effect.maxRadius * progress;
+                        const alpha = 1 - (progress * progress); // Smoother fade-out
+
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, currentRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 224, ${alpha})`;
+                        ctx.fill();
+                    }
+                });
+                
+                if (draggedObject) drawDraggedObject();
+                if (currentTool === 'heat') {
+                    const alpha = isMouseDown ? 0.1 + Math.random() * 0.2 : 0.1;
+                    ctx.beginPath();
+                    ctx.arc(mousePos.x, mousePos.y, heatRadius, 0, 2 * Math.PI);
+                    ctx.fillStyle = `rgba(255, 100, 0, ${alpha})`;
+                    ctx.strokeStyle = `rgba(255, 165, 0, 0.5)`;
+                    ctx.lineWidth = 2;
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
+
+            function drawDraggedObject() {
+                 ctx.globalAlpha = 0.6;
+                 if (draggedObject.type === 'atom') {
+                    const cfg = ELEMENT_CONFIG[draggedObject.symbol];
+                    ctx.beginPath();
+                    ctx.arc(draggedObject.x, draggedObject.y, cfg.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = cfg.color;
+                    ctx.fill();
+                 } else if (draggedObject.type === 'molecule') {
+                    draggedObject.structure.forEach(part => {
+                        const cfg = ELEMENT_CONFIG[part.s];
+                        ctx.beginPath();
+                        ctx.arc(draggedObject.x + part.x, draggedObject.y + part.y, cfg.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = cfg.color;
+                        ctx.fill();
+                    });
+                 }
+                 ctx.globalAlpha = 1.0;
+            }
+
+            // --- Add this new helper function right before handleBonding() ---
+function findRecipeForAtoms(atomsToBond) {
+    const compositionCounter = new Map();
+    atomsToBond.forEach(atom => {
+        compositionCounter.set(atom.symbol, (compositionCounter.get(atom.symbol) || 0) + 1);
+    });
+
+    for (const key in MOLECULE_RECIPES) {
+        // Skip single-atom "recipes" like ions for manual bonding
+        if (!key.includes(',')) continue;
+
+        const recipeAtoms = key.split(',');
+        // Quick check: if the number of atoms doesn't match, skip immediately
+        if (recipeAtoms.length !== atomsToBond.length) {
+            continue;
+        }
+
+        const recipeCounter = new Map();
+        recipeAtoms.forEach(symbol => {
+            recipeCounter.set(symbol, (recipeCounter.get(symbol) || 0) + 1);
+        });
+
+        // Quick check: if number of unique atom types doesn't match, skip
+        if (compositionCounter.size !== recipeCounter.size) {
+            continue;
+        }
+
+        // Final check: see if the counts for each atom type match
+        let match = true;
+        for (const [symbol, count] of compositionCounter) {
+            if (recipeCounter.get(symbol) !== count) {
+                match = false;
+                break;
+            }
+        }
+
+        if (match) {
+            // Success! Return both the recipe object and its original key
+            return { recipe: MOLECULE_RECIPES[key], key };
+        }
+    }
+    return null; // No matching recipe found
+}
+
+            // --- Replace the existing handleBonding function ---
+function handleBonding() {
+    const atomsToBond = [];
+    const moleculesToDestroy = new Set();
+    const parentMolecules = []; // Collect parent molecules to get their momentum
+
+    selectedMoleculeIds.forEach(molId => {
+        const mol = molecules[molId];
+        if (mol) {
+            moleculesToDestroy.add(molId);
+            parentMolecules.push(mol); // Store the whole molecule object
+            mol.atom_ids.forEach(atomId => atomsToBond.push(atoms[atomId]));
+        }
+    });
+
+    if (atomsToBond.length < 2) {
+        showInvalidBondFeedback();
+        return;
+    }
+
+    // --- UPDATED LOGIC ---
+    // Use the new helper function to find a recipe regardless of atom order
+    const result = findRecipeForAtoms(atomsToBond);
+
+    if (result) {
+        const { recipe, key } = result; // Destructure the recipe and its key
+        let centerX = 0, centerY = 0, totalMass = 0;
+        let totalMomentumX = 0, totalMomentumY = 0;
+
+        // Calculate total momentum from the parent molecules
+        parentMolecules.forEach(mol => {
+            totalMomentumX += mol.vx * mol.mass;
+            totalMomentumY += mol.vy * mol.mass;
+        });
+        
+        // Calculate center of mass position
+        atomsToBond.forEach(atom => {
+            const absPos = getAtomAbsPos(atom);
+            centerX += absPos.x * atom.cfg.mass;
+            centerY += absPos.y * atom.cfg.mass;
+            totalMass += atom.cfg.mass;
+        });
+        centerX /= totalMass;
+        centerY /= totalMass;
+        
+        // Calculate the initial velocity for the new molecule based on momentum
+        const initialVx = totalMomentumX / totalMass;
+        const initialVy = totalMomentumY / totalMass;
+
+        // Destroy the old molecules
+        moleculesToDestroy.forEach(molId => {
+            molecules[molId].atom_ids.forEach(atomId => delete atoms[atomId]);
+            delete molecules[molId];
+        });
+        
+        // Create the new molecule using its correct recipe and key
+        createMoleculeFromStructure(recipe, centerX, centerY, key, initialVx, initialVy);
+        createFlashEffect(centerX, centerY);
+        selectedMoleculeIds.clear();
+    } else {
+        // If no recipe is found, shake the button
+        showInvalidBondFeedback();
+    }
+    updateButtonStates();
+}
+
+            function showInvalidBondFeedback() {
+                if (bondBtn.classList.contains('shake')) return;
+                const originalText = bondBtn.textContent;
+                bondBtn.classList.add('shake');
+                bondBtn.style.backgroundColor = 'rgba(220, 38, 38, 0.7)'; // Red-600 with opacity
+                bondBtn.textContent = 'Invalid!';
+                setTimeout(() => {
+                    bondBtn.classList.remove('shake');
+                    bondBtn.style.backgroundColor = ''; // Revert to CSS class style
+                    bondBtn.textContent = originalText;
+                }, 820);
+            }
+
+            function handleUnbonding() {
+                const newMoleculesToSelect = new Set();
+                selectedMoleculeIds.forEach(molId => {
+                    const mol = molecules[molId];
+                    if (!mol || mol.atom_ids.length <= 1) return;
+                    
+                    const energyKick = 2;
+                    mol.atom_ids.forEach(atomId => {
+                        const atom = atoms[atomId];
+                        const absPos = getAtomAbsPos(atom);
+                        const newSingleMol = createSingleAtomMolecule(atom.symbol, absPos.x, absPos.y);
+                        const angle = Math.random() * 2 * Math.PI;
+                        newSingleMol.vx = mol.vx + (Math.cos(angle) * energyKick / newSingleMol.mass);
+                        newSingleMol.vy = mol.vy + (Math.sin(angle) * energyKick / newSingleMol.mass);
+                        newMoleculesToSelect.add(newSingleMol.id);
+                    });
+
+                    mol.atom_ids.forEach(atomId => delete atoms[atomId]);
+                    delete molecules[molId];
+                });
+                selectedMoleculeIds = newMoleculesToSelect;
+                updateButtonStates();
+            }
+
+function createSingleAtomMolecule(symbol, x, y) {
+    const atomId = `atom_${nextAtomId++}`;
+    const molId = `mol_${nextMoleculeId++}`;
+    const cfg = ELEMENT_CONFIG[symbol]; // Get the configuration for the element
+
+    // IMPORTANT: Add a check here in case ELEMENT_CONFIG[symbol] is undefined
+    if (!cfg) {
+        // You might want to return null or throw an error here to prevent further issues
+        return null; 
+    }
+    
+    atoms[atomId] = { 
+        id: atomId, 
+        moleculeId: molId, 
+        symbol: cfg.symbol || symbol, // Use cfg.symbol if available, fallback to passed symbol
+        cfg, // Keep the full configuration object for reference
+        mass: cfg.mass,   // <-- ADDED: Assign mass directly to the atom object
+        radius: cfg.radius, // <-- ADDED: Assign radius directly for common physics access
+        localX: 0, 
+        localY: 0, 
+        heat: ambientTemperature 
+    };
+
+    molecules[molId] = { 
+        id: molId, 
+        name: cfg.name, 
+        x, 
+        y, 
+        vx: 0, 
+        vy: 0, 
+        rotation: 0, 
+        v_rot: 0, 
+        mass: cfg.mass, 
+        charge: cfg.charge, 
+        atom_ids: [atomId], 
+        momentOfInertia: 1, 
+        avgR: cfg.radius,
+        recipeKey: symbol 
+    };
+    
+    return molecules[molId];
+}
+
+            function clearAll() {
+                atoms = {};
+                molecules = {};
+                selectedMoleculeIds.clear();
+                draggedObject = null;
+                updateButtonStates();
+            }
+
+function handleDecomposition(mol) {
+    // Use the robust helper function to get the molecule's reference data
+    const recipe = getMoleculeReferenceData(mol);
+
+    // No decomposition rule found for this molecule, or it has no products defined
+    if (!recipe || !recipe.products || recipe.products.length === 0) {
+        return;
+    }
+    
+
+    // Use the heat from the original molecule to distribute to the new ones
+    const totalHeat = mol.atom_ids.reduce((sum, id) => sum + (atoms[id] ? atoms[id].heat : 0), 0);
+    const avgHeat = totalHeat / mol.atom_ids.length;
+    const energyKick = 0; // Setting energyKick to 0 as per your test
+
+    // Create each product molecule defined in the recipe
+    recipe.products.forEach(productKey => {
+        // Spawn new molecules near the original's location
+        const newX = mol.x + (Math.random() - 0.5) * mol.avgR;
+        const newY = mol.y + (Math.random() - 0.5) * mol.avgR;
+
+        let newMol;
+        // Check if the product is a single atom (key has no commas) or a complex molecule
+        if (!productKey.includes(',')) {
+            newMol = createSingleAtomMolecule(productKey, newX, newY);
+        } else {
+            const productRecipe = MOLECULE_RECIPES[productKey];
+            if (!productRecipe) {
+                return;
+            }
+            newMol = createMoleculeFromStructure(productRecipe, newX, newY, productKey);
+        }
+        
+        if (newMol) {
+            // Log the mass of the new molecule/atom object created
+
+            // Give the new molecule an initial velocity impulse
+            const angle = Math.random() * 2 * Math.PI;
+            newMol.vx = mol.vx + Math.cos(angle) * energyKick;
+            newMol.vy = mol.vy + Math.sin(angle) * energyKick;
+            
+            // Log newMol velocity immediately after setting
+
+            // Propagate the molecule's velocity to its individual atoms
+            newMol.atom_ids.forEach(atomId => {
+                if (atoms[atomId]) {
+                    atoms[atomId].vx = newMol.vx; // Should be 0 if energyKick is 0
+                    atoms[atomId].vy = newMol.vy; // Should be 0 if energyKick is 0
+
+                    // Log atom velocity immediately after setting
+                    // Log atom mass
+                }
+            });
+
+            // Distribute the original molecule's heat among the new atoms
+            newMol.atom_ids.forEach(atomId => {
+                if (atoms[atomId]) {
+                    atoms[atomId].heat = avgHeat * 1.2; // Give a slight heat boost
+                }
+            });
+        }
+    });
+
+    // Finally, remove the original molecule that has decomposed
+    mol.atom_ids.forEach(atomId => delete atoms[atomId]);
+    delete molecules[mol.id];
+}
+
+            // --- User Interaction ---
+            function setTool(toolName) {
+                currentTool = toolName;
+                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+                if (toolName === 'pointer') pointerToolBtn.classList.add('active');
+                if (toolName === 'heat') matchboxToolBtn.classList.add('active');
+                canvas.classList.toggle('matchbox-cursor', toolName === 'heat');
+                selectedMoleculeIds.clear(); // Clear selection when tool changes
+                selectedAtomId = null; // Clear atom selection
+                updateInfoPanel();
+            }
+
+            function onCanvasWheel(e) {
+                if (currentTool === 'heat') {
+                    e.preventDefault();
+                    heatRadius -= e.deltaY * 0.5;
+                    heatRadius = Math.max(MIN_HEAT_RADIUS, Math.min(MAX_HEAT_RADIUS, heatRadius));
+                }
+            }
+
+            function toggleChargeVisuals() {
+                chargeVisualsEnabled = !chargeVisualsEnabled;
+                toggleChargesBtn.textContent = `Show Charge: ${chargeVisualsEnabled ? 'ON' : 'OFF'}`;
+            }
+
+function onSpawnerDragStart(e, type) {
+                e.preventDefault();
+                const startX = e.clientX;
+                const startY = e.clientY;
+
+                if (type.startsWith('mol_')) { 
+                    const name = type.substring(4);
+                    const recipe = Object.values(MOLECULE_RECIPES).find(r => r.name === name);
+                    if (!recipe) return;
+                    draggedObject = { 
+                        type: 'molecule', 
+                        x: e.clientX - container.offsetLeft, 
+                        y: e.clientY - container.offsetTop, 
+                        structure: recipe.structure, 
+                        recipe,
+                        isSpawner: true, // Flag it as a spawner object
+                        startX,
+                        startY
+                    };
+                } else { 
+                    draggedObject = { 
+                        type: 'atom', 
+                        symbol: type, 
+                        x: e.clientX - container.offsetLeft, 
+                        y: e.clientY - container.offsetTop,
+                        isSpawner: true, // Flag it as a spawner object
+                        startX,
+                        startY
+                    };
+                }
+            }
+            
+            function onPointerDown(e) {
+                isMouseDown = true;
+                mousePos = getMousePos(e);
+                if (currentTool === 'pointer') {
+                    const clickedAtom = findAtomAt(mousePos.x, mousePos.y);
+                    if (clickedAtom) {
+                        const mol = molecules[clickedAtom.moleculeId];
+                        draggedObject = { type: 'existing_molecule', mol, offsetX: mousePos.x - mol.x, offsetY: mousePos.y - mol.y };
+                        isDraggingExistingObject = true;
+                        
+                        if (e.shiftKey) {
+                            if (selectedMoleculeIds.has(mol.id)) {
+                                selectedMoleculeIds.delete(mol.id);
+                            } else {
+                                selectedMoleculeIds.add(mol.id);
+                            }
+                        } else {
+                            if (selectedMoleculeIds.has(mol.id) && selectedMoleculeIds.size === 1) {
+                                selectedMoleculeIds.clear();
+                            } else {
+                                selectedMoleculeIds.clear();
+                                selectedMoleculeIds.add(mol.id);
+                            }
+                        }
+                    } else {
+                        if (!e.shiftKey) selectedMoleculeIds.clear();
+                    }
+                    updateButtonStates();
+                }
+            }
+
+function onPointerMove(e) {
+                // Store the mouse position from the beginning of this frame
+                lastMousePos.x = mousePos.x;
+                lastMousePos.y = mousePos.y;
+
+                // Update current mouse position
+                mousePos = getMousePos(e);
+
+                if (draggedObject) {
+                    // Update the position of the draggedObject itself (for 'spawner' ghost objects, etc.)
+                    draggedObject.x = mousePos.x;
+                    draggedObject.y = mousePos.y;
+
+                    if (draggedObject.type === 'existing_molecule') {
+                        const mol = draggedObject.mol;
+
+                        // Calculate the target position for the molecule's center
+                        const newX = mousePos.x - draggedObject.offsetX;
+                        const newY = mousePos.y - draggedObject.offsetY;
+
+                        // Directly set the molecule's position
+                        mol.x = newX;
+                        mol.y = newY;
+
+                        // Crucially, zero out its velocities while dragging to prevent physics interference
+                        mol.vx = 0;
+                        mol.vy = 0;
+                        mol.angularVelocity = 0;
+                    }
+                }
+
+                if (currentTool === 'heat' && isMouseDown) {
+                    Object.values(atoms).forEach(atom => {
+                        const absPos = getAtomAbsPos(atom);
+                        const distSq = (absPos.x - mousePos.x)**2 + (absPos.y - mousePos.y)**2;
+                        if (distSq < heatRadius**2) {
+                            atom.heat = Math.min(2.5, atom.heat + HEAT_PER_FRAME);
+                        }
+                    });
+                }
+                draw(); // Call draw to update the visual state
+            }
+
+function onPointerUp(e) {
+    isMouseDown = false;
+    isDraggingExistingObject = false; // Reset the flag for physicsLoop
+    
+    if (draggedObject) {
+        // Handle spawning from the side panel (distinguishes click vs. drag)
+        if (draggedObject.isSpawner) {
+            const endX = e.clientX;
+            const endY = e.clientY;
+            const distSq = (endX - draggedObject.startX)**2 + (endY - draggedObject.startY)**2;
+            const clickThresholdSq = 10 * 10; // Allow 10px of movement to still be a "click"
+
+            // Condition 1: It was a click (minimal movement)
+            if (distSq < clickThresholdSq) {
+                const padding = 50; // Avoid spawning right at the edge
+                const randomX = padding + Math.random() * (canvas.width - padding * 2);
+                const randomY = padding + Math.random() * (canvas.height - padding * 2);
+
+                if (draggedObject.type === 'atom') {
+                    createSingleAtomMolecule(draggedObject.symbol, randomX, randomY);
+                } else if (draggedObject.type === 'molecule') {
+                    createMoleculeFromStructure(draggedObject.recipe, randomX, randomY);
+                }
+            } 
+            // Condition 2: It was a drag, so check if it was dropped over the canvas
+            else {
+                const rect = canvas.getBoundingClientRect();
+                const isOverCanvas = (
+                    e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom
+                );
+                
+                if (isOverCanvas) {
+                    if (draggedObject.type === 'atom') {
+                        createSingleAtomMolecule(draggedObject.symbol, draggedObject.x, draggedObject.y);
+                    } else if (draggedObject.type === 'molecule') {
+                        createMoleculeFromStructure(draggedObject.recipe, draggedObject.x, draggedObject.y);
+                    }
+                }
+            }
+        }
+        // Handle throwing an existing molecule that was already on the canvas
+        else if (draggedObject.type === 'existing_molecule') {
+            const mol = draggedObject.mol;
+
+            const deltaX = mousePos.x - lastMousePos.x;
+            const deltaY = mousePos.y - lastMousePos.y;
+            const deltaMagnitudeSq = deltaX * deltaX + deltaY * deltaY;
+
+            if (deltaMagnitudeSq > THROW_VELOCITY_THRESHOLD * THROW_VELOCITY_THRESHOLD) {
+                mol.vx = deltaX * THROW_STRENGTH;
+                mol.vy = deltaY * THROW_STRENGTH;
+            } else {
+                mol.vx = 0;
+                mol.vy = 0;
+            }
+            mol.angularVelocity = 0;
+        }
+        
+        draggedObject = null; 
+    }
+    draw();
+}
+            
+// --- Replace this entire function ---
+function createMoleculeFromStructure(recipe, x, y, key = null, initialVx = 0, initialVy = 0) {
+    if (!recipe || !recipe.structure) {
+        return null;
+    }
+
+    const id = `mol_${nextMoleculeId++}`;
+    const atom_ids = [];
+    let totalMass = 0;
+    let cmX = 0, cmY = 0;
+
+    // First pass: create atoms and calculate preliminary center of mass
+    recipe.structure.forEach(part => {
+        const atom_id = `atom_${nextAtomId++}`;
+        const cfg = ELEMENT_CONFIG[part.s];
+        atoms[atom_id] = {
+            id: atom_id,
+            symbol: part.s,
+            cfg: cfg,
+            localX: part.x,
+            localY: part.y,
+            moleculeId: id,
+            heat: ambientTemperature
+        };
+        atom_ids.push(atom_id);
+        totalMass += cfg.mass;
+        cmX += part.x * cfg.mass;
+        cmY += part.y * cfg.mass;
+    });
+
+    cmX /= totalMass;
+    cmY /= totalMass;
+
+    // Second pass: adjust local positions and calculate moment of inertia
+    let momentOfInertia = 0;
+    let maxDistFromCenter = 0;
+    atom_ids.forEach(atomId => {
+        const atom = atoms[atomId];
+        atom.localX -= cmX;
+        atom.localY -= cmY;
+
+        const r_sq = atom.localX * atom.localX + atom.localY * atom.localY;
+        momentOfInertia += atom.cfg.mass * r_sq;
+        
+        const distToEdge = Math.sqrt(r_sq) + atom.cfg.radius;
+        if (distToEdge > maxDistFromCenter) {
+            maxDistFromCenter = distToEdge;
+        }
+    });
+    
+    // Avoid moment of inertia being zero for single atoms or linear molecules
+    if (momentOfInertia < 1) {
+        momentOfInertia = 1; 
+    }
+
+    molecules[id] = {
+        id, atom_ids, x, y,
+        vx: initialVx, vy: initialVy,
+        rotation: 0, v_rot: 0,
+        mass: totalMass,
+        momentOfInertia: momentOfInertia,
+        avgR: maxDistFromCenter,
+        name: recipe.name,
+        formula: recipe.formula,
+        recipeKey: key,
+        state: 'solid'
+    };
+
+    checkAchievement(recipe.name, recipe.formula);
+    return molecules[id];
+}
+
+function updateButtonStates() {
+    const deleteBtn = document.getElementById('delete-btn'); // Get the button
+    const hasSelection = selectedMoleculeIds.size > 0;
+
+    bondBtn.disabled = selectedMoleculeIds.size < 2;
+    unbondBtn.disabled = !hasSelection;
+    deleteBtn.disabled = !hasSelection; // Enable/disable based on selection
+}
+
+            function checkAchievement(name, formula) {
+                if (!discoveredMolecules.has(name) && name !== 'Atomic Oxygen') {
+                    discoveredMolecules.add(name);
+                    showToast(`Discovered ${name}!`, `Formula: ${formula}`);
+                    updateAchievementsList();
+                    saveDiscoveries();
+                }
+            }
+
+            function showToast(title, text) {
+                toast.querySelector('h3').textContent = title;
+                toastText.textContent = text;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 4000);
+            }
+
+function drawMolecule(canvas, recipeKey) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous drawing
+
+    const moleculeData = MOLECULE_RECIPES[recipeKey]; // Direct lookup using the key
+
+    if (!moleculeData || !moleculeData.structure) {
+        // Fallback: display the key as text if structure is not found
+        ctx.fillStyle = '#FFF';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(recipeKey, canvas.width / 2, canvas.height / 2);
+        return;
+    }
+
+    const atomsInStructure = moleculeData.structure;
+    const bondsInStructure = moleculeData.bonds || []; // Bonds might be undefined for single atoms
+
+    // Calculate bounding box of the molecule to center and scale
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    atomsInStructure.forEach(atomData => {
+        const atomCfg = ELEMENT_CONFIG[atomData.s]; // *** Changed to ELEMENT_CONFIG ***
+        if (!atomCfg) {
+            return; // Skip drawing this atom if config is missing
+        }
+        const r = atomCfg.radius;
+        minX = Math.min(minX, atomData.x - r);
+        maxX = Math.max(maxX, atomData.x + r);
+        minY = Math.min(minY, atomData.y - r);
+        maxY = Math.max(maxY, atomData.y + r);
+    });
+
+    const molWidth = maxX - minX;
+    const molHeight = maxY - minY;
+
+    const padding = 10; // Pixels padding from canvas edge
+    // Handle cases where width or height might be zero (e.g., single atom)
+    const scale = Math.min(
+        (canvas.width - padding) / (molWidth || 1),
+        (canvas.height - padding) / (molHeight || 1)
+    );
+    const offsetX = (canvas.width / 2) - ((minX + maxX) / 2) * scale;
+    const offsetY = (canvas.height / 2) - ((minY + maxY) / 2) * scale;
+
+    // Draw bonds first
+    ctx.strokeStyle = '#9CA3AF'; // Gray color for bonds
+    ctx.lineWidth = 2;
+    bondsInStructure.forEach(bond => {
+        const atom1 = atomsInStructure[bond.from];
+        const atom2 = atomsInStructure[bond.to];
+        if (!atom1 || !atom2) return;
+
+        const x1 = atom1.x * scale + offsetX;
+        const y1 = atom1.y * scale + offsetY;
+        const x2 = atom2.x * scale + offsetX;
+        const y2 = atom2.y * scale + offsetY;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    });
+
+    // Draw atoms
+    atomsInStructure.forEach(atomData => {
+        const atomCfg = ELEMENT_CONFIG[atomData.s]; // *** Changed to ELEMENT_CONFIG ***
+        if (!atomCfg) {
+            return;
+        }
+
+        const x = atomData.x * scale + offsetX;
+        const y = atomData.y * scale + offsetY;
+        const r = atomCfg.radius * scale;
+
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = atomCfg.color; // Use color from ELEMENT_CONFIG
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw atom symbol on top
+        ctx.fillStyle = '#000'; // Black text for atom type
+        ctx.font = `${Math.max(8, r * 0.8)}px Arial`; // Adjust font size based on radius
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(atomData.s, x, y); // Use atomData.s for the displayed text
+    });
+}
+
+function updateAchievementsList() {
+    if(discoveredMolecules.size === 0) {
+        achievementsList.innerHTML = `<p class="text-gray-400 text-sm">No discoveries yet. Try forming H₂O!</p>`;
+        return;
+    }
+    achievementsList.innerHTML = '';
+    const sortedDiscoveries = Array.from(discoveredMolecules).sort();
+    sortedDiscoveries.forEach(discoveredName => { // discoveredName is "Water", "Ozone", etc.
+        let recipeKeyToDraw = null;
+        let displayFormula = ""; // To display 'H₂O' in the UI next to "Water"
+
+        // Find the recipe in MOLECULE_RECIPES by matching its 'name' property
+        for (const key in MOLECULE_RECIPES) {
+            if (MOLECULE_RECIPES[key].name === discoveredName) {
+                recipeKeyToDraw = key;
+                displayFormula = MOLECULE_RECIPES[key].formula;
+                break;
+            }
+        }
+
+        if (!recipeKeyToDraw) {
+            // Fallback: Display just the name if the recipe isn't found
+            const div = document.createElement('div');
+            div.className = 'bg-black/20 p-2 rounded-md flex items-center';
+            div.innerHTML = `<div><p class="font-semibold text-gray-300">${discoveredName} (Formula N/A)</p></div>`;
+            achievementsList.appendChild(div);
+            return;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'bg-black/20 p-2 rounded-lg flex items-center';
+
+        // Use the actual MOLECULE_RECIPES key for the button ID
+        const buttonId = `respawn-btn-${recipeKeyToDraw.replace(/[^a-zA-Z0-9]/g, '')}`;
+
+        div.innerHTML = `
+            <button id="${buttonId}" data-molecule-name="mol_${discoveredName}"
+                    class="respawn-btn glass-button flex flex-col items-center justify-center p-1 rounded-md mr-3">
+                <canvas width="50" height="50"></canvas>
+            </button>
+            <div>
+                <p class="font-semibold text-gray-200">${discoveredName} (<span class="text-gray-400 font-normal">${displayFormula}</span>)</p>
+            </div>`; // Now correctly shows "Water (H₂O)"
+        achievementsList.appendChild(div);
+
+        const respawnButton = document.getElementById(buttonId);
+        const canvas = respawnButton.querySelector('canvas');
+        if (canvas) {
+            drawMolecule(canvas, recipeKeyToDraw); // Pass the direct recipe key to draw the molecule
+        }
+    });
+
+    document.querySelectorAll('.respawn-btn').forEach(btn => {
+        btn.addEventListener('pointerdown', (e) => onSpawnerDragStart(e, btn.dataset.moleculeName));
+    });
+}
+            
+            function getMousePos(e) {
+                const rect = canvas.getBoundingClientRect();
+                return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            }
+
+            function getAtomAbsPos(atom, vibX = 0, vibY = 0) {
+                const mol = molecules[atom.moleculeId];
+                if (!mol) return {x:0, y:0};
+                const cos = Math.cos(mol.rotation);
+                const sin = Math.sin(mol.rotation);
+                const rotatedX = atom.localX * cos - atom.localY * sin;
+                const rotatedY = atom.localX * sin + atom.localY * cos;
+                return { x: mol.x + rotatedX + vibX, y: mol.y + rotatedY + vibY };
+            }
+
+            function findAtomAt(x, y) {
+                const candidates = Object.values(atoms).filter(atom => {
+                    const absPos = getAtomAbsPos(atom);
+                    const distSq = (absPos.x - x)**2 + (absPos.y - y)**2;
+                    return distSq < atom.cfg.radius**2;
+                });
+                if (candidates.length === 0) return null;
+                candidates.sort((a,b) => b.cfg.mass - a.cfg.mass);
+                return candidates[0];
+            }
+
+            function getMoleculeBounds(mol) {
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                mol.atom_ids.forEach(id => {
+                    const atom = atoms[id];
+                    const r = atom.cfg.radius;
+                    const absPos = getAtomAbsPos(atom);
+                    minX = Math.min(minX, absPos.x - r);
+                    maxX = Math.max(maxX, absPos.x + r);
+                    minY = Math.min(minY, absPos.y - r);
+                    maxY = Math.max(maxY, absPos.y + r);
+                });
+                return { minX, minY, maxX, maxY, avgR: mol.avgR };
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="icon.png">
+    <title>Nibbl</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:;">
+</head>
+<body>
+
+    <audio id="titleMusic" src="media/audio/music/menu1.mp3" loop></audio>
+    <audio id="gameMusic" loop></audio>
+    <audio id="tickSound" src="media/audio/ui/tick.mp3"></audio>
+    <audio id="selectSound" src="media/audio/ui/select.mp3"></audio>
+
+    <div id="devLogoScreen" class="screen active">
+        <img src="media/images/devlogo.png" alt="Developer Logo" draggable="false">
+        <p>Click anywhere to continue</p>
+    </div>
+
+    <div id="titleScreen" class="screen">
+        <canvas id="titleScreenCanvas"></canvas>
+        <div class="title-content-container">
+             <img src="media/images/logo.png" id="titleScreenLogo" alt="Nibbl Logo" draggable="false">
+             <div class="splash" id="title-splash">No splash found</div>
+        </div>
+        <div class="title-menu-container">
+            <button id="playBtn" class="titleScreenSelection">Play</button>
+            <button id="goToSettingsBtn" class="titleScreenSelection">Settings</button>
+        </div>
+    </div>
+
+    <div id="settingsScreen" class="screen">
+        <aside id="settingsSidebar">
+            <div class="sidebar-icons">
+                <button id="audioSettingsTab" class="active" title="Audio Settings"><i class="fa-solid fa-volume-high"></i><span class="label">Audio</span></button>
+                </div>
+            </aside>
+        <main id="settingsContent">
+             <div id="settingsTabHeader">
+                 <h2 id="settingsTabTitle">Audio Settings</h2>
+                  <button id="backToTitleFromSettingsBtn" class="secondary">Back to Title</button>
+            </div>
+            <div id="settingsTabContentArea">
+                <div id="audioSettingsContainer" class="settings-section">
+                    <h3>Volume Control</h3>
+                    <div class="settings-item">
+                        <label for="masterVolumeSlider">Master Volume:</label>
+                        <input type="range" id="masterVolumeSlider" min="0" max="1" step="0.01" value="1">
+                        <span id="masterVolumeValue" class="settings-value">100%</span>
+                    </div>
+                     <div class="settings-item">
+                        <label for="musicVolumeSlider">Music Volume:</label>
+                        <input type="range" id="musicVolumeSlider" min="0" max="1" step="0.01" value="1">
+                        <span id="musicVolumeValue" class="settings-value">100%</span>
+                    </div>
+                    <div class="settings-item">
+                        <label for="sfxVolumeSlider">SFX Volume:</label>
+                        <input type="range" id="sfxVolumeSlider" min="0" max="1" step="0.01" value="1">
+                        <span id="sfxVolumeValue" class="settings-value">100%</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <div id="topbar" class="ui-container">
+            <div class="credits-section">
+                <div class="credits-display">
+                    <img src="media/images/credit.png" alt="Credits Icon" draggable="false">
+                    <span id="credits">0</span>
+                </div>
+                <div id="creditRate">
+                    <img src="media/images/credit-gray.png" alt="Credits Rate Icon" draggable="false">
+                    <span id="rate">0 / second</span>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="hardware-grid">
+                <div class="hardware-item ui-container" id="cpu">
+                    <img src="media/images/cpu.png" alt="CPU" draggable="false">
+                    <div>CPU: <span id="cpuName">Intel 8088</span></div>
+                    <div>Clock: <span id="cpuClock">4.8 MHz</span></div>
+                    <div>Cores: <span id="cpuCores">1</span></div>
+                    <div>Wattage: <span id="cpuWattage">1 W</span></div>
+                    <div>Production: <span id="cpuProduction">.37 cps</span></div>
+                    <button class="upgradeBtn" id="upgradecpu">Upgrade (NaN Credits)</button>
+                </div>
+                <div class="hardware-item ui-container" id="gpu">
+                    <img src="media/images/gpu.png" alt="GPU" draggable="false">
+                    <div>GPU: <span id="gpuName">Cirrus Logic GD5428</span></div>
+                    <div>VRAM: <span id="gpuVram">512 KB DRAM</span></div>
+                    <div>Speed: <span id="gpuClock">45 MHz</span></div>
+                    <div>Wattage: <span id="gpuWattage">3 W</span></div>
+                    <div>Production: <span id="gpuProduction">.38 cps</span></div>
+                    <button class="upgradeBtn" id="upgradegpu">Upgrade (NaN Credits)</button>
+                </div>
+                <div class="hardware-item ui-container" id="ram">
+                    <img src="media/images/ram.png" alt="RAM" draggable="false">
+                    <div>RAM: <span id="ramName">Fujitsu MB8118-15</span></div>
+                    <div>Capacity: <span id="ramCapacity">128 KB</span></div>
+                    <div>Speed: <span id="ramSpeed">15 MHz</span></div>
+                    <div>Type: <span id="ramType">DRAM</span></div>
+                    <div>Wattage: <span id="ramWattage">0.5 W</span></div>
+                    <div>Production: <span id="ramProduction">.15 cps</span></div>
+                    <button class="upgradeBtn" id="upgraderam">Upgrade (NaN Credits)</button>
+                </div>
+                <div class="hardware-item ui-container" id="motherboard">
+                    <img src="media/images/motherboard.png" alt="Motherboard" draggable="false">
+                    <div>Motherboard: <span id="motherboardName">ASUS P2B</span></div>
+                    <div>Chipset (Brand): <span id="motherboardChipset">Intel</span></div>
+                    <div>RAM Type: <span id="motherboardRam">DRAM</span></div>
+                    <div>Max RAM Speed: <span id="motherboardMaxRamSpeed">66 MHz</span></div>
+                    <div>Wattage: <span id="motherboardWattage">25 W</span></div>
+                    <button class="upgradeBtn" id="upgrademotherboard">Upgrade (NaN Credits)</button>
+                </div>
+                <div class="hardware-item ui-container" id="psu">
+                    <img src="media/images/psu.png" alt="PSU" draggable="false">
+                    <div>PSU: <span id="psuName">Antec SP-200</span></div>
+                    <div>Wattage: <span id="psuWattage">200 W</span></div>
+                    <button class="upgradeBtn" id="upgradepsu">Upgrade (NaN Credits)</button>
+                </div>
+                <div class="hardware-item ui-container" id="storage">
+                    <img src="media/images/storage.png" alt="Storage" draggable="false">
+                    <div>Storage: <span id="storageName">Seagate ST125N</span></div>
+                    <div>Size: <span id="storageSize">16 MB</span></div>
+                    <div>Type: <span id="storageType">HDD</span></div>
+                    <div>Speed: <span id="storageSpeed">5400 RPM</span></div>
+                    <div>Wattage: <span id="storageWattage">5 W</span></div>
+                    <div>Production: <span id="storageProduction">.1 cps</span></div>
+                    <button class="upgradeBtn" id="upgradestorage">Upgrade (NaN Credits)</button>
+                </div>
+                <div class="hardware-item ui-container" id="monitor">
+                    <img src="media/images/monitor.png" alt="Monitor" draggable="false">
+                    <div>Monitor: <span id="monitorName">Commodore 1084S</span></div>
+                    <div>Type: <span id="monitorType">CRT</span></div>
+                    <div>Resolution: <span id="monitorResolution">640 × 480</span></div>
+                    <div>Aspect Ratio: <span id="monitorAspect">4:3</span></div>
+                    <div>Refresh Rate: <span id="monitorRefresh">60 Hz</span></div>
+                    <div>Color Depth: <span id="monitorDepth">4-bit</span></div>
+                    <div>Production: <span id="monitorProduction">.05 cps</span></div>
+                    <button class="upgradeBtn" id="upgrademonitor">Upgrade (NaN Credits)</button>
+                </div>
+                <div class="hardware-item ui-container" id="fan">
+                    <img src="media/images/fan.png" alt="Fan" draggable="false">
+                    <div>CPU Fan: <span id="fanName">Intel Stock Fan (Core 2 Duo)</span></div>
+                    <div>Speed: <span id="fanSpeed">2000 RPM</span></div>
+                    <div>Airflow: <span id="fanAirflow">24 CFM</span></div>
+                    <div>Noise: <span id="fanNoise">28 dB</span></div>
+                    <div>Wattage: <span id="fanWattage">3 W</span></div>
+                    <button class="upgradeBtn" id="upgradefan">Upgrade (NaN Credits)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>

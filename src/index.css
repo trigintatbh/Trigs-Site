@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #111114;
-  --color-background-2: #0f0f12;
+  --color-background: #09090c;
+  --color-background-2: #070709;
   --color-card: #27272e;
   --color-border: #1b1b20;
-  --color-primary: #26262e;
+  --color-primary: #262626;
   --color-secondary-text: #c0c0c0;
 }
 
@@ -18,18 +18,24 @@
 }
 
 body {
-  background-color: #111; 
+  --rgb: 255 255 255;
+  --opacity: .05;
+  --size: 6px 6px;
+
   background-image:
-
-    repeating-linear-gradient(
+    linear-gradient(
       -45deg,
-      rgba(255,255,255,0.03) 0,
-      rgba(255,255,255,0.03) 1px,
-      transparent 2px,
-      transparent 6px
+      rgb(var(--rgb)/var(--opacity)) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgb(var(--rgb)/var(--opacity)) 50%,
+      rgb(var(--rgb)/var(--opacity)) 75%,
+      transparent 75%,
+      transparent 100%
     ),
-
     linear-gradient(180deg, var(--color-background-2) 0%, var(--color-background) 100%);
+
+  background-size: var(--size);
   background-repeat: repeat;
   background-attachment: fixed;
   font-family: 'Inter';
@@ -50,29 +56,30 @@ body {
 }
 
 .footer {
-  @apply border-b-0 border-t-2;
+  @apply border-b-0 border-t-2 flex-col items-center justify-center gap-4 py-12 mt-12;
 }
 
-.header__logo,
-.header__nav {
-  @apply flex items-center gap-2.5;
-    border-radius: 0.5rem;
-  padding: 0.3rem 1rem;
-  background: rgba(255, 255, 255, 0.04);
+/* --- New Liquid Glass Effect Class --- */
+.liquid-glass {
+  background: rgba(80, 80, 110, 0.15); /* Semi-transparent background with a slight cool tint */
   backdrop-filter: blur(1px);
-  border-style: dashed;
-  border-width: 1px;
-  border-color: rgba(255, 255, 255, 0.147);
+  -webkit-backdrop-filter: blur(1px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  /* Inner shadows create the "liquid" 3D look */
+  box-shadow: 
+    inset 0 2px 3px rgba(255, 255, 255, 0.1), 
+    inset 0 -2px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Refactored Header Styles --- */
+.header__logo {
+  @apply flex items-center gap-2.5 rounded-lg;
+  padding: 0.3rem 1rem 0.3rem 0.3rem;
 }
 
 .header__nav {
-  @apply gap-5;
+  @apply flex items-center gap-8 rounded-lg;
   padding: 0.9rem 1rem;
-  gap: 2rem;
-}
-
-.header__logo {
-  padding-left: 0.3rem;
 }
 
 .header__logo--image {
@@ -154,12 +161,19 @@ body {
 }
 
 .card {
-  @apply p-5 pb-0 bg-card h-50 w-50 lg:h-75 lg:w-75 rounded-lg z-0;
-    background: rgb(31, 31, 31);
-  backdrop-filter: blur(1px);
+  @apply p-5 pb-0 bg-card h-50 w-50 lg:h-75 lg:w-75 rounded-lg z-0 relative overflow-hidden;
+  
+  background: linear-gradient(45deg, rgba(38, 38, 43, 0.5), rgba(28, 28, 33, 0.5));
+  
   border-style: dashed;
   border-width: 1px;
   border-color: rgba(255, 255, 255, 0.147);
+  backdrop-filter: blur(1px);
+
+  box-shadow: 
+    0 5px 20px rgba(0, 0, 0, 0.4),
+    inset 0 2px 3px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.1); 
 }
 
 .card--title {
@@ -172,22 +186,47 @@ body {
   background-size: contain;
   width: 100%;
   height: 75%;
+  /* Add transition for a smoother blur effect */
+  transition: filter 0.25s ease-in-out; /* */
+}
+
+.card--content--blurred {
+  filter: blur(5px); /* */
+}
+
+.card--content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center; 
+  background-repeat: no-repeat;
+  background-size: contain; /* The image now goes on the pseudo-element */
+  transition: filter 0.25s ease-in-out; /* Smooth transition for the blur */
+}
+
+.group:hover .card--content::before {
+  filter: blur(5px); /* Apply blur to the pseudo-element on group hover */
+}
+
+.card--title {
+  text-shadow: 0 0 6px #5f5f5f;
 }
 
 .card--description {
-  @apply text-sm h-3/4;
+  text-shadow: 0 0 6px #000000;
+}
+
+.card--description {
+  @apply text-sm pt-2;
   font-style: italic;
   color: var(--color-secondary-text);
 }
 
 .card--footer {
   @apply mt-3 pt-2;
-  position: absolute; 
-  bottom: 0;         
-  left: -5%;           
-  right: 0;          
-  padding: 1rem;     
-  box-sizing: border-box; 
 }
 
 * {
