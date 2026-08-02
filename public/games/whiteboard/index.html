@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Whiteboard — Live Collab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07090f;
+  --surface:#0d1120;
+  --surface2:#121828;
+  --surface3:#1a2235;
+  --border:rgba(120,140,200,0.12);
+  --border2:rgba(120,140,200,0.2);
+  --accent:#4f7fff;
+  --accent2:#7c5cf6;
+  --glow:rgba(79,127,255,0.3);
+  --text:#dce8ff;
+  --text2:#8899bb;
+  --text3:#4a5878;
+  --danger:#ff4f6a;
+  --success:#2dd4a0;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;overflow:hidden;user-select:none;-webkit-user-select:none}
+
+/* ─── LANDING ─────────────────────────────── */
+#landing{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%, rgba(79,127,255,0.08) 0%, transparent 70%),var(--bg);
+  z-index:200;
+}
+.grid-bg{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(79,127,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,127,255,0.04) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+.landing-card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:44px 48px;
+  width:460px;max-width:calc(100vw - 32px);
+  box-shadow:0 0 0 1px rgba(79,127,255,0.05), 0 32px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.landing-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(79,127,255,0.1);border:1px solid rgba(79,127,255,0.25);
+  border-radius:99px;padding:4px 12px;font-size:11px;font-weight:600;
+  color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:20px;
+}
+.landing-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.landing-title{font-size:28px;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px;color:#fff}
+.landing-title span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.landing-sub{font-size:14px;color:var(--text2);margin-bottom:32px;font-weight:400}
+
+.field-group{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;display:block}
+.field-input{
+  width:100%;background:var(--surface2);
+  border:1px solid var(--border);border-radius:11px;
+  padding:11px 15px;color:var(--text);
+  font-size:14px;font-family:var(--font);outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.field-input:focus{border-color:rgba(79,127,255,0.5);box-shadow:0 0 0 3px rgba(79,127,255,0.1)}
+.field-input::placeholder{color:var(--text3)}
+.field-input.mono{font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase}
+
+.divider{display:flex;align-items:center;gap:14px;margin:22px 0;color:var(--text3);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  border:none;border-radius:11px;
+  font-family:var(--font);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .15s;letter-spacing:-0.01em;
+}
+.btn-primary{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+  color:#fff;box-shadow:0 4px 20px rgba(79,127,255,0.35);
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(79,127,255,0.45)}
+.btn-primary:active{transform:none}
+.btn-ghost{
+  padding:10px 18px;
+  background:var(--surface3);color:var(--text);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover{background:var(--surface2);border-color:var(--border2)}
+.join-row{display:flex;gap:10px}
+.join-row .field-input{flex:1}
+
+/* ─── APP ──────────────────────────────────── */
+#app{display:none;height:100vh;width:100vw;position:relative}
+#app.show{display:block}
+
+#canvas-wrap{position:absolute;inset:0;overflow:hidden}
+#canvas-wrap canvas{position:absolute;top:0;left:0;display:block}
+#overlay-canvas{pointer-events:none}
+
+/* ─── FLOATING TOOLBAR ─────────────────────── */
+#toolbar{
+  position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:18px;padding:10px 8px;
+  display:flex;flex-direction:column;gap:3px;
+  z-index:30;box-shadow:0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.tool{
+  width:38px;height:38px;border-radius:10px;
+  border:none;background:transparent;color:var(--text3);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;position:relative;
+}
+.tool:hover{background:var(--surface3);color:var(--text)}
+.tool.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 14px rgba(79,127,255,0.4)}
+.tool svg{width:16px;height:16px;flex-shrink:0}
+.tsep{height:1px;background:var(--border);margin:4px 2px}
+
+/* tooltip */
+.tool::after{
+  content:attr(data-tip);
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:var(--surface3);border:1px solid var(--border2);
+  border-radius:7px;padding:5px 10px;font-size:11px;font-family:var(--font);
+  color:var(--text);white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .15s;font-weight:500;
+}
+.tool:hover::after{opacity:1}
+
+/* ─── TOP BAR ──────────────────────────────── */
+#topbar{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:15px;padding:8px 14px;
+  display:flex;align-items:center;gap:14px;
+  z-index:30;box-shadow:0 4px 24px rgba(0,0,0,0.4);
+  white-space:nowrap;max-width:calc(100vw - 140px);overflow:hidden;
+}
+.tbsep{width:1px;height:22px;background:var(--border);flex-shrink:0}
+.room-pill{
+  display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);
+}
+.room-code{
+  font-family:var(--mono);font-size:13px;font-weight:500;
+  color:var(--text);letter-spacing:0.12em;background:var(--surface3);
+  border:1px solid var(--border);border-radius:7px;padding:3px 9px;
+}
+.copy-pill{
+  font-family:var(--font);font-size:11px;font-weight:600;
+  background:rgba(79,127,255,0.12);border:1px solid rgba(79,127,255,0.25);
+  color:var(--accent);border-radius:6px;padding:3px 8px;
+  cursor:pointer;transition:all .15s;
+}
+.copy-pill:hover{background:rgba(79,127,255,0.2)}
+.copy-pill.ok{color:var(--success);background:rgba(45,212,160,0.1);border-color:rgba(45,212,160,0.3)}
+
+/* color picker */
+.color-area{display:flex;align-items:center;gap:8px}
+.cur-color{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--border2);cursor:pointer;
+  transition:transform .15s, border-color .15s;flex-shrink:0;
+}
+.cur-color:hover{transform:scale(1.12);border-color:var(--border2)}
+#col-input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.swatches{display:flex;gap:5px;align-items:center}
+.sw{
+  width:18px;height:18px;border-radius:50%;cursor:pointer;
+  transition:transform .15s;border:2px solid transparent;flex-shrink:0;
+}
+.sw:hover{transform:scale(1.2)}
+.sw.sel{border-color:rgba(255,255,255,0.7);transform:scale(1.1)}
+
+/* size slider */
+.size-wrap{display:flex;align-items:center;gap:7px}
+.size-lbl{font-size:11px;color:var(--text3);font-weight:500}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:72px;height:3px;background:var(--surface3);
+  border-radius:2px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--accent);cursor:pointer;
+  box-shadow:0 0 6px rgba(79,127,255,0.5);
+}
+
+/* user avatars */
+.avatars{display:flex;align-items:center}
+.av{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--surface);display:flex;
+  align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:#fff;
+  margin-left:-7px;cursor:default;transition:transform .15s;flex-shrink:0;
+}
+.av:first-child{margin-left:0}
+.av:hover{transform:translateY(-3px);z-index:1}
+
+/* ─── BOTTOM BAR ───────────────────────────── */
+#bottombar{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:13px;padding:7px 10px;
+  display:flex;align-items:center;gap:6px;z-index:30;
+  box-shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+.bb-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:8px;
+  background:transparent;border:none;
+  color:var(--text2);font-family:var(--font);font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+}
+.bb-btn:hover{background:var(--surface3);color:var(--text)}
+.bb-btn svg{width:13px;height:13px}
+.bb-btn.danger:hover{color:var(--danger)}
+
+/* ─── TEXT INPUT OVERLAY ───────────────────── */
+#text-inp{
+  position:absolute;display:none;
+  background:rgba(13, 17, 32, 0.85);border:1px dashed var(--accent);border-radius:8px;
+  color:var(--text);font-family:var(--font);font-size:18px;line-height:1.2;
+  outline:none;padding:8px 12px;min-width:160px;min-height:45px;z-index:20;
+  caret-color:var(--accent);resize:both;overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);white-space:pre-wrap;backdrop-filter:blur(4px);
+}
+
+/* ─── TOAST ────────────────────────────────── */
+#toast{
+  position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--surface3);border:1px solid var(--border2);
+  border-radius:10px;padding:9px 18px;font-size:12px;font-weight:500;
+  z-index:300;opacity:0;transition:opacity .25s, transform .25s;pointer-events:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ─── CURSOR LABELS ────────────────────────── */
+.clabel{
+  position:absolute;pointer-events:none;z-index:25;
+  font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;
+  transform:translate(14px, 14px);white-space:nowrap;
+  font-family:var(--font);color:var(--bg);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:0}
+</style>
+</head>
+<body>
+
+<!-- ────────────────── LANDING ────────────────── -->
+<div id="landing">
+  <div class="grid-bg"></div>
+  <div class="landing-card">
+    <div class="landing-badge">✦ Live Collaboration</div>
+    <div class="landing-title">White<span>board</span></div>
+    <div class="landing-sub">Real-time drawing with friends, in rooms.</div>
+
+    <div class="field-group">
+      <label class="field-label">Your Name</label>
+      <input id="inp-name" class="field-input" type="text" placeholder="Enter your name..." maxlength="20" autocomplete="off"/>
+    </div>
+    <button class="btn btn-primary" onclick="createRoom()">
+      <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M10 4v12M4 10h12" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>
+      Create New Room
+    </button>
+
+    <div class="divider">or join existing</div>
+
+    <div class="join-row">
+      <input id="inp-code" class="field-input mono" type="text" placeholder="ROOM CODE" maxlength="6" autocomplete="off"/>
+      <button class="btn btn-ghost" onclick="joinRoom()">Join →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────────────────── APP ──────────────────── -->
+<div id="app">
+  <div id="canvas-wrap">
+    <canvas id="main-cv"></canvas>
+    <canvas id="ovr-cv"></canvas>
+    <textarea id="text-inp" placeholder="Type... (Click outside or Shift+Enter to save)"></textarea>
+  </div>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <button class="tool" data-tool="select" data-tip="Select" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
+    </button>
+    <button class="tool on" data-tool="pen" data-tip="Pen" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+    </button>
+    <button class="tool" data-tool="marker" data-tip="Marker" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h4l10.5-10.5a2.12 2.12 0 0 0-3-3L4 14v3Z"/><path d="m14.5 5.5 3 3"/></svg>
+    </button>
+    <button class="tool" data-tool="eraser" data-tip="Eraser" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+    </button>
+    <div class="tsep"></div>
+    <button class="tool" data-tool="line" data-tip="Line" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+    </button>
+    <button class="tool" data-tool="rect" data-tip="Rectangle" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+    </button>
+    <button class="tool" data-tool="ellipse" data-tip="Ellipse" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="7"/></svg>
+    </button>
+    <button class="tool" data-tool="arrow" data-tip="Arrow" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="9 5 19 5 19 15"/></svg>
+    </button>
+    <div class="tsep"></div>
+    <button class="tool" data-tool="text" data-tip="Text" onclick="setTool(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+    </button>
+    <button class="tool" data-tool="img" data-tip="Image" onclick="pickImg()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </button>
+  </div>
+
+  <!-- Top bar -->
+  <div id="topbar">
+    <div class="room-pill">
+      <span>Room</span>
+      <div class="room-code" id="disp-code">------</div>
+      <div class="copy-pill" id="copy-btn" onclick="copyCode()">Copy invite</div>
+    </div>
+    <div class="tbsep"></div>
+    <div class="color-area">
+      <div class="cur-color" id="col-swatch" onclick="document.getElementById('col-input').click()"></div>
+      <input type="color" id="col-input" value="#dce8ff" oninput="pickColor(this.value)"/>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div class="tbsep"></div>
+    <div class="size-wrap">
+      <span class="size-lbl">Size</span>
+      <input type="range" id="size-range" min="1" max="48" value="4" oninput="setSize(this.value)"/>
+      <span class="size-lbl" id="size-val">4</span>
+    </div>
+    <div class="tbsep"></div>
+    <div class="avatars" id="avatars"></div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div id="bottombar">
+    <button class="bb-btn" onclick="undo()" title="Undo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      Undo
+    </button>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <button class="bb-btn danger" onclick="clearAll()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      Clear all
+    </button>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <button class="bb-btn" onclick="saveImg()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download
+    </button>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <button class="bb-btn" onclick="leaveRoom()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Leave
+    </button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="img-file" accept="image/*" style="display:none" onchange="handleImg(event)"/>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+<script>
+// ─── Firebase Init ─────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyC06XsO8djbQgl2bJzn1L5l9hy4026IEfE",
+  authDomain: "whiteboard-dc80c.firebaseapp.com",
+  projectId: "whiteboard-dc80c",
+  storageBucket: "whiteboard-dc80c.firebasestorage.app",
+  messagingSenderId: "110980563488",
+  appId: "1:110980563488:web:dd18ccf8680ae1b1dd7245",
+  // ⚠️  Update this if your Realtime DB is in a different region:
+  databaseURL: "https://whiteboard-dc80c-default-rtdb.firebaseio.com"
+};
+firebase.initializeApp(firebaseConfig);
+const DB = firebase.database();
+const STORE = firebase.storage();
+
+// ─── State (must be declared before any function calls) ────────────────────
+let room = null, uid = null, uName = null, uColor = null;
+let tool = 'pen', color = '#dce8ff', size = 4;
+let drawing = false, startPt = null, livePts = [];
+let dragging = null;
+let lastCursorSend = 0, lastStrokeSend = 0;
+let strokes = {}, images = {}, cursors = {}, liveStrokes = {};
+let myUndoKeys = [];
+let textPos = null;
+
+// ─── Canvas Setup ──────────────────────────────────────────────────────────
+const mainCv = document.getElementById('main-cv');
+const ovrCv  = document.getElementById('ovr-cv');
+const mCtx   = mainCv.getContext('2d');
+const oCtx   = ovrCv.getContext('2d');
+
+function resizeCvs() {
+  const W = window.innerWidth, H = window.innerHeight;
+  mainCv.width = ovrCv.width  = W;
+  mainCv.height= ovrCv.height = H;
+  redrawAll();
+}
+window.addEventListener('resize', resizeCvs);
+resizeCvs();
+
+// Colors
+const SWATCHES = ['#dce8ff','#ff4f6a','#ff9340','#ffda56','#2dd4a0','#4f7fff','#b667f1','#ff6ec7'];
+const USER_COLORS = ['#ff4f6a','#ff9340','#ffda56','#2dd4a0','#4f7fff','#b667f1','#ff6ec7','#40d0ff'];
+
+function randColor() { return USER_COLORS[Math.floor(Math.random()*USER_COLORS.length)]; }
+function randCode() {
+  const C = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6}, ()=>C[Math.floor(Math.random()*C.length)]).join('');
+}
+function randId() { return Math.random().toString(36).slice(2,11); }
+
+// ─── Swatches init ─────────────────────────────────────────────────────────
+function buildSwatches() {
+  const wrap = document.getElementById('swatches');
+  SWATCHES.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'sw' + (c === color ? ' sel' : '');
+    d.style.background = c;
+    d.onclick = () => pickColor(c);
+    wrap.appendChild(d);
+  });
+}
+buildSwatches();
+document.getElementById('col-swatch').style.background = color;
+
+// ─── Keyboard shortcuts ────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target === document.getElementById('text-inp')) return;
+  if (e.target.tagName === 'INPUT') return;
+  const map = {s:'select',p:'pen',m:'marker',e:'eraser',l:'line',r:'rect',o:'ellipse',a:'arrow',t:'text'};
+  if (map[e.key.toLowerCase()]) {
+    const btn = document.querySelector(`[data-tool="${map[e.key.toLowerCase()]}"]`);
+    if (btn) setTool(btn);
+  }
+  if ((e.ctrlKey||e.metaKey) && e.key==='z') { e.preventDefault(); undo(); }
+});
+
+// ─── Room Logic ────────────────────────────────────────────────────────────
+function createRoom() {
+  const n = document.getElementById('inp-name').value.trim() || 'Anonymous';
+  enterRoom(randCode(), n);
+}
+function joinRoom() {
+  const n = document.getElementById('inp-name').value.trim() || 'Anonymous';
+  const c = document.getElementById('inp-code').value.trim().toUpperCase();
+  if (!c || c.length < 2) { toast('Enter a room code'); return; }
+  enterRoom(c, n);
+}
+document.getElementById('inp-code').addEventListener('keydown', e => { if(e.key==='Enter') joinRoom(); });
+document.getElementById('inp-name').addEventListener('keydown', e => { if(e.key==='Enter') createRoom(); });
+
+function enterRoom(code, name) {
+  room = code; uid = randId(); uName = name; uColor = randColor();
+
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('disp-code').textContent = room;
+
+  // Presence
+  const pRef = DB.ref(`rooms/${room}/users/${uid}`);
+  pRef.set({ name: uName, color: uColor });
+  pRef.onDisconnect().remove();
+  DB.ref(`rooms/${room}/cursors/${uid}`).onDisconnect().remove();
+  DB.ref(`rooms/${room}/liveStrokes/${uid}`).onDisconnect().remove();
+
+  subscribe();
+}
+
+function leaveRoom() {
+  if (!room) return;
+  DB.ref(`rooms/${room}/users/${uid}`).remove();
+  DB.ref(`rooms/${room}/cursors/${uid}`).remove();
+  DB.ref(`rooms/${room}/liveStrokes/${uid}`).remove();
+  room = null;
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('landing').style.display = 'flex';
+  strokes = {}; images = {}; cursors = {}; liveStrokes = {};
+  mCtx.clearRect(0,0,mainCv.width,mainCv.height);
+}
+
+function subscribe() {
+  DB.ref(`rooms/${room}/users`).on('value', s => {
+    const u = s.val() || {};
+    const wrap = document.getElementById('avatars');
+    wrap.innerHTML = '';
+    Object.values(u).forEach(user => {
+      const d = document.createElement('div');
+      d.className = 'av';
+      d.style.background = user.color || '#4f7fff';
+      d.title = user.name;
+      d.textContent = (user.name||'?')[0].toUpperCase();
+      wrap.appendChild(d);
+    });
+  });
+
+  DB.ref(`rooms/${room}/strokes`).on('value', s => {
+    strokes = s.val() || {};
+    redrawAll();
+  });
+
+  DB.ref(`rooms/${room}/images`).on('value', s => {
+    images = s.val() || {};
+    redrawAll();
+  });
+
+  DB.ref(`rooms/${room}/liveStrokes`).on('value', s => {
+    liveStrokes = s.val() || {};
+    drawOverlay();
+  });
+
+  DB.ref(`rooms/${room}/cursors`).on('value', s => {
+    cursors = s.val() || {};
+    drawOverlay();
+  });
+}
+
+// ─── Drawing Events ────────────────────────────────────────────────────────
+const wrap = document.getElementById('canvas-wrap');
+
+function pos(e) {
+  const r = mainCv.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - r.left, y: src.clientY - r.top };
+}
+
+wrap.addEventListener('mousedown',  onDown);
+wrap.addEventListener('mousemove',  onMove);
+wrap.addEventListener('mouseup',    onUp);
+wrap.addEventListener('mouseleave', onUp);
+wrap.addEventListener('touchstart', e => { e.preventDefault(); onDown(e); }, {passive:false});
+wrap.addEventListener('touchmove',  e => { e.preventDefault(); onMove(e); }, {passive:false});
+wrap.addEventListener('touchend',   e => { e.preventDefault(); onUp(e); },   {passive:false});
+
+function getBounds(s) {
+  if (s.points) {
+    let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+    s.points.forEach(pt => { minX=Math.min(minX,pt.x); minY=Math.min(minY,pt.y); maxX=Math.max(maxX,pt.x); maxY=Math.max(maxY,pt.y); });
+    return {x:minX, y:minY, w:maxX-minX, h:maxY-minY};
+  } else if (s.x1 !== undefined) {
+    return {x:Math.min(s.x1,s.x2), y:Math.min(s.y1,s.y2), w:Math.abs(s.x2-s.x1), h:Math.abs(s.y2-s.y1)};
+  } else if (s.text) {
+    const lines = s.text.split('\n');
+    const lh = (s.fsize || 18) * 1.2;
+    const maxW = Math.max(...lines.map(l => l.length)) * (s.fsize * 0.6);
+    return {x:s.x, y:s.y-s.fsize, w:maxW, h:lines.length * lh};
+  }
+  return null;
+}
+function hitTest(p) {
+  let hit = null;
+  Object.entries(images||{}).reverse().forEach(([id, img]) => {
+    if(!hit && p.x>=img.x && p.x<=img.x+img.w && p.y>=img.y && p.y<=img.y+img.h) hit = {type:'images', id, data:img};
+  });
+  if (hit) return hit;
+  Object.entries(strokes||{}).reverse().forEach(([id, s]) => {
+    if(!hit) {
+      const b = getBounds(s);
+      if (b && p.x>=b.x-10 && p.x<=b.x+b.w+10 && p.y>=b.y-10 && p.y<=b.y+b.h+10) hit = {type:'strokes', id, data:s};
+    }
+  });
+  return hit;
+}
+
+function onDown(e) {
+  if (!room || tool === 'text' || tool === 'img') return;
+  const p = pos(e);
+
+  if (tool === 'select') {
+    dragging = hitTest(p);
+    if (dragging) {
+      drawing = true; startPt = p;
+      dragging.orig = JSON.parse(JSON.stringify(dragging.data));
+    }
+    return;
+  }
+
+  drawing = true; startPt = p; livePts = [p];
+
+  if (tool === 'pen' || tool === 'marker' || tool === 'eraser') {
+    // push first point to firebase for live preview
+    DB.ref(`rooms/${room}/liveStrokes/${uid}`).set({
+      tool, color: getStrokeColor(), size: getStrokeSize(),
+      points: [p], opacity: getOpacity()
+    });
+  }
+}
+
+let lastMouse = {x:0,y:0};
+function onMove(e) {
+  const p = pos(e);
+  lastMouse = p;
+  const now = Date.now();
+
+  // cursor
+  if (room && now - lastCursorSend > 20) {
+    lastCursorSend = now;
+    DB.ref(`rooms/${room}/cursors/${uid}`).set({ x:p.x, y:p.y, name:uName, color:uColor });
+  }
+
+  if (!drawing) return;
+
+  if (tool === 'select' && dragging) {
+    const dx = p.x - startPt.x, dy = p.y - startPt.y;
+    const d = dragging.data, o = dragging.orig;
+    if (dragging.type === 'images') {
+      d.x = o.x + dx; d.y = o.y + dy;
+    } else {
+      if (d.points) { d.points = o.points.map(pt => ({x:pt.x+dx, y:pt.y+dy})); }
+      else if (d.x1 !== undefined) { d.x1 = o.x1+dx; d.y1 = o.y1+dy; d.x2 = o.x2+dx; d.y2 = o.y2+dy; }
+      else if (d.text) { d.x = o.x+dx; d.y = o.y+dy; }
+    }
+    redrawAll();
+    
+    // Throttle the live updates to Firebase so other users see it move in real-time
+    if (now - lastStrokeSend > 30) {
+      lastStrokeSend = now;
+      DB.ref(`rooms/${room}/${dragging.type}/${dragging.id}`).set(dragging.data);
+    }
+    return;
+  }
+
+  if (tool === 'pen' || tool === 'marker' || tool === 'eraser') {
+    livePts.push(p);
+    // Draw locally right away
+    if (livePts.length > 1) {
+      applyStrokeStyle(mCtx, {tool, color: getStrokeColor(), size: getStrokeSize(), opacity: getOpacity()});
+      const pts = livePts;
+      mCtx.beginPath();
+      mCtx.moveTo(pts[pts.length-2].x, pts[pts.length-2].y);
+      mCtx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+      mCtx.stroke();
+      mCtx.restore();
+    }
+    // Throttled firebase update
+    if (now - lastStrokeSend > 30) {
+      lastStrokeSend = now;
+      DB.ref(`rooms/${room}/liveStrokes/${uid}`).set({
+        tool, color: getStrokeColor(), size: getStrokeSize(),
+        points: livePts, opacity: getOpacity()
+      });
+    }
+  } else {
+    // Shape preview on overlay
+    drawOverlay(p);
+  }
+}
+
+function onUp(e) {
+  if (!drawing) return;
+  drawing = false;
+  if (!room) return;
+
+  if (tool === 'select' && dragging) {
+    DB.ref(`rooms/${room}/${dragging.type}/${dragging.id}`).set(dragging.data);
+    dragging = null;
+    return;
+  }
+
+  DB.ref(`rooms/${room}/liveStrokes/${uid}`).remove();
+
+  const p = e.changedTouches
+    ? (() => { const r = mainCv.getBoundingClientRect(); return {x: e.changedTouches[0].clientX-r.left, y: e.changedTouches[0].clientY-r.top}; })()
+    : (e.type === 'mouseleave' ? lastMouse : pos(e));
+
+  let stroke = null;
+  if (tool === 'pen' || tool === 'marker' || tool === 'eraser') {
+    if (livePts.length < 2) { livePts = []; startPt = null; return; }
+    stroke = { tool, color: getStrokeColor(), size: getStrokeSize(), points: livePts, opacity: getOpacity(), ts: Date.now(), uid };
+  } else if (['line','rect','ellipse','arrow'].includes(tool) && startPt) {
+    stroke = { tool, color: getStrokeColor(), size: getStrokeSize(), x1:startPt.x, y1:startPt.y, x2:p.x, y2:p.y, opacity:1, ts:Date.now(), uid };
+  }
+
+  if (stroke) {
+    const ref = DB.ref(`rooms/${room}/strokes`).push();
+    ref.set(stroke);
+    myUndoKeys.push(ref.key);
+  }
+
+  livePts = []; startPt = null;
+  drawOverlay();
+}
+
+// ─── Tool helpers ──────────────────────────────────────────────────────────
+function getStrokeColor() { return tool === 'eraser' ? '__erase__' : color; }
+function getStrokeSize()  { return tool === 'eraser' ? size * 4 : (tool === 'marker' ? size * 2.5 : size); }
+function getOpacity()     { return tool === 'marker' ? 0.45 : 1; }
+
+function applyStrokeStyle(ctx, s) {
+  ctx.save();
+  if (s.color === '__erase__') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = s.color;
+    ctx.globalAlpha = s.opacity || 1;
+  }
+  ctx.lineWidth   = s.size;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+}
+
+// ─── Stroke Rendering ──────────────────────────────────────────────────────
+function renderStroke(ctx, s) {
+  if (!s) return;
+  ctx.save();
+
+  if (s.color === '__erase__') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = s.color;
+    ctx.globalAlpha = s.opacity || 1;
+  }
+  ctx.lineWidth = s.size;
+  ctx.lineCap   = 'round';
+  ctx.lineJoin  = 'round';
+
+  const t = s.tool;
+
+  if (t === 'pen' || t === 'marker' || t === 'eraser') {
+    const pts = s.points;
+    if (!pts || pts.length < 2) { ctx.restore(); return; }
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke();
+  } else if (t === 'line') {
+    ctx.beginPath(); ctx.moveTo(s.x1,s.y1); ctx.lineTo(s.x2,s.y2); ctx.stroke();
+  } else if (t === 'rect') {
+    ctx.beginPath(); ctx.strokeRect(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1);
+  } else if (t === 'ellipse') {
+    const cx=(s.x1+s.x2)/2, cy=(s.y1+s.y2)/2;
+    const rx=Math.abs(s.x2-s.x1)/2, ry=Math.abs(s.y2-s.y1)/2;
+    ctx.beginPath(); ctx.ellipse(cx,cy,Math.max(rx,1),Math.max(ry,1),0,0,Math.PI*2); ctx.stroke();
+  } else if (t === 'arrow') {
+    drawArrow(ctx, s.x1,s.y1,s.x2,s.y2, s.size);
+  } else if (t === 'text') {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.font = `${s.fsize||18}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = 1;
+    const lines = s.text.split('\n');
+    const lh = (s.fsize || 18) * 1.2;
+    lines.forEach((line, i) => ctx.fillText(line, s.x, s.y + (i * lh)));
+  }
+  ctx.restore();
+}
+
+function drawArrow(ctx, x1,y1,x2,y2, w) {
+  const ang = Math.atan2(y2-y1, x2-x1);
+  const al = Math.max(12, w*4), aw = Math.max(6, w*2.5);
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.save();
+  ctx.translate(x2,y2); ctx.rotate(ang);
+  ctx.beginPath();
+  ctx.moveTo(0,0); ctx.lineTo(-al,-aw); ctx.lineTo(-al,aw);
+  ctx.closePath(); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+  ctx.restore();
+}
+
+const imgCache = {};
+function redrawAll() {
+  if (!mCtx) return;
+  mCtx.clearRect(0, 0, mainCv.width, mainCv.height);
+
+  // Draw images
+  Object.values(images || {}).forEach(img => {
+    if (!img.url) return;
+    if (imgCache[img.url]) {
+      mCtx.save();
+      mCtx.globalAlpha = 1;
+      mCtx.drawImage(imgCache[img.url], img.x, img.y, img.w, img.h);
+      mCtx.restore();
+    } else {
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = () => {
+        imgCache[img.url] = im;
+        redrawAll(); // Trigger a redraw once the image is safely cached
+      };
+      im.src = img.url;
+    }
+  });
+
+  // Draw strokes sorted by timestamp
+  Object.values(strokes || {})
+    .sort((a,b) => (a.ts||0) - (b.ts||0))
+    .forEach(s => renderStroke(mCtx, s));
+}
+
+// ─── Overlay ───────────────────────────────────────────────────────────────
+function drawOverlay(mousePos) {
+  oCtx.clearRect(0, 0, ovrCv.width, ovrCv.height);
+  document.querySelectorAll('.clabel').forEach(el => el.remove());
+
+  // Others' live strokes
+  Object.entries(liveStrokes).forEach(([id, s]) => {
+    if (id === uid) return;
+    renderStroke(oCtx, s);
+  });
+
+  // Shape preview while drawing
+  if (drawing && startPt && mousePos && ['line','rect','ellipse','arrow'].includes(tool)) {
+    renderStroke(oCtx, { tool, color, size, x1:startPt.x, y1:startPt.y, x2:mousePos.x, y2:mousePos.y, opacity:1 });
+  }
+
+  // Brush size indicator
+  if (mousePos && ['pen','marker','eraser'].includes(tool)) {
+    oCtx.beginPath();
+    oCtx.arc(mousePos.x, mousePos.y, getStrokeSize()/2, 0, Math.PI*2);
+    oCtx.strokeStyle = tool === 'eraser' ? '#fff' : color;
+    oCtx.lineWidth = 1;
+    oCtx.stroke();
+    oCtx.beginPath();
+    oCtx.arc(mousePos.x, mousePos.y, getStrokeSize()/2 + 1, 0, Math.PI*2);
+    oCtx.strokeStyle = 'rgba(0,0,0,0.3)';
+    oCtx.stroke();
+  }
+
+  // Cursors
+  Object.entries(cursors).forEach(([id, c]) => {
+    if (id === uid) return;
+    // Cursor dot + arrow
+    oCtx.save();
+    oCtx.fillStyle = c.color || '#4f7fff';
+    oCtx.strokeStyle = 'rgba(0,0,0,0.4)';
+    oCtx.lineWidth = 1;
+    oCtx.beginPath();
+    oCtx.moveTo(c.x, c.y);
+    oCtx.lineTo(c.x + 10, c.y + 16);
+    oCtx.lineTo(c.x + 13, c.y + 11);
+    oCtx.lineTo(c.x + 18, c.y + 11);
+    oCtx.closePath();
+    oCtx.fill();
+    oCtx.stroke();
+    oCtx.restore();
+
+    // Name label (DOM for crisp text)
+    const lbl = document.createElement('div');
+    lbl.className = 'clabel';
+    lbl.textContent = c.name || '?';
+    lbl.style.left = c.x + 'px';
+    lbl.style.top  = c.y + 'px';
+    lbl.style.background = c.color || '#4f7fff';
+    document.getElementById('app').appendChild(lbl);
+  });
+}
+
+// RAF loop for overlay
+function loop() { if (!drawing || !['line','rect','ellipse','arrow'].includes(tool)) drawOverlay(lastMouse); requestAnimationFrame(loop); }
+loop();
+
+// ─── Text Tool ─────────────────────────────────────────────────────────────
+wrap.addEventListener('click', e => {
+  if (tool !== 'text') return;
+  const p = pos(e);
+  const inp = document.getElementById('text-inp');
+  inp.style.display = 'block';
+  inp.style.left = p.x + 'px';
+  inp.style.top  = (p.y - 20) + 'px';
+  inp.style.fontSize = Math.max(14, size * 3) + 'px';
+  inp.style.width = '160px'; // Reset bounds
+  inp.style.height = '45px';
+  inp.value = '';
+  textPos = p;
+  inp.focus();
+});
+
+const commitText = () => {
+  const inp = document.getElementById('text-inp');
+  if (inp.style.display === 'none') return;
+  const txt = inp.value.trim();
+  if (txt && textPos && room) {
+    const ref = DB.ref(`rooms/${room}/strokes`).push();
+    ref.set({ tool:'text', text:txt, x:textPos.x, y:textPos.y, color, fsize: Math.max(14, size*3), ts:Date.now(), uid });
+    myUndoKeys.push(ref.key);
+  }
+  inp.style.display = 'none'; inp.value = '';
+};
+
+document.getElementById('text-inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.shiftKey) { // Shift+Enter saves
+    e.preventDefault();
+    commitText();
+  } else if (e.key === 'Escape') { 
+    document.getElementById('text-inp').style.display = 'none'; 
+  }
+});
+
+// Click anywhere else to save it natively 
+document.getElementById('text-inp').addEventListener('blur', commitText);
+
+// Auto-expand as they type
+document.getElementById('text-inp').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = this.scrollHeight + 'px';
+});
+
+// ─── Image Upload ──────────────────────────────────────────────────────────
+function pickImg() { document.getElementById('img-file').click(); }
+
+function handleImg(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    const im = new Image();
+    im.onload = async () => {
+      const maxD = 900;
+      let w=im.width, h=im.height;
+      if (w>maxD||h>maxD) { if(w>h){h=Math.round(h*maxD/w);w=maxD;}else{w=Math.round(w*maxD/h);h=maxD;} }
+      const tc = document.createElement('canvas'); tc.width=w; tc.height=h;
+      tc.getContext('2d').drawImage(im,0,0,w,h);
+      const data = tc.toDataURL('image/jpeg',0.8);
+      toast('Adding image…');
+      try {
+        // Bypassing Firebase Storage completely to avoid CORS!
+        const x = (mainCv.width - w) / 2, y = (mainCv.height - h) / 2;
+        DB.ref(`rooms/${room}/images`).push({ url: data, x, y, w, h, ts: Date.now() });
+        toast('Image added ✓');
+      } catch(err) {
+        console.error(err);
+        toast('Upload failed');
+      }
+    };
+    im.src = ev.target.result;
+  };
+  rd.readAsDataURL(file);
+  e.target.value = '';
+}
+
+// ─── Controls ──────────────────────────────────────────────────────────────
+function setTool(btn) {
+  tool = btn.dataset.tool;
+  document.querySelectorAll('.tool').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const cursors_map = { select:'move', pen:'none', marker:'none', eraser:'none', text:'text', line:'crosshair', rect:'crosshair', ellipse:'crosshair', arrow:'crosshair', img:'default' };
+  wrap.style.cursor = cursors_map[tool] || 'crosshair';
+}
+
+function pickColor(hex) {
+  color = hex;
+  document.getElementById('col-swatch').style.background = hex;
+  document.getElementById('col-input').value = hex;
+  document.querySelectorAll('.sw').forEach(s => s.classList.toggle('sel', s.style.background === hex || toRgb(hex) === s.style.background));
+}
+
+function toRgb(hex) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function setSize(v) {
+  size = parseInt(v);
+  document.getElementById('size-val').textContent = v;
+}
+
+function undo() {
+  if (!room || !myUndoKeys.length) { toast('Nothing to undo'); return; }
+  const k = myUndoKeys.pop();
+  DB.ref(`rooms/${room}/strokes/${k}`).remove();
+}
+
+function clearAll() {
+  if (!room) return;
+  if (!confirm('Clear the entire canvas for all users?')) return;
+  DB.ref(`rooms/${room}/strokes`).remove();
+  DB.ref(`rooms/${room}/images`).remove();
+}
+
+function saveImg() {
+  const tmp = document.createElement('canvas');
+  tmp.width = mainCv.width; tmp.height = mainCv.height;
+  const c = tmp.getContext('2d');
+  c.fillStyle = '#07090f';
+  c.fillRect(0,0,tmp.width,tmp.height);
+  c.drawImage(mainCv,0,0);
+  const a = document.createElement('a');
+  a.download = `whiteboard-${room||'local'}.png`;
+  a.href = tmp.toDataURL();
+  a.click();
+}
+
+function copyCode() {
+  if (!room) return;
+  navigator.clipboard.writeText(room).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copy invite'; btn.classList.remove('ok'); }, 2200);
+  });
+}
+
+function toast(msg, dur=2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// Keep alive cursor
+setInterval(() => {
+  if (room) DB.ref(`rooms/${room}/cursors/${uid}`).set({ x:lastMouse.x, y:lastMouse.y, name:uName, color:uColor });
+}, 3000);
+</script>
+</body>
+</html>

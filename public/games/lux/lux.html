@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lux light simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Use Inter font */
+        html {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        
+        /* Canvas styles */
+        #lux-canvas {
+            display: block;
+            background: #111;
+            cursor: crosshair;
+        }
+        
+        /* Toolbar styles - DARK MODE */
+        #toolbar {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.95); /* Dark background */
+            backdrop-filter: blur(10px);
+            border: 1px solid #374151; /* Dark border */
+            border-radius: 12px;
+            padding: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        /* General light text for dark mode controls */
+        .control-label {
+            color: #d1d5db; /* light gray text */
+        }
+
+        /* Tool buttons */
+        .tool-btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #4b5563; /* Darker border */
+            background: #374151; /* Darker button bg */
+            color: #d1d5db; /* Light text */
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .tool-btn:hover {
+            background: #4b5563;
+        }
+        .tool-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .tool-btn-danger {
+            background-color: #451a1a; /* Dark red */
+            border-color: #991b1b;
+            color: #fca5a5;
+        }
+        .tool-btn-danger:hover {
+            background-color: #631b1b;
+        }
+        
+        /* Custom file input (Kept for styling, though not used) */
+        input[type="file"] {
+            display: none;
+        }
+        .file-label {
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #4b5563;
+            background: #374151;
+            color: #d1d5db;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .file-label:hover {
+            background: #4b5563;
+        }
+
+        /* Dark mode for sliders */
+        input[type="range"] {
+            background: #4b5563;
+        }
+        
+        /* Custom color input */
+        input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: transparent;
+            border: 1px solid #4b5563;
+            border-radius: 4px;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 overflow-hidden">
+
+    <canvas id="lux-canvas"></canvas>
+
+    <div id="toolbar">
+        <button id="tool-select" class="tool-btn active" title="Select and Move (Q)">Q</button>
+        <button id="tool-light" class="tool-btn" title="Add Light Source (W)">W</button>
+        <button id="tool-wall" class="tool-btn" title="Draw Wall (E)">E</button>
+        <button id="tool-draw" class="tool-btn" title="Draw Custom Shape (R)">R</button>
+        
+        <div class="flex items-center gap-2 border-l pl-3">
+            <button id="tool-square" class="tool-btn" title="Spawn Solid Square (1)">Sq</button>
+            <button id="tool-circle" class="tool-btn" title="Spawn Solid Circle (2)">Cir</button>
+            <button id="tool-hollow" class="tool-btn" title="Spawn Hollow Square (3)">Hlw</button>
+        </div>
+
+        <div id="object-controls" class="flex items-center gap-2 border-l pl-3">
+            <label for="reflectivity" class="text-sm font-medium control-label">Reflectivity:</label>
+            <input id="reflectivity" type="range" min="0" max="1" step="0.05" value="0.5" class="w-24 h-2 rounded-lg appearance-none cursor-pointer">
+            <span id="reflectivity-value" class="text-sm control-label w-8">0.5</span>
+        </div>
+        
+        <div id="light-controls" class="hidden items-center gap-2 border-l pl-3">
+            <label for="light-color" class="text-sm font-medium control-label">Color:</label>
+            <input id="light-color" type="color" value="#FFFF64" class="w-10 h-8 p-1 border-gray-600 rounded cursor-pointer bg-gray-700">
+            <label for="light-rays" class="text-sm font-medium control-label">Rays:</label>
+            <input id="light-rays" type="range" min="256" max="16384" step="256" value="6144" class="w-24 h-2 rounded-lg appearance-none cursor-pointer">
+            <span id="light-rays-value" class="text-sm control-label w-12">6144</span>
+        </div>
+
+        <div class="border-l pl-3">
+            <button id="tool-clear" class="tool-btn tool-btn-danger" title="Clear All (C)">Clear</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Setup ---
+        const canvas = document.getElementById('lux-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // --- DOM Elements ---
+        const toolSelectBtn = document.getElementById('tool-select');
+        const toolLightBtn = document.getElementById('tool-light');
+        const toolWallBtn = document.getElementById('tool-wall');
+        const toolDrawBtn = document.getElementById('tool-draw');
+        const toolSquareBtn = document.getElementById('tool-square');
+        const toolCircleBtn = document.getElementById('tool-circle');
+        const toolHollowBtn = document.getElementById('tool-hollow');
+        const toolClearBtn = document.getElementById('tool-clear');
+        
+        const reflectivitySlider = document.getElementById('reflectivity');
+        const reflectivityValue = document.getElementById('reflectivity-value');
+        
+        const objectControls = document.getElementById('object-controls');
+        const lightControls = document.getElementById('light-controls');
+        const lightColorInput = document.getElementById('light-color');
+        const lightRaysSlider = document.getElementById('light-rays');
+        const lightRaysValue = document.getElementById('light-rays-value');
+
+        const toolButtons = [toolSelectBtn, toolLightBtn, toolWallBtn, toolDrawBtn, toolSquareBtn, toolCircleBtn, toolHollowBtn];
+        
+        // --- State ---
+        let lightSources = [];
+        let objects = []; // { id, segments: [{p1, p2, normal}], reflectivity, type: 'wall'|'light'|'draw'|'image_pixel'|'shape' }
+        let currentTool = 'select'; // 'select', 'light', 'wall', 'draw', 'shape_square', 'shape_circle', 'shape_hollow'
+        let isDrawing = false;
+        let startPoint = null;
+        let currentPath = [];
+        let currentMousePos = null; // Store mouse position for real-time drawing
+        let selectedObject = null;
+        let draggingObject = null;
+        let tempDrawingObject = null; // New temporary object for real-time drawing
+        let needsRedraw = true; 
+        let objectIdCounter = 0;
+
+        const MAX_BOUNCES = 24;
+        const DEFAULT_RAYS_PER_LIGHT = 6144; // Default, can be overridden by light source
+
+        // --- Vector Math Helpers ---
+        const vec = (x, y) => ({ x, y });
+        const add = (v1, v2) => vec(v1.x + v2.x, v1.y + v2.y);
+        const sub = (v1, v2) => vec(v1.x - v2.x, v1.y - v2.y);
+        const mult = (v, s) => vec(v.x * s, v.y * s);
+        const div = (v, s) => vec(v.x / s, v.y / s);
+        const mag = (v) => Math.sqrt(v.x * v.x + v.y * v.y);
+        const normalize = (v) => div(v, mag(v) || 1);
+        const dot = (v1, v2) => v1.x * v2.x + v1.y * v2.y;
+        const dist = (p1, p2) => mag(sub(p1, p2));
+        const reflect = (v, n) => {
+            return sub(v, mult(n, 2 * dot(v, n)));
+        };
+        
+        // --- Click-to-Edit Helper ---
+        /**
+         * Makes a span element clickable to edit its value via a text input.
+         * @param {HTMLElement} span - The span element to make editable.
+         * @param {HTMLInputElement} slider - The associated slider to sync.
+         * @param {function(string)} updateFn - Callback function to run on commit.
+         */
+        function createEditableSpan(span, slider, updateFn) {
+            span.style.cursor = 'pointer';
+            span.title = "Click to edit";
+
+            span.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                const originalValue = span.textContent;
+                input.value = originalValue;
+
+                // Apply classes
+                input.className = span.className.replace('cursor-pointer', '');
+                input.classList.add('bg-gray-700', 'border', 'border-blue-500');
+                input.style.width = span.offsetWidth + 'px'; // Set width explicitly
+
+                // Replace span with input
+                span.replaceWith(input);
+                input.focus();
+                input.select();
+
+                // Event handler to commit or cancel
+                const handler = (e) => {
+                    if (e.type === 'blur' || e.key === 'Enter') {
+                        // Commit
+                        input.replaceWith(span); // Put span back
+                        updateFn(input.value); // Call update (handles parsing/validation)
+                    } else if (e.key === 'Escape') {
+                        // Cancel
+                        span.textContent = originalValue; // Restore original value
+                        input.replaceWith(span); // Put span back
+                    }
+                };
+
+                input.addEventListener('blur', handler);
+                input.addEventListener('keydown', handler);
+            });
+        }
+
+
+        // --- Initialization ---
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            addLightSource(canvas.width / 4, canvas.height / 2);
+            addWall(
+                { x: canvas.width / 2, y: canvas.height * 0.2 },
+                { x: canvas.width / 2, y: canvas.height * 0.8 },
+                0.8
+            );
+
+            setupEventListeners();
+            updatePropertyUI(); // Set initial UI state
+            gameLoop(); // Start the continuous loop
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            needsRedraw = true;
+        }
+
+        // --- Event Listeners (Same as before) ---
+        function setupEventListeners() {
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            
+            toolSelectBtn.onclick = () => setTool('select');
+            toolLightBtn.onclick = () => setTool('light');
+            toolWallBtn.onclick = () => setTool('wall');
+            toolDrawBtn.onclick = () => setTool('draw');
+            toolSquareBtn.onclick = () => setTool('shape_square');
+            toolCircleBtn.onclick = () => setTool('shape_circle');
+            toolHollowBtn.onclick = () => setTool('shape_hollow');
+            
+            toolClearBtn.onclick = () => {
+                lightSources = [];
+                objects = [];
+                needsRedraw = true;
+            };
+
+            window.addEventListener('keydown', (e) => {
+                // Don't trigger shortcuts if we are typing in a text input
+                if (e.target.tagName === 'INPUT') return;
+                
+                switch(e.key.toLowerCase()) {
+                    case 'q': setTool('select'); break;
+                    case 'w': setTool('light'); break;
+                    case 'e': setTool('wall'); break;
+                    case 'r': setTool('draw'); break;
+                    case '1': setTool('shape_square'); break;
+                    case '2': setTool('shape_circle'); break;
+                    case '3': setTool('shape_hollow'); break;
+                    case 'c': toolClearBtn.click(); break;
+                    // case 'u': imageUpload.click(); break; // Removed
+                    case 'delete':
+                    case 'backspace':
+                        if (selectedObject) {
+                            removeObject(selectedObject);
+                            selectedObject = null;
+                            needsRedraw = true;
+                            updatePropertyUI(); // Update UI after deleting
+                        }
+                        break;
+                }
+            });
+            
+            reflectivitySlider.oninput = () => {
+                const val = parseFloat(reflectivitySlider.value).toFixed(2);
+                reflectivityValue.textContent = val;
+                if (selectedObject && selectedObject.type !== 'light') {
+                    selectedObject.reflectivity = parseFloat(val);
+                }
+                needsRedraw = true; // Update simulation when reflectivity changes
+            };
+            
+            // --- Listeners for Light Controls ---
+            lightColorInput.oninput = () => {
+                if (selectedObject && selectedObject.type === 'light') {
+                    selectedObject.color = lightColorInput.value;
+                    needsRedraw = true;
+                }
+            };
+            
+            lightRaysSlider.oninput = () => {
+                const val = parseInt(lightRaysSlider.value);
+                lightRaysValue.textContent = val;
+                if (selectedObject && selectedObject.type === 'light') {
+                    selectedObject.rayCount = val;
+                    needsRedraw = true;
+                }
+            };
+            
+            // --- Make text values editable ---
+            createEditableSpan(
+                reflectivityValue, 
+                reflectivitySlider, 
+                (newValue) => {
+                    const val = parseFloat(newValue);
+                    if (isNaN(val)) {
+                        // On failure, revert to slider's value
+                        reflectivityValue.textContent = parseFloat(reflectivitySlider.value).toFixed(2);
+                        return;
+                    }
+                    
+                    reflectivitySlider.value = val; // This will clamp for the slider
+                    reflectivityValue.textContent = val.toFixed(2); // Set span text
+                    
+                    if (selectedObject && selectedObject.type !== 'light') {
+                        selectedObject.reflectivity = val; // This is unlimited
+                    }
+                    needsRedraw = true;
+                }
+            );
+            
+            createEditableSpan(
+                lightRaysValue,
+                lightRaysSlider,
+                (newValue) => {
+                    const val = parseInt(newValue, 10);
+                    if (isNaN(val) || val < 0) {
+                        // On failure, revert to slider's value
+                        lightRaysValue.textContent = parseInt(lightRaysSlider.value);
+                        return;
+                    }
+
+                    lightRaysSlider.value = val; // Clamp for slider
+                    lightRaysValue.textContent = val; // Set span text
+
+                    if (selectedObject && selectedObject.type === 'light') {
+                        selectedObject.rayCount = val; // Unlimited
+                    }
+                    needsRedraw = true;
+                }
+            );
+        }
+
+        // --- Tool Management (Same as before) ---
+        function setTool(tool) {
+            currentTool = tool;
+            toolButtons.forEach(btn => btn.classList.remove('active'));
+            const btnMap = {
+                'select': 'tool-select', 'light': 'tool-light', 'wall': 'tool-wall', 'draw': 'tool-draw',
+                'shape_square': 'tool-square', 'shape_circle': 'tool-circle', 'shape_hollow': 'tool-hollow'
+            };
+            document.getElementById(btnMap[tool]).classList.add('active');
+            
+            if (tool === 'select') {
+                canvas.style.cursor = 'grab';
+            } else {
+                // Clear selection if switching to a drawing tool
+                selectedObject = null;
+                updatePropertyUI();
+                canvas.style.cursor = 'crosshair';
+            }
+            // Clear drawing state when switching tools
+            isDrawing = false;
+            startPoint = null;
+            currentPath = [];
+            
+            // Remove temp object if tool is switched mid-draw
+            if(tempDrawingObject) {
+                removeObject(tempDrawingObject);
+                tempDrawingObject = null;
+            }
+        }
+        
+        // --- New UI Management Function ---
+        function updatePropertyUI() {
+            if (selectedObject) {
+                if (selectedObject.type === 'light') {
+                    // Show light controls, hide object controls
+                    objectControls.classList.add('hidden');
+                    objectControls.classList.remove('flex');
+                    lightControls.classList.remove('hidden');
+                    lightControls.classList.add('flex');
+                    
+                    // Update light controls
+                    lightColorInput.value = selectedObject.color || '#FFFF64';
+                    lightRaysSlider.value = selectedObject.rayCount || DEFAULT_RAYS_PER_LIGHT;
+                    lightRaysValue.textContent = selectedObject.rayCount || DEFAULT_RAYS_PER_LIGHT;
+                } else {
+                    // Show object controls, hide light controls
+                    objectControls.classList.remove('hidden');
+                    objectControls.classList.add('flex');
+                    lightControls.classList.add('hidden');
+                    lightControls.classList.remove('flex');
+                    
+                    // Update object controls
+                    reflectivitySlider.value = selectedObject.reflectivity;
+                    reflectivityValue.textContent = selectedObject.reflectivity.toFixed(2);
+                }
+            } else {
+                // No selection: show object controls, hide light controls
+                objectControls.classList.remove('hidden');
+                objectControls.classList.add('flex');
+                lightControls.classList.add('hidden');
+                lightControls.classList.remove('flex');
+            }
+        }
+
+        // --- Object Creation/Modification ---
+        
+        function addLightSource(x, y) {
+            const light = { 
+                id: objectIdCounter++, 
+                p: vec(x, y), 
+                type: 'light', 
+                reflectivity: 0,
+                color: '#FFFF64', // Default color
+                rayCount: DEFAULT_RAYS_PER_LIGHT // Default rays
+            };
+            lightSources.push(light);
+            objects.push(light); 
+            needsRedraw = true;
+            return light;
+        }
+
+        function createWallObject(p1, p2, reflectivity, isTemp = false) {
+            const id = isTemp ? 'temp_wall' : objectIdCounter++;
+            return { id: id, segments: [createSegment(p1, p2)], type: 'wall', reflectivity: reflectivity, isTemp };
+        }
+        
+        function createCustomShapeObject(path, reflectivity, isTemp = false) {
+            const segments = [];
+            for (let i = 0; i < path.length - 1; i++) {
+                segments.push(createSegment(path[i], path[i+1]));
+            }
+            if (path.length > 1 && !isTemp) {
+                 // Only close the loop for the final shape
+                 // FIX: Per request, do not auto-close the shape
+                 // segments.push(createSegment(path[path.length - 1], path[0]));
+            }
+
+            const id = isTemp ? 'temp_draw' : objectIdCounter++;
+            return { id: id, segments: segments, type: 'draw', reflectivity: reflectivity, isTemp };
+        }
+
+        function createSpawnShapeObject(center, size, type, reflectivity, isTemp = false) {
+            const segments = [];
+            const r = size / 2;
+            const segmentsCount = type === 'shape_circle' ? 36 : 4;
+            const id = isTemp ? 'temp_shape' : objectIdCounter++;
+
+            if (type === 'shape_hollow' || type === 'shape_square') {
+                const p1 = sub(center, vec(r, r)); // top-left
+                const p2 = add(center, vec(r, -r)); // top-right
+                const p3 = add(center, vec(r, r)); // bottom-right
+                // const p4 = sub(center, vec(r, r)); // <-- BUG: This was p1
+                const p4 = add(center, vec(-r, r)); // <-- FIX: This is the bottom-left corner
+                
+                segments.push(createSegment(p1, p2));
+                segments.push(createSegment(p2, p3));
+                segments.push(createSegment(p3, p4));
+                segments.push(createSegment(p4, p1));
+            } else if (type === 'shape_circle') {
+                for (let i = 0; i < segmentsCount; i++) {
+                    const angle1 = (Math.PI * 2 * i) / segmentsCount;
+                    const angle2 = (Math.PI * 2 * (i + 1)) / segmentsCount;
+                    const p1 = add(center, vec(r * Math.cos(angle1), r * Math.sin(angle1)));
+                    const p2 = add(center, vec(r * Math.cos(angle2), r * Math.sin(angle2)));
+                    segments.push(createSegment(p1, p2));
+                }
+            }
+
+            return { id: id, center: center, segments: segments, type: type, reflectivity: reflectivity, isTemp };
+        }
+        
+        function addWall(p1, p2, reflectivity) {
+            objects.push(createWallObject(p1, p2, reflectivity));
+            needsRedraw = true;
+        }
+
+        function addCustomShape(path, reflectivity) {
+            objects.push(createCustomShapeObject(path, reflectivity));
+            needsRedraw = true;
+        }
+
+        function spawnShape(center, size, type, reflectivity) {
+            objects.push(createSpawnShapeObject(center, size, type, reflectivity));
+            needsRedraw = true;
+        }
+
+        function createSegment(p1, p2) {
+            const v = sub(p2, p1);
+            const n = normalize(vec(-v.y, v.x));
+            return { p1, p2, normal: n };
+        }
+        
+        function removeObject(obj) {
+            objects = objects.filter(o => o.id !== obj.id);
+            if (obj.type === 'light') {
+                lightSources = lightSources.filter(l => l.id !== obj.id);
+            }
+        }
+        
+        function moveObject(obj, newPos) {
+            // ... (Move logic remains the same)
+            let delta = sub(newPos, obj.p || obj.center || obj.segments[0].p1);
+            
+            if (obj.type === 'light') {
+                obj.p = newPos;
+            } else if (obj.center) {
+                const currentCenter = obj.center;
+                delta = sub(newPos, currentCenter);
+                obj.segments.forEach(seg => {
+                    seg.p1 = add(seg.p1, delta);
+                    seg.p2 = add(seg.p2, delta);
+                });
+                obj.center = newPos;
+            } else {
+                const currentFirstPoint = obj.segments[0].p1;
+                delta = sub(newPos, currentFirstPoint);
+                obj.segments.forEach(seg => {
+                    seg.p1 = add(seg.p1, delta);
+                    seg.p2 = add(seg.p2, delta);
+                });
+            }
+        }
+
+
+        // --- Mouse Handling ---
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return vec(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function handleMouseDown(e) {
+            // Don't interact with canvas if a text input is active
+            if (document.activeElement.tagName === 'INPUT') {
+                document.activeElement.blur(); // Commit change on canvas click
+                return;
+            }
+            
+            currentMousePos = getMousePos(e);
+            isDrawing = true;
+            startPoint = currentMousePos;
+            
+            if (currentTool === 'select') {
+                selectedObject = findClosestObject(currentMousePos);
+                if (selectedObject) {
+                    const pointToMove = selectedObject.p || selectedObject.center || selectedObject.segments[0].p1;
+                    draggingObject = {
+                        obj: selectedObject,
+                        offset: sub(pointToMove, currentMousePos),
+                    };
+                    canvas.style.cursor = 'grabbing';
+                } else {
+                    draggingObject = null;
+                    canvas.style.cursor = 'grab';
+                }
+                updatePropertyUI(); // Update UI on selection change
+            } else if (currentTool === 'light') {
+                const newLight = addLightSource(currentMousePos.x, currentMousePos.y);
+                selectedObject = newLight;
+                setTool('select'); // Switch to select tool
+                draggingObject = { obj: newLight, offset: vec(0, 0) };
+                canvas.style.cursor = 'grabbing';
+                updatePropertyUI(); // Update UI to show light controls
+            } else if (currentTool === 'draw') {
+                currentPath = [currentMousePos];
+            }
+            needsRedraw = true; // Start redrawing immediately
+        }
+
+        function handleMouseMove(e) {
+            currentMousePos = getMousePos(e);
+            
+            if (!isDrawing) {
+                if (currentTool === 'select') {
+                    const hoverObj = findClosestObject(currentMousePos);
+                    canvas.style.cursor = hoverObj ? 'pointer' : 'grab';
+                }
+                return;
+            }
+            
+            needsRedraw = true; // IMPORTANT: Force redraw for real-time interaction
+
+            if (currentTool === 'select' && draggingObject) {
+                const newPos = add(currentMousePos, draggingObject.offset);
+                moveObject(draggingObject.obj, newPos);
+                
+            } else if (currentTool === 'draw') {
+                // Throttle path drawing slightly for performance
+                if (dist(currentPath[currentPath.length - 1], currentMousePos) > 5) {
+                    currentPath.push(currentMousePos);
+                    
+                    // Update temp draw object for real-time light blocking
+                    if(tempDrawingObject) removeObject(tempDrawingObject);
+                    tempDrawingObject = createCustomShapeObject(currentPath, parseFloat(reflectivitySlider.value), true);
+                    objects.push(tempDrawingObject);
+                }
+            } else if (currentTool === 'wall' || currentTool.startsWith('shape_')) {
+                const reflectivity = parseFloat(reflectivitySlider.value);
+                
+                // FIX: Check startPoint exists before calculating size
+                let size = 0;
+                if (startPoint) {
+                    size = dist(startPoint, currentMousePos);
+                }
+
+                // Update temp object for real-time light blocking
+                if(tempDrawingObject) removeObject(tempDrawingObject);
+                
+                if (currentTool === 'wall' && size > 2) {
+                    tempDrawingObject = createWallObject(startPoint, currentMousePos, reflectivity, true);
+                    objects.push(tempDrawingObject);
+                } else if (currentTool.startsWith('shape_') && size > 5) {
+                    tempDrawingObject = createSpawnShapeObject(startPoint, size * 2, currentTool, reflectivity, true);
+                    objects.push(tempDrawingObject);
+                }
+            }
+        }
+
+        function handleMouseUp(e) {
+            const mousePos = getMousePos(e);
+            isDrawing = false;
+            
+            const reflectivity = parseFloat(reflectivitySlider.value);
+            
+            // FIX: Only calculate size if startPoint is valid (e.g., mouse wasn't pressed outside canvas)
+            let size = 0;
+            if (startPoint) {
+                size = dist(startPoint, mousePos);
+            }
+
+            // 1. Remove temporary object
+            if(tempDrawingObject) {
+                removeObject(tempDrawingObject);
+                tempDrawingObject = null;
+            }
+
+            // 2. Create permanent object
+            if (currentTool === 'wall' && startPoint && size > 2) {
+                addWall(startPoint, mousePos, reflectivity);
+            } else if (currentTool === 'draw' && currentPath.length > 1) {
+                addCustomShape(currentPath, reflectivity);
+            } else if (currentTool.startsWith('shape_')) {
+                 if (size > 5) {
+                    spawnShape(startPoint, size * 2, currentTool, reflectivity); // Use size * 2 for full diameter/side
+                 }
+            }
+            
+            if (currentTool === 'select') {
+                canvas.style.cursor = draggingObject ? 'pointer' : 'grab';
+            }
+            
+            draggingObject = null;
+            startPoint = null;
+            currentPath = [];
+            needsRedraw = true;
+        }
+
+        // --- Object Selection (omitted for brevity) ---
+        function findClosestObject(pos) {
+            let closestDist = 20; 
+            let closestObj = null;
+
+            for (const obj of objects) {
+                // Ignore temporary drawing objects for selection
+                if (obj.isTemp) continue; 
+                
+                if (obj.type === 'light') {
+                    const d = dist(pos, obj.p);
+                    if (d < closestDist) {
+                        closestDist = d;
+                        closestObj = obj;
+                    }
+                } else {
+                    for (const seg of obj.segments) {
+                        const d = distToSegment(pos, seg);
+                        if (d < closestDist) {
+                            closestDist = d;
+                            closestObj = obj;
+                            break; 
+                        }
+                    }
+                }
+            }
+            return closestObj;
+        }
+
+        function distToSegment(p, seg) {
+            const l2 = dist(seg.p1, seg.p2) * dist(seg.p1, seg.p2);
+            if (l2 === 0) return dist(p, seg.p1);
+            const t = Math.max(0, Math.min(1, dot(sub(p, seg.p1), sub(seg.p2, seg.p1)) / l2));
+            const projection = add(seg.p1, mult(sub(seg.p2, seg.p1), t));
+            return dist(p, projection);
+        }
+
+        // --- Image Handling Removed ---
+
+        // --- Drawing ---
+        function draw() {
+            // Optimization: Only redraw if state changed or mouse is moving/drawing
+            if (!needsRedraw && !isDrawing) return; 
+            needsRedraw = false;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawRays(); // Draw rays first so objects are drawn over them
+            drawObjects();
+            drawLightSources();
+
+            // Draw selection highlights
+            if (selectedObject) {
+                drawHighlight(selectedObject);
+            }
+
+            // Draw preview for active tools (now only dotted lines, as the temporary object draws the light blocking)
+            if (isDrawing && startPoint && currentMousePos) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+
+                const size = dist(startPoint, currentMousePos);
+
+                if (currentTool === 'wall') {
+                    // Draw preview line
+                    ctx.beginPath();
+                    ctx.moveTo(startPoint.x, startPoint.y);
+                    ctx.lineTo(currentMousePos.x, currentMousePos.y);
+                    ctx.stroke();
+                } else if (currentTool === 'draw' && currentPath.length > 0) {
+                    // Draw path preview
+                    ctx.beginPath();
+                    ctx.moveTo(currentPath[0].x, currentPath[0].y);
+                    for (let i = 1; i < currentPath.length; i++) {
+                        ctx.lineTo(currentPath[i].x, currentPath[i].y);
+                    }
+                    ctx.stroke();
+                } else if (currentTool.startsWith('shape_') && size > 5) {
+                    // Shape preview logic
+                    const r = size; // Use distance as the half-side/radius for clearer preview
+                    const center = startPoint;
+                    
+                    ctx.beginPath();
+                    if (currentTool === 'shape_circle') {
+                        ctx.arc(center.x, center.y, r, 0, Math.PI * 2);
+                    } else if (currentTool.endsWith('square') || currentTool === 'shape_hollow') {
+                        // Draw square based on diagonal length 'r'
+                        // The shape logic in spawnShape uses size (which is 'r' here) as the radius/half-side. 
+                        // So, the total width is 2*r. The center is startPoint.
+                        const halfSide = r;
+                        ctx.rect(center.x - halfSide, center.y - halfSide, 2 * halfSide, 2 * halfSide);
+                    }
+                    ctx.stroke();
+                }
+                
+                ctx.setLineDash([]);
+            }
+        }
+        
+        function drawObjects() {
+            ctx.lineWidth = 2;
+            for (const obj of objects) {
+                if (obj.type === 'light') continue;
+                
+                // Temporary objects are drawn differently (lighter preview outline)
+                if (obj.isTemp) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                } else {
+                    const alpha = obj.reflectivity > 0.1 ? 1 : 0.4;
+                    ctx.strokeStyle = `rgba(150, 150, 150, ${alpha})`;
+                }
+
+                ctx.beginPath();
+                for (const seg of obj.segments) {
+                    ctx.moveTo(seg.p1.x, seg.p1.y);
+                    ctx.lineTo(seg.p2.x, seg.p2.y);
+                }
+                ctx.stroke();
+            }
+        }
+        
+        function drawHighlight(obj) {
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([4, 4]);
+
+            if (obj.type === 'light') {
+                ctx.beginPath();
+                ctx.arc(obj.p.x, obj.p.y, 10, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                 ctx.beginPath();
+                for (const seg of obj.segments) {
+                    ctx.moveTo(seg.p1.x, seg.p1.y);
+                    ctx.lineTo(seg.p2.x, seg.p2.y);
+                }
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+
+        function drawLightSources() {
+            for (const light of lightSources) {
+                ctx.fillStyle = light.color || '#FFFF64'; // Use light's color
+                ctx.beginPath();
+                ctx.arc(light.p.x, light.p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function drawRays() {
+            ctx.lineWidth = 1;
+            for (const light of lightSources) {
+                const rays = light.rayCount || DEFAULT_RAYS_PER_LIGHT; // Use light's ray count
+                const color = light.color || '#FFFF64'; // Use light's color
+                const angleStep = (Math.PI * 2) / rays;
+                
+                for (let i = 0; i < rays; i++) {
+                    const angle = i * angleStep;
+                    const dir = vec(Math.cos(angle), Math.sin(angle));
+                    const ray = { p: light.p, dir: dir };
+                    traceRay(ray, 1.0, 0, color); // Pass color to traceRay
+                }
+            }
+        }
+        
+        function traceRay(ray, intensity, bounce, color) { // Added color
+            if (bounce > MAX_BOUNCES || intensity < 0.05) {
+                return;
+            }
+
+            const hit = findClosestIntersection(ray);
+            
+            let endPoint;
+            if (hit) {
+                endPoint = hit.point;
+            } else {
+                endPoint = add(ray.p, mult(ray.dir, Math.max(canvas.width, canvas.height) * 2));
+            }
+
+            // Parse hex color and apply intensity
+            const hex = color.substring(1);
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+
+            ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${intensity * 0.5})`; // Use color with intensity
+            ctx.beginPath();
+            ctx.moveTo(ray.p.x, ray.p.y);
+            ctx.lineTo(endPoint.x, endPoint.y);
+            ctx.stroke();
+
+            if (hit) {
+                const newIntensity = intensity * hit.object.reflectivity;
+                if (newIntensity > 0.05) {
+                    let normal = hit.segment.normal;
+                    if (dot(ray.dir, normal) > 0) {
+                        normal = mult(normal, -1);
+                    }
+                    
+                    const reflectDir = reflect(ray.dir, normal);
+                    const newStartPoint = add(hit.point, mult(reflectDir, 0.01)); 
+                    const newRay = { p: newStartPoint, dir: reflectDir };
+                    traceRay(newRay, newIntensity, bounce + 1, color); // Pass color recursively
+                }
+            }
+        }
+        
+        /**
+         * Finds the closest intersection point of a ray with any object. (omitted for brevity)
+         */
+        function findClosestIntersection(ray) {
+            let closestT = Infinity;
+            let closestHit = null;
+
+            for (const obj of objects) {
+                if (obj.type === 'light') continue;
+                
+                for (const segment of obj.segments) {
+                    const hit = raySegmentIntersection(ray, segment);
+                    
+                    if (hit) {
+                        if (hit.t > 0.001 && hit.t < closestT) {
+                            closestT = hit.t;
+                            closestHit = {
+                                t: hit.t,
+                                point: hit.point,
+                                segment: segment,
+                                object: obj
+                            };
+                        }
+                    }
+                }
+            }
+            return closestHit;
+        }
+
+        /**
+         * Checks intersection between a ray and a line segment. (omitted for brevity)
+         */
+        function raySegmentIntersection(ray, segment) {
+            const r_p = ray.p;
+            const r_dir = ray.dir;
+            const s_p1 = segment.p1;
+            const s_p2 = segment.p2;
+            
+            const s_dir = sub(s_p2, s_p1);
+            
+            const r_mag = r_dir.x * s_dir.y - r_dir.y * s_dir.x;
+            if (r_mag === 0) return null;
+
+            const t_num = (s_p1.x - r_p.x) * s_dir.y - (s_p1.y - r_p.y) * s_dir.x;
+            const u_num = (s_p1.x - r_p.x) * r_dir.y - (s_p1.y - r_p.y) * r_dir.x;
+
+            const t = t_num / r_mag; 
+            const u = u_num / r_mag;
+            
+            if (t > 0 && (u >= 0 && u <= 1)) {
+                return {
+                    t: t,
+                    u: u,
+                    point: add(r_p, mult(r_dir, t))
+                };
+            }
+            return null;
+        }
+
+        // --- Main Loop ---
+        function gameLoop() {
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Start ---
+        init();
+        
+    </script>
+</body>
+</html>

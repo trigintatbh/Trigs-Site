@@ -1,0 +1,1805 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Trig's Systems</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT / TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --bg:        #0d0d0f;
+  --bg2:       #111114;
+  --bg3:       #16161a;
+  --border:    #232328;
+  --border2:   #2e2e35;
+  --muted:     #5a5a6e;
+  --muted2:    #7a7a90;
+  --text:      #d4d4e0;
+  --bright:    #eeeef5;
+  --accent:    #7c6aff;
+  --accent2:   #a78bfa;
+  --green:     #4ade80;
+  --cyan:      #22d3ee;
+  --orange:    #fb923c;
+  --red:       #f87171;
+  --yellow:    #facc15;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-head: 'Syne', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-mono);
+  font-size:13px;
+  line-height:1.6;
+  min-height:100vh;
+}
+
+/* ═══ GRAIN OVERLAY ═══ */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;opacity:0.35;
+}
+
+/* ═══ LAYOUT ═══ */
+.site-wrap{max-width:1100px;margin:0 auto;padding:0 16px 80px}
+
+/* ═══ HEADER ═══ */
+.site-header{
+  padding:28px 0 20px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:28px;
+}
+.site-header h1{
+  font-family:var(--font-head);
+  font-size:1.9rem;
+  font-weight:800;
+  color:var(--bright);
+  letter-spacing:-0.03em;
+}
+.site-header h1 span{color:var(--accent2)}
+.site-header .sub{
+  color:var(--muted2);
+  font-size:0.78rem;
+  margin-top:4px;
+}
+
+/* ═══ TAB NAV ═══ */
+.tabs{
+  display:flex;gap:2px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:26px;
+  flex-wrap:wrap;
+}
+.tab-btn{
+  background:none;border:none;color:var(--muted2);
+  font-family:var(--font-mono);font-size:0.78rem;
+  padding:8px 14px;cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .15s;letter-spacing:0.04em;
+  text-transform:uppercase;
+}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent2)}
+
+/* ═══ PAGES ═══ */
+.page{display:none}
+.page.active{display:block}
+
+/* ═══ SECTION HEADING ═══ */
+.sec-head{
+  font-family:var(--font-head);
+  font-size:0.7rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.15em;
+  color:var(--muted);
+  margin-bottom:12px;
+  margin-top:28px;
+}
+.sec-head:first-child{margin-top:0}
+
+/* ═══ CARD ═══ */
+.card{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:16px 18px;
+  margin-bottom:10px;
+}
+.card.accent-left{border-left:2px solid var(--accent)}
+.card.green-left{border-left:2px solid var(--green)}
+.card.cyan-left{border-left:2px solid var(--cyan)}
+.card.orange-left{border-left:2px solid var(--orange)}
+
+/* ═══ CALENDAR DISPLAY ═══ */
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:8px;
+  margin-bottom:10px;
+}
+.cal-box{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px 10px;
+  text-align:center;
+}
+.cal-box .big{
+  font-family:var(--font-head);
+  font-size:2rem;
+  font-weight:800;
+  color:var(--bright);
+  line-height:1;
+}
+.cal-box .lbl{
+  font-size:0.7rem;
+  color:var(--muted2);
+  margin-top:5px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+.time-display{
+  font-family:var(--font-head);
+  font-size:2.8rem;
+  font-weight:800;
+  color:var(--bright);
+  letter-spacing:0.05em;
+  text-align:center;
+  padding:14px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  margin-bottom:8px;
+}
+.time-display .colon{color:var(--accent);animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+.info-row{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;
+}
+.info-chip{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:5px 10px;
+  font-size:0.75rem;
+  color:var(--muted2);
+}
+.info-chip strong{color:var(--text)}
+
+/* ═══ TSM TABLES ═══ */
+table{width:100%;border-collapse:collapse;font-size:0.78rem}
+th{
+  text-align:left;padding:6px 10px;
+  color:var(--muted);font-weight:500;
+  border-bottom:1px solid var(--border);
+  text-transform:uppercase;letter-spacing:0.06em;font-size:0.68rem;
+}
+td{padding:6px 10px;border-bottom:1px solid var(--border2);color:var(--text)}
+tr:last-child td{border-bottom:none}
+td.unit-name{color:var(--accent2);font-weight:700}
+td.sym{color:var(--cyan);font-size:0.9rem}
+td.si{color:var(--muted);font-size:0.72rem}
+td.def{color:var(--muted2);font-size:0.75rem;font-style:italic}
+
+/* ═══ PREFIX TABLE ═══ */
+.prefix-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:6px;
+  margin-bottom:10px;
+}
+.prefix-card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:8px 10px;
+  font-size:0.76rem;
+}
+.prefix-card .pname{color:var(--accent2);font-weight:700}
+.prefix-card .pval{color:var(--muted2);float:right}
+.prefix-card .psym{color:var(--cyan)}
+
+/* ═══ CONVERTER ═══ */
+.conv-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.conv-cat-btn{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  color:var(--muted2);
+  font-family:var(--font-mono);
+  font-size:0.72rem;
+  padding:5px 13px;
+  cursor:pointer;
+  transition:all .15s;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+}
+.conv-cat-btn:hover{color:var(--text);border-color:var(--muted)}
+.conv-cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.conv-main{
+  display:grid;
+  grid-template-columns:1fr 48px 1fr;
+  gap:12px;
+  align-items:end;
+  margin-bottom:14px;
+}
+@media(max-width:540px){
+  .conv-main{grid-template-columns:1fr;gap:8px}
+  .conv-swap-col{display:flex;justify-content:center}
+}
+.conv-field{display:flex;flex-direction:column;gap:7px}
+.conv-big-input{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  color:var(--bright);
+  font-family:var(--font-head);
+  font-size:1.6rem;
+  font-weight:700;
+  padding:10px 13px;
+  width:100%;
+  outline:none;
+  transition:border-color .15s;
+  -moz-appearance:textfield;
+}
+.conv-big-input::-webkit-outer-spin-button,
+.conv-big-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.conv-big-input:focus{border-color:var(--accent)}
+.conv-big-result{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-left:3px solid var(--green);
+  border-radius:6px;
+  color:var(--green);
+  font-family:var(--font-head);
+  font-size:1.6rem;
+  font-weight:700;
+  padding:10px 13px;
+  width:100%;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  word-break:break-all;
+}
+.conv-swap-btn{
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  color:var(--muted2);
+  font-size:1.2rem;
+  width:48px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .15s;
+  align-self:end;
+  flex-shrink:0;
+}
+.conv-swap-btn:hover{color:var(--accent2);border-color:var(--accent)}
+.conv-formula{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:10px 14px;
+  font-size:0.75rem;
+  color:var(--muted2);
+  font-style:italic;
+  margin-top:2px;
+  line-height:1.5;
+}
+.conv-note-box{
+  margin-top:8px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-left:2px solid var(--accent);
+  border-radius:6px;
+  padding:12px 16px;
+  font-size:0.78rem;
+  color:var(--muted2);
+  line-height:1.7;
+}
+.conv-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:10px;
+}
+@media(max-width:600px){.conv-grid{grid-template-columns:1fr}}
+input[type=number],select{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:5px;
+  color:var(--bright);
+  font-family:var(--font-mono);
+  font-size:0.85rem;
+  padding:8px 10px;
+  width:100%;
+  outline:none;
+  transition:border-color .15s;
+}
+input[type=number]:focus,select:focus{border-color:var(--accent)}
+label{font-size:0.72rem;color:var(--muted2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em}
+.conv-result{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-left:2px solid var(--green);
+  border-radius:5px;
+  padding:12px 14px;
+  font-size:0.88rem;
+  color:var(--bright);
+  min-height:44px;
+}
+.conv-result .r-big{
+  font-family:var(--font-head);
+  font-size:1.4rem;
+  font-weight:800;
+  color:var(--green);
+}
+
+/* ═══ NOTES ═══ */
+textarea{
+  width:100%;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:5px;
+  color:var(--text);
+  font-family:var(--font-mono);
+  font-size:0.82rem;
+  padding:10px 12px;
+  resize:vertical;
+  min-height:200px;
+  outline:none;
+  line-height:1.7;
+  transition:border-color .15s;
+}
+textarea:focus{border-color:var(--accent)}
+.btn{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  border-radius:5px;
+  font-family:var(--font-mono);
+  font-size:0.78rem;
+  padding:7px 14px;
+  cursor:pointer;
+  transition:opacity .15s;
+  letter-spacing:0.04em;
+}
+.btn:hover{opacity:0.85}
+.btn.ghost{
+  background:none;
+  border:1px solid var(--border2);
+  color:var(--muted2);
+}
+.btn.ghost:hover{color:var(--text);border-color:var(--muted2)}
+
+/* ═══ MISC ═══ */
+.mono{font-family:var(--font-mono)}
+.dim{color:var(--muted)}
+.bright{color:var(--bright)}
+.accent{color:var(--accent2)}
+.green{color:var(--green)}
+.cyan{color:var(--cyan)}
+.orange{color:var(--orange)}
+.flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{
+  display:inline-block;
+  padding:2px 7px;
+  border-radius:3px;
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.tag-classic{background:#1a1a2e;color:var(--accent2);border:1px solid #2a2a4e}
+.tag-redux{background:#0f2a1a;color:var(--green);border:1px solid #1a4a2a}
+.tag-tsm{background:#1a0f2a;color:var(--accent2);border:1px solid #2e1a4a}
+.two-col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+small.si-note{
+  color:var(--muted);
+  font-size:0.68rem;
+  display:block;
+  margin-top:3px;
+}
+.month-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:6px;
+  margin-bottom:8px;
+}
+.month-pill{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:6px 10px;
+  font-size:0.76rem;
+}
+.month-pill .mn{color:var(--accent2);font-weight:700}
+.month-pill .mi{color:var(--muted);font-size:0.68rem}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+.live-badge{
+  display:inline-block;
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--green);
+  animation:pulse 2s ease-in-out infinite;
+  margin-right:6px;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+/* ═══ INTERACTIVE CALENDAR ═══ */
+.ical-wrap{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.ical-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+}
+.ical-title{
+  font-family:var(--font-head);
+  font-size:1.05rem;
+  font-weight:700;
+  color:var(--bright);
+  letter-spacing:-0.01em;
+}
+.ical-title .month-num{
+  color:var(--accent2);
+}
+.ical-nav{
+  display:flex;
+  gap:4px;
+}
+.ical-nav button{
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:5px;
+  color:var(--muted2);
+  font-size:0.9rem;
+  width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:all .15s;
+  font-family:var(--font-mono);
+}
+.ical-nav button:hover{color:var(--accent2);border-color:var(--accent)}
+.ical-nav .ical-today-btn{
+  width:auto;
+  padding:0 10px;
+  font-size:0.68rem;
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+}
+.ical-dow{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+}
+.ical-dow span{
+  text-align:center;
+  padding:7px 2px;
+  font-size:0.58rem;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.ical-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:1px;
+  background:var(--border);
+}
+.ical-day{
+  background:var(--bg3);
+  min-height:58px;
+  padding:7px 8px;
+  cursor:pointer;
+  transition:background .12s;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.ical-day:hover{background:var(--bg2)}
+.ical-day.empty{cursor:default;background:var(--bg);}
+.ical-day.today{background:#1a1630;}
+.ical-day.today::after{
+  content:'';
+  position:absolute;top:0;left:0;right:0;
+  height:2px;
+  background:var(--accent2);
+}
+.ical-day.selected{background:#131a20;}
+.ical-day.selected::after{
+  content:'';
+  position:absolute;top:0;left:0;right:0;
+  height:2px;
+  background:var(--cyan);
+}
+.ical-day.today.selected{background:#151625;}
+.day-num{
+  font-family:var(--font-head);
+  font-size:0.9rem;
+  font-weight:700;
+  color:var(--text);
+  line-height:1;
+}
+.ical-day.today .day-num{color:var(--accent2)}
+.ical-day.leap-day .day-num{color:var(--yellow)}
+.day-note{
+  font-size:0.62rem;
+  color:var(--muted);
+  line-height:1.3;
+  word-break:break-word;
+}
+.ical-detail{
+  padding:12px 16px;
+  border-top:1px solid var(--border);
+  background:var(--bg2);
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.ical-detail .d-date{
+  font-family:var(--font-head);
+  font-size:1.2rem;
+  font-weight:800;
+  color:var(--bright);
+}
+.ical-detail .d-chips{
+  display:flex;gap:6px;flex-wrap:wrap;
+}
+.ical-detail .d-chip{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:3px 8px;
+  font-size:0.7rem;
+  color:var(--muted2);
+}
+.ical-detail .d-chip strong{color:var(--text)}
+.ical-note-row{
+  display:flex;gap:6px;align-items:center;
+  padding:8px 16px;
+  border-top:1px solid var(--border);
+  background:var(--bg3);
+}
+.ical-note-input{
+  flex:1;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:5px;
+  color:var(--text);
+  font-family:var(--font-mono);
+  font-size:0.75rem;
+  padding:6px 10px;
+  outline:none;
+  transition:border-color .15s;
+  height:32px;
+}
+.ical-note-input:focus{border-color:var(--accent)}
+.ical-note-input::placeholder{color:var(--muted)}
+.ical-note-save{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  border-radius:5px;
+  font-family:var(--font-mono);
+  font-size:0.7rem;
+  padding:0 12px;
+  height:32px;
+  cursor:pointer;
+  opacity:0.9;
+  transition:opacity .15s;
+  white-space:nowrap;
+}
+.ical-note-save:hover{opacity:1}
+@media(max-width:480px){
+  .ical-day{min-height:44px;padding:5px 5px;}
+  .day-num{font-size:0.8rem}
+}
+</style>
+</head>
+<body>
+<div class="site-wrap">
+
+  <!-- HEADER -->
+  <div class="site-header">
+    <h1>Trig's <span>Systems</span></h1>
+    <div class="sub">trigian calendar · trigian system of measurement · converter · notes</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('redux')">Calendar</button>
+    <button class="tab-btn" onclick="switchTab('tsm')">TSM Reference</button>
+    <button class="tab-btn" onclick="switchTab('converter')">Converter</button>
+    <button class="tab-btn" onclick="switchTab('notes')">Notes</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PAGE: CALENDAR
+  ═══════════════════════════════════════════ -->
+  <div class="page active" id="page-redux">
+    <div class="flex-row" style="margin-bottom:14px">
+      <span class="tag tag-redux">Trigian</span>
+      <span class="dim" style="font-size:0.75rem">Fully defined in TSM units · clean decimal everything</span>
+    </div>
+
+    <div class="sec-head">live date &amp; time</div>
+
+    <div class="cal-grid">
+      <div class="cal-box"><div class="big" id="r-year">—</div><div class="lbl">Year</div></div>
+      <div class="cal-box"><div class="big" id="r-month">—</div><div class="lbl" id="r-mname">Month</div></div>
+      <div class="cal-box"><div class="big" id="r-day">—</div><div class="lbl">Day</div></div>
+    </div>
+
+    <div class="time-display">
+      <span id="r-h">00</span><span class="colon">:</span><span id="r-m">00</span><span class="colon">:</span><span id="r-s">00</span>
+    </div>
+
+    <div class="info-row">
+      <div class="info-chip"><span class="dim">gregorian</span> <strong id="r-greg">—</strong></div>
+      <div class="info-chip"><span class="dim">leap year?</span> <strong id="r-leap">—</strong></div>
+      <div class="info-chip"><span class="dim">next leap</span> <strong id="r-nextleap">—</strong></div>
+      <div class="info-chip"><span class="dim">day in TSM</span> <strong>100,000 vels</strong></div>
+    </div>
+
+    <div class="card" style="margin-top:6px">
+      <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:8px">
+        <span class="live-badge"></span><span class="bright">how it works</span>
+      </div>
+      <div class="dim" style="font-size:0.76rem;line-height:1.8">
+        The Trigian calendar defines its day as <span class="bright">exactly 100,000 vels</span> (TSM base time unit).<br>
+        <small class="si-note">[1 vel ≈ 0.864 SI seconds — so 100,000 vels ≈ 86,400 s = 1 solar day]</small><br>
+        Time is fully decimal: <span class="accent">10 ors × 100 mins × 100 vels</span> — every unit divides cleanly by 10.<br>
+        1 or = 10,000 vels · 1 min = 100 vels · 1 vel = base tick.<br>
+        Structure: <span class="bright">10 months × 36 days = 360 days</span>, followed by <span class="bright">5 Stilldays</span> = 365 days/yr.<br>
+        The Stilldays are a quiet period outside the month structure between the end of one year and the start of the next.<br>
+        Leap rule: a <span class="bright">6th Stillday</span> added every <span class="bright">4 years</span>, skipped every <span class="bright">128 years</span>.
+        <small class="si-note">drift: ~0.00031 d/yr — beats the Gregorian calendar (~0.0075 d/yr)</small><br>
+        Day zero: <span class="bright">0000-01-01 local proleptic Gregorian</span>.
+      </div>
+    </div>
+
+    <div class="sec-head">month names</div>
+    <div class="month-list" id="r-months"></div>
+
+    <div class="sec-head" style="margin-top:28px">interactive calendar</div>
+    <div class="ical-wrap" id="ical-wrap">
+      <div class="ical-header">
+        <div class="ical-title" id="ical-title">—</div>
+        <div class="ical-nav">
+          <button onclick="icalNav(-1)" title="previous month">&#8249;</button>
+          <button class="ical-today-btn" onclick="icalGoToday()">today</button>
+          <button onclick="icalNav(1)" title="next month">&#8250;</button>
+        </div>
+      </div>
+      <div class="ical-dow" id="ical-dow"></div>
+      <div class="ical-grid" id="ical-grid"></div>
+      <div class="ical-detail" id="ical-detail">
+        <span class="dim" style="font-size:0.75rem">select a day to see details</span>
+      </div>
+      <div class="ical-note-row" id="ical-note-row" style="display:none">
+        <input class="ical-note-input" id="ical-note-input" placeholder="add a note for this day..." maxlength="80"/>
+        <button class="ical-note-save" onclick="icalSaveNote()">save</button>
+        <button class="ical-note-save" style="background:var(--bg3);color:var(--muted2);border:1px solid var(--border2)" onclick="icalClearNote()">clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PAGE: TSM REFERENCE
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-tsm">
+    <div class="flex-row" style="margin-bottom:14px">
+      <span class="tag tag-tsm">TSM</span>
+      <span class="dim" style="font-size:0.75rem">Trigian System of Measurement — completely made up, entirely self-consistent</span>
+    </div>
+
+    <div class="sec-head">unit dependency graph</div>
+    <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap">
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--accent2);border-radius:1px;margin-right:5px;vertical-align:middle"></span>base unit</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--bg3);border:1px solid var(--cyan);border-radius:1px;margin-right:5px;vertical-align:middle"></span>derived unit</span>
+      <span style="color:var(--muted)">hover any node for details</span>
+    </div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px">
+      <svg id="tsm-graph" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace"></svg>
+    </div>
+    <div id="tsm-tip" style="position:fixed;display:none;background:var(--bg2);border:1px solid var(--border2);border-left:2px solid var(--accent2);border-radius:5px;padding:9px 13px;font-size:0.73rem;color:var(--text);pointer-events:none;z-index:9000;max-width:240px;line-height:1.65"></div>
+
+    <script>
+    (function(){
+      const NODES = [
+        {id:'vel',   sym:'v',  qty:'Time',               si:'≈ 0.864 s',          def:'Period of 9,192,631,770 oscillations of a reference atom. 100,000 vels = 1 solar day.', deps:[], base:true},
+        {id:'strad', sym:'st', qty:'Length',             si:'≈ 0.259 m',           def:'Distance light travels in exactly 1 axt-vel (10⁻⁹ vels).',                                            deps:[], base:true},
+        {id:'dram',  sym:'dr', qty:'Mass',               si:'≈ 17.4 kg',           def:'Mass of 1 cub of pure water at 0 zn.',                                                  deps:[], base:true},
+        {id:'zenn',  sym:'zn', qty:'Temperature',        si:'1 zn = 0.01 K',      def:'0 zn = freeze, 10,000 zn = boil. Absolute zero = −27,315 zn.',                         deps:[], base:true},
+        {id:'lume',  sym:'lm', qty:'Electric Charge',    si:'≈ 1.602×10⁻³ C',    def:'Charge of exactly 10¹⁶ elementary charges.',                                            deps:[], base:true},
+        {id:'flar',  sym:'fl', qty:'Luminous Intensity', si:'scales with st²',    def:'Blackbody intensity at 10,000 zn over 1 sel.',                                          deps:[], base:true},
+        {id:'grail', sym:'gr', qty:'Substance',          si:'≈ 1660.5 mol',       def:'Exactly 10²⁴ elementary entities.',                                                     deps:[], base:true},
+        {id:'sel',   sym:'sl', qty:'Area',               si:'≈ 0.0671 m²',        def:'1 strad²',                                   deps:['strad']},
+        {id:'cub',   sym:'cb', qty:'Volume',             si:'≈ 0.0174 m³ (17.4 L)',def:'1 strad³',                                   deps:['strad']},
+        {id:'lek',   sym:'lk', qty:'Speed',              si:'≈ 0.300 m/s',        def:'1 strad per vel',                            deps:['strad','vel']},
+        {id:'rem',   sym:'rm', qty:'Acceleration',       si:'≈ 0.347 m/s²',       def:'1 strad per vel²',                           deps:['strad','vel']},
+        {id:'flux',  sym:'fx', qty:'Current',            si:'lm/v',               def:'1 lume per vel',                             deps:['lume','vel']},
+        {id:'dak',   sym:'dk', qty:'Force',              si:'≈ 6.03 N',           def:'1 dram · strad / vel²',                      deps:['dram','strad','vel']},
+        {id:'kern',  sym:'kn', qty:'Energy',             si:'≈ 1.56 J',           def:'1 dak · strad',                              deps:['dak','strad']},
+        {id:'brak',  sym:'bk', qty:'Pressure',           si:'≈ 89.9 Pa',          def:'1 dak per sel',                              deps:['dak','sel']},
+        {id:'zor',   sym:'zo', qty:'Power',              si:'≈ 1.81 W',           def:'1 kern per vel',                             deps:['kern','vel']},
+        {id:'nav',   sym:'nv', qty:'Potential Diff.',    si:'dr·st²/(v²·lm)',     def:'1 kern per lume',                            deps:['kern','lume']},
+        {id:'kal',   sym:'kl', qty:'Specific Heat',      si:'st²/(v²·zn)',        def:'1 kern per dram per zenn',                   deps:['kern','dram','zenn']},
+        {id:'lev',   sym:'lv', qty:'Thermal Cond.',      si:'dr·st/(v³·zn)',      def:'1 kern per vel per strad per zenn',          deps:['kern','vel','strad','zenn']},
+        {id:'fen',   sym:'fn', qty:'Resistance',         si:'dr·st²/(v·lm²)',     def:'1 nav per flux',                             deps:['nav','flux']},
+      ];
+
+      // Fixed layout matching the reference image style:
+      // Row 0 (base): vel, strad, dram, zenn, lume, flar, grail
+      // Row 1: lek, rem, sel, cub, flux
+      // Row 2: dak, kern
+      // Row 3: brak, zor, nav, kal, lev, fen
+      const NW = 108, NH = 62, HGAP = 18, VGAP = 52;
+      const ROWS = [
+        ['vel','strad','dram','zenn','lume','flar','grail'],
+        ['lek','rem','sel','cub','flux'],
+        ['dak','kern'],
+        ['brak','zor','nav','kal','lev','fen'],
+      ];
+      const PAD = 24;
+
+      const totalCols = ROWS[0].length;
+      const totalW = totalCols * NW + (totalCols - 1) * HGAP + PAD * 2;
+      const totalH = ROWS.length * NH + (ROWS.length - 1) * VGAP + PAD * 2;
+
+      const nodeMap = {};
+      ROWS.forEach((row, ri) => {
+        const rowW = row.length * NW + (row.length - 1) * HGAP;
+        const ox = (totalW - rowW) / 2;
+        row.forEach((id, ci) => {
+          const n = NODES.find(n => n.id === id);
+          n.x = ox + ci * (NW + HGAP);
+          n.y = PAD + ri * (NH + VGAP);
+          n.cx = n.x + NW / 2;
+          n.cy = n.y + NH / 2;
+          nodeMap[id] = n;
+        });
+      });
+
+      const C = {
+        base:    '#a78bfa',
+        derived: '#22d3ee',
+        edge:    '#2e2e35',
+        edgeHi:  '#7a7a90',
+        bg:      '#16161a',
+        bgHi:    '#1e1e26',
+        bright:  '#eeeef5',
+        muted:   '#5a5a6e',
+        dim:     '#7a7a90',
+      };
+
+      const svg = document.getElementById('tsm-graph');
+      svg.setAttribute('width', totalW);
+      svg.setAttribute('height', totalH);
+      svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
+
+      function el(tag, attrs={}, parent=svg){
+        const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k,v));
+        parent.appendChild(e);
+        return e;
+      }
+
+      // Defs: arrowhead markers
+      const defs = el('defs');
+      function mkArrow(id, color){
+        const m = el('marker', {id, markerWidth:'6', markerHeight:'6', refX:'5', refY:'3', orient:'auto'}, defs);
+        el('path', {d:'M0,0 L0,6 L6,3 Z', fill:color}, m);
+      }
+      mkArrow('arr-dim', C.edge);
+      mkArrow('arr-base', C.base);
+      mkArrow('arr-der', C.derived);
+
+      // Edge layer
+      const edgeLayer = el('g', {id:'edges'});
+      // Node layer
+      const nodeLayer = el('g', {id:'nodes'});
+
+      // Draw edges as orthogonal L-shaped paths
+      // From bottom-center of source to top-center of target
+      // If same column: straight down. Otherwise: go down to midpoint row, horizontal, then down.
+      const edgeEls = {}; // key: "from->to"
+
+      NODES.forEach(node => {
+        node.deps.forEach(depId => {
+          const src = nodeMap[depId];
+          const tgt = node;
+          if(!src || !tgt) return;
+
+          const x1 = src.cx, y1 = src.y + NH;
+          const x2 = tgt.cx, y2 = tgt.y;
+          const midY = y1 + (y2 - y1) / 2;
+
+          let d;
+          if(Math.abs(x1 - x2) < 2){
+            // straight vertical
+            d = `M${x1},${y1} L${x2},${y2}`;
+          } else {
+            // orthogonal: down, horizontal, down
+            d = `M${x1},${y1} L${x1},${midY} L${x2},${midY} L${x2},${y2}`;
+          }
+
+          const path = el('path', {
+            d, fill:'none',
+            stroke: C.edge, 'stroke-width':'1',
+            'marker-end':'url(#arr-dim)',
+            'data-src': depId, 'data-tgt': node.id,
+          }, edgeLayer);
+          const key = `${depId}->${node.id}`;
+          edgeEls[key] = path;
+        });
+      });
+
+      // Draw nodes
+      const nodeEls = {};
+      NODES.forEach(node => {
+        const g = el('g', {'data-id': node.id, style:'cursor:pointer'}, nodeLayer);
+        nodeEls[node.id] = g;
+
+        // Background rect
+        const rect = el('rect', {
+          x: node.x, y: node.y, width: NW, height: NH,
+          rx: 4, ry: 4,
+          fill: C.bg,
+          stroke: node.base ? C.base : C.derived,
+          'stroke-width': node.base ? '1.5' : '1',
+        }, g);
+
+        // Top bar (base only)
+        if(node.base){
+          el('rect', {x: node.x, y: node.y, width: NW, height: 3, rx:2, fill: C.base}, g);
+        }
+
+        // Unit name
+        const nameEl = el('text', {
+          x: node.cx, y: node.y + (node.base ? 26 : 24),
+          'text-anchor':'middle',
+          fill: C.bright,
+          'font-size': '14',
+          'font-weight': '700',
+          'font-family': "'Syne', sans-serif",
+        }, g);
+        nameEl.textContent = node.id;
+
+        // Symbol
+        const symEl = el('text', {
+          x: node.cx, y: node.y + (node.base ? 38 : 37),
+          'text-anchor':'middle',
+          fill: node.base ? C.base : C.derived,
+          'font-size': '9',
+          'font-family': "'JetBrains Mono', monospace",
+        }, g);
+        symEl.textContent = node.sym;
+
+        // Quantity
+        const qEl = el('text', {
+          x: node.cx, y: node.y + (node.base ? 52 : 51),
+          'text-anchor':'middle',
+          fill: C.dim,
+          'font-size': '8',
+          'font-family': "'JetBrains Mono', monospace",
+        }, g);
+        qEl.textContent = node.qty;
+
+        // Hover interactions
+        g.addEventListener('mouseenter', (e) => {
+          highlightNode(node.id, true);
+          showTip(e, node);
+        });
+        g.addEventListener('mousemove', (e) => moveTip(e));
+        g.addEventListener('mouseleave', () => {
+          highlightNode(node.id, false);
+          hideTip();
+        });
+      });
+
+      function highlightNode(id, on){
+        const node = nodeMap[id];
+        // Dim everything first, or restore
+        NODES.forEach(n => {
+          const g = nodeEls[n.id];
+          g.style.opacity = on ? '0.25' : '1';
+        });
+        Object.values(edgeEls).forEach(p => {
+          p.setAttribute('stroke', C.edge);
+          p.setAttribute('stroke-width', '1');
+          p.setAttribute('marker-end', 'url(#arr-dim)');
+          p.style.opacity = on ? '0.15' : '1';
+        });
+
+        if(!on) return;
+
+        // Highlight self
+        nodeEls[id].style.opacity = '1';
+
+        // Highlight direct deps (parents)
+        node.deps.forEach(depId => {
+          nodeEls[depId].style.opacity = '1';
+          const key = `${depId}->${id}`;
+          if(edgeEls[key]){
+            const p = edgeEls[key];
+            const src = nodeMap[depId];
+            p.setAttribute('stroke', src.base ? C.base : C.derived);
+            p.setAttribute('stroke-width', '1.5');
+            p.setAttribute('marker-end', src.base ? 'url(#arr-base)' : 'url(#arr-der)');
+            p.style.opacity = '1';
+          }
+        });
+
+        // Highlight direct children (what depends on this node)
+        NODES.forEach(n => {
+          if(n.deps.includes(id)){
+            nodeEls[n.id].style.opacity = '1';
+            const key = `${id}->${n.id}`;
+            if(edgeEls[key]){
+              const p = edgeEls[key];
+              p.setAttribute('stroke', node.base ? C.base : C.derived);
+              p.setAttribute('stroke-width', '1.5');
+              p.setAttribute('marker-end', node.base ? 'url(#arr-base)' : 'url(#arr-der)');
+              p.style.opacity = '1';
+            }
+          }
+        });
+      }
+
+      const tip = document.getElementById('tsm-tip');
+      function showTip(e, node){
+        const color = node.base ? C.base : C.derived;
+        const deps = node.deps.length ? node.deps.join(', ') : 'none';
+        tip.style.borderLeftColor = color;
+        tip.innerHTML = `
+          <div style="color:${color};font-weight:700;font-size:0.82rem;margin-bottom:2px">${node.id} <span style="color:var(--muted);font-weight:400;font-size:0.74rem">(${node.sym})</span></div>
+          <div style="color:var(--muted2);font-size:0.67rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">${node.qty}</div>
+          <div style="color:var(--text);margin-bottom:4px;font-size:0.72rem">${node.def}</div>
+          <div style="color:var(--muted);font-size:0.68rem">SI ref: ${node.si}</div>
+          ${node.deps.length ? `<div style="color:var(--muted);font-size:0.68rem;margin-top:2px">depends on: ${deps}</div>` : ''}
+        `;
+        tip.style.display = 'block';
+        moveTip(e);
+      }
+      function moveTip(e){
+        let tx = e.clientX + 16, ty = e.clientY - 12;
+        if(tx + 250 > window.innerWidth) tx = e.clientX - 254;
+        tip.style.left = tx + 'px';
+        tip.style.top = ty + 'px';
+      }
+      function hideTip(){ tip.style.display = 'none'; }
+    })();
+    </script>
+
+    <div class="sec-head">prefixes</div>
+    <div class="card green-left">
+      <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:10px">positive (larger)</div>
+      <div class="prefix-grid">
+        <div class="prefix-card"><span class="pname">zan-</span> <span class="psym">(Z)</span><span class="pval">10¹²</span></div>
+        <div class="prefix-card"><span class="pname">vor-</span> <span class="psym">(V)</span><span class="pval">10⁹</span></div>
+        <div class="prefix-card"><span class="pname">neth-</span> <span class="psym">(N)</span><span class="pval">10⁶</span></div>
+        <div class="prefix-card"><span class="pname">drel-</span> <span class="psym">(D)</span><span class="pval">10³</span></div>
+        <div class="prefix-card"><span class="pname">qua-</span> <span class="psym">(Q)</span><span class="pval">10²</span></div>
+        <div class="prefix-card"><span class="pname">siv-</span> <span class="psym">(S)</span><span class="pval">10¹</span></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted2);margin:10px 0">negative (smaller)</div>
+      <div class="prefix-grid">
+        <div class="prefix-card"><span class="pname">rix-</span> <span class="psym">(r)</span><span class="pval">10⁻¹</span></div>
+        <div class="prefix-card"><span class="pname">miv-</span> <span class="psym">(m)</span><span class="pval">10⁻²</span></div>
+        <div class="prefix-card"><span class="pname">ulv-</span> <span class="psym">(u)</span><span class="pval">10⁻³</span></div>
+        <div class="prefix-card"><span class="pname">eph-</span> <span class="psym">(e)</span><span class="pval">10⁻⁶</span></div>
+        <div class="prefix-card"><span class="pname">axt-</span> <span class="psym">(a)</span><span class="pval">10⁻⁹</span></div>
+        <div class="prefix-card"><span class="pname">zyn-</span> <span class="psym">(y)</span><span class="pval">10⁻¹²</span></div>
+      </div>
+      <div class="dim" style="font-size:0.72rem;margin-top:6px">example: 1 drel-strad = 10³ strads · 1 ulv-strad = 10⁻³ strads · 1 neth-vel = 10⁶ vels</div>
+    </div>
+
+    <div class="sec-head">temperature scale (zennic)</div>
+    <div class="card orange-left">
+      <div class="dim" style="font-size:0.72rem;margin-bottom:8px">
+        Freeze and boil are <em>defined</em> values in TSM — not approximations. The SI conversions below are the approximations.
+        Scale: 0 zn = water freezes, 10,000 zn = water boils → <strong>1 zn = 0.01 K exactly</strong>. Absolute zero = −27,315 zn (exact defined constant).
+      </div>
+      <table>
+        <thead><tr><th>Reference Point</th><th>Zennic (zn)</th><th style="font-size:0.65rem;color:var(--muted)">Kelvin (approx)</th><th style="font-size:0.65rem;color:var(--muted)">Celsius (approx)</th></tr></thead>
+        <tbody>
+          <tr><td class="dim">Absolute zero</td><td class="unit-name">−27,315 zn <span style="color:var(--muted);font-weight:400;font-size:0.85em">(defined)</span></td><td class="si">0 K</td><td class="si">−273.15 °C</td></tr>
+          <tr><td class="dim">Water freezes</td><td class="unit-name">0 zn <span style="color:var(--muted);font-weight:400;font-size:0.85em">(defined)</span></td><td class="si">273.15 K</td><td class="si">0 °C</td></tr>
+          <tr><td class="dim">Room temp (~20°C)</td><td class="unit-name">2,000 zn</td><td class="si">293.15 K</td><td class="si">20 °C</td></tr>
+          <tr><td class="dim">Body temp (~37°C)</td><td class="unit-name">3,700 zn</td><td class="si">310.15 K</td><td class="si">37 °C</td></tr>
+          <tr><td class="dim">Water boils</td><td class="unit-name">10,000 zn <span style="color:var(--muted);font-weight:400;font-size:0.85em">(defined)</span></td><td class="si">373.15 K</td><td class="si">100 °C</td></tr>
+        </tbody>
+      </table>
+      <div class="dim" style="font-size:0.72rem;margin-top:8px">
+        conversion: zn = °C × 100 · °C = zn / 100 · K = (zn / 100) + 273.15 · absolute zero = −27,315 zn (exact)
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PAGE: CONVERTER
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-converter">
+    <div class="flex-row" style="margin-bottom:14px">
+      <span class="tag tag-tsm">TSM</span>
+      <span class="dim" style="font-size:0.75rem">Convert between SI and TSM units</span>
+    </div>
+
+    <div class="sec-head">category</div>
+    <div class="conv-cats" id="conv-cats"></div>
+
+    <div class="sec-head" style="margin-top:20px">converter</div>
+    <div class="card" style="padding:20px 18px">
+      <div class="conv-main" id="conv-main">
+        <div class="conv-field">
+          <label>from</label>
+          <input type="number" class="conv-big-input" id="conv-from-val" value="100" step="any"/>
+          <select id="conv-from-unit"></select>
+        </div>
+        <div class="conv-swap-col" style="display:flex;justify-content:center">
+          <button class="conv-swap-btn" onclick="swapConv()" title="swap units">⇄</button>
+        </div>
+        <div class="conv-field">
+          <label>to</label>
+          <div class="conv-big-result" id="conv-to-val">—</div>
+          <select id="conv-to-unit"></select>
+        </div>
+      </div>
+      <div class="conv-formula" id="conv-formula">select a category and units above</div>
+    </div>
+
+    <div class="conv-note-box" id="conv-note-box" style="display:none"></div>
+
+    <div class="sec-head">quick reference ratios</div>
+    <div class="two-col">
+      <div class="card">
+        <div style="color:var(--accent2);font-size:0.78rem;margin-bottom:8px">time</div>
+        <div class="dim" style="font-size:0.76rem;line-height:2">
+          1 vel = <span class="bright">0.864</span> s<br>
+          1 s = <span class="bright">1.1574</span> vels<br>
+          1 day = <span class="bright">100,000</span> vels<br>
+          1 or = <span class="bright">10,000</span> vels
+        </div>
+      </div>
+      <div class="card">
+        <div style="color:var(--cyan);font-size:0.78rem;margin-bottom:8px">length</div>
+        <div class="dim" style="font-size:0.76rem;line-height:2">
+          1 strad = distance light travels in 1 axt-vel<br>
+          <small class="si-note">[1 axt-vel = 10⁻⁹ vels · 1 strad ≈ 25.9 cm]</small>
+          1 drel-strad = 10³ strads ≈ 259 m<br>
+          1 strad-ulv = 10⁻³ strads ≈ 0.259 mm
+        </div>
+      </div>
+      <div class="card">
+        <div style="color:var(--orange);font-size:0.78rem;margin-bottom:8px">mass</div>
+        <div class="dim" style="font-size:0.76rem;line-height:2">
+          1 dram = 1 cub of water at 0 zn<br>
+          <small class="si-note">[1 dram = 1 cub of water ≈ 17.4 kg]</small>
+          1 drel-dram = 10³ drams<br>
+          1 dram-ulv = 10⁻³ drams
+        </div>
+      </div>
+      <div class="card">
+        <div style="color:var(--green);font-size:0.78rem;margin-bottom:8px">temperature</div>
+        <div class="dim" style="font-size:0.76rem;line-height:2">
+          zn = °C × 100<br>
+          °C = zn / 100<br>
+          freeze = <span class="bright">0 zn</span> · boil = <span class="bright">10,000 zn</span><br>
+          K = (zn / 100) + 273.15
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PAGE: NOTES
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-notes">
+    <div class="flex-row" style="margin-bottom:14px">
+      <span class="dim" style="font-size:0.75rem">scratch space — saved locally in your browser</span>
+    </div>
+    <div class="sec-head">notes</div>
+    <textarea id="notes-area" placeholder="write anything here..."></textarea>
+    <div class="flex-row" style="margin-top:8px">
+      <button class="btn" onclick="saveNotes()">save</button>
+      <button class="btn ghost" onclick="clearNotes()">clear</button>
+      <span class="dim" id="notes-status" style="font-size:0.72rem"></span>
+    </div>
+  </div>
+
+</div><!-- end site-wrap -->
+
+<script>
+// ═══════════════════════════════════════════════
+// SHARED CONFIG
+// ═══════════════════════════════════════════════
+const MONTH_NAMES = [
+  "Unuary","Duouary","Triuary","Quattoruary","Quinquember",
+  "Sextember","September","October","November","December"
+];
+
+// ── REDUX ──
+const RX_VEL_TO_SI  = 0.864;          // 1 vel = 0.864 SI seconds
+const RX_DAY_VELS   = 100000;         // 1 day = 100,000 vels
+const RX_DAY_S      = RX_DAY_VELS * RX_VEL_TO_SI; // = 86400 SI seconds exactly
+const RX_VELS_PER_OR  = 10000;
+const RX_VELS_PER_MIN = 100;
+const RX_SECS_PER_OR  = RX_VELS_PER_OR  * RX_VEL_TO_SI;
+const RX_SECS_PER_MIN = RX_VELS_PER_MIN * RX_VEL_TO_SI;
+const RX_SECS_PER_VEL = RX_VEL_TO_SI;
+
+const RX_DAYS_PER_MONTH = 36;
+const RX_MONTHS = 10;
+const RX_STILLDAYS_BASE = 5;
+const RX_YEAR_DAYS_BASE = RX_DAYS_PER_MONTH * RX_MONTHS + RX_STILLDAYS_BASE; // 365
+const RX_YEAR_S = RX_DAY_S * RX_YEAR_DAYS_BASE;
+
+function rxLeap(Y){ return Y > 0 && Y % 4 === 0 && Y % 128 !== 0; }
+function rxStillDays(Y){ return RX_STILLDAYS_BASE + (rxLeap(Y) ? 1 : 0); }
+
+// ── GREGORIAN HELPERS ──
+function isGregLeap(y){ return (y%400===0)||(y%100!==0 && y%4===0); }
+const MDAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+function dayOfYear(y,m,d){ // m: 0-indexed, d: 1-indexed → 0-based day of year
+  let r=0; for(let i=0;i<m;i++) r+=MDAYS[i]+(i===1&&isGregLeap(y)?1:0);
+  return r+(d-1);
+}
+function secsSinceEpoch(date){
+  const y=date.getFullYear(), m=date.getMonth(), d=date.getDate();
+  const hh=date.getHours(), mm=date.getMinutes(), ss=date.getSeconds(), ms=date.getMilliseconds();
+  const yy=y;
+  const dby=yy*365+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400);
+  return (dby+dayOfYear(y,m,d))*86400 + hh*3600 + mm*60 + ss + ms/1000;
+}
+
+// ── COMPUTE REDUX ──
+function computeRedux(now){
+  let rem = secsSinceEpoch(now);
+  let year = 0;
+  while(true){
+    const yl = RX_DAY_S * (RX_YEAR_DAYS_BASE + (rxLeap(year) ? 1 : 0));
+    if(rem >= yl){ rem -= yl; year++; } else break;
+  }
+  // Strip off the 10 months first
+  let month = 1;
+  for(; month <= RX_MONTHS; month++){
+    const ml = RX_DAY_S * RX_DAYS_PER_MONTH;
+    if(rem >= ml){ rem -= ml; } else break;
+  }
+  // If we've passed all 10 months we're in the Stilldays period
+  const inStill = month > RX_MONTHS;
+  const stillCount = rxStillDays(year);
+  let day, monthName;
+  if(inStill){
+    month = 0; // sentinel: 0 = Stilldays
+    day = Math.floor(rem / RX_DAY_S) + 1;
+    if(day > stillCount) day = stillCount;
+    monthName = 'Stilldays';
+  } else {
+    day = Math.floor(rem / RX_DAY_S) + 1;
+    if(day > RX_DAYS_PER_MONTH) day = RX_DAYS_PER_MONTH;
+    monthName = MONTH_NAMES[month - 1];
+  }
+  let sid = rem - (day - 1) * RX_DAY_S;
+  if(sid < 0) sid = 0;
+  const velsSID = sid / RX_VEL_TO_SI;
+  let hor = Math.floor(velsSID / RX_VELS_PER_OR);
+  let rm2 = velsSID - hor * RX_VELS_PER_OR;
+  let min = Math.floor(rm2 / RX_VELS_PER_MIN);
+  let vel = Math.floor(rm2 - min * RX_VELS_PER_MIN + 1e-9);
+  if(vel >= 100){ vel = 0; min++; }
+  if(min >= 100){ min = 0; hor++; }
+  if(hor >= 10)  hor = 0;
+  return { year, month, day, hor, min, vel, leapYear: rxLeap(year),
+           stillCount, inStill, monthName };
+}
+
+// ── NEXT LEAP ──
+function nextReduxLeap(fromYear){
+  for(let y=fromYear+1;y<fromYear+10000;y++) if(rxLeap(y)) return y;
+  return null;
+}
+
+// ── MONTHS DISPLAY ──
+function buildMonths(id){
+  const el=document.getElementById(id);
+  MONTH_NAMES.forEach((n,i)=>{
+    const d=document.createElement('div');
+    d.className='month-pill';
+    d.innerHTML=`<span class="mn">${n}</span><span class="mi"> — month ${i+1}</span>`;
+    el.appendChild(d);
+  });
+}
+buildMonths('r-months');
+
+// ── UPDATE ──
+function pad(n){ return String(Math.floor(n)).padStart(2,'0'); }
+function updateUI(){
+  const now=new Date();
+  const r=computeRedux(now);
+
+  document.getElementById('r-year').textContent=r.year;
+  document.getElementById('r-month').textContent=r.inStill ? '—' : r.month;
+  document.getElementById('r-mname').textContent=r.monthName;
+  document.getElementById('r-day').textContent=r.inStill ? `Stillday ${r.day}` : r.day;
+  document.getElementById('r-h').textContent=pad(r.hor);
+  document.getElementById('r-m').textContent=pad(r.min);
+  document.getElementById('r-s').textContent=pad(r.vel);
+  document.getElementById('r-greg').textContent=now.toLocaleDateString();
+  document.getElementById('r-leap').textContent=r.leapYear?'yes — 6 Stilldays':'no — 5 Stilldays';
+  const rnl=nextReduxLeap(r.year);
+  document.getElementById('r-nextleap').textContent=rnl?`year ${rnl}`:'none';
+}
+updateUI();
+setInterval(updateUI,250);
+
+// ═══ TABS ═══
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    const names=['redux','tsm','converter','notes'];
+    b.classList.toggle('active',names[i]===name);
+  });
+  document.querySelectorAll('.page').forEach(p=>{
+    p.classList.toggle('active', p.id==='page-'+name ||(name==='converter'&&p.id==='page-converter'));
+  });
+}
+
+// ═══ CONVERTER ═══
+// ═══ CONVERTER v2 — Google-style dual dropdown ═══
+// TSM base constants — strad defined as 0.259 m (human-scale)
+// 1 vel = 0.864 s  ·  1 strad = distance light travels in 1 axt-vel (10⁻⁹ vels)  ·  1 dram = mass of 1 cub of water
+const ST = 0.2590207284;         // strad in metres
+const VL = 0.864;                // vel in seconds
+const DR = ST**3 * 1000;         // dram in kg (1 cub of water = ST³ m³ × 1000 kg/m³)
+const DAK_N  = DR * ST / VL**2;  // 1 dak in Newtons
+const KRN_J  = DAK_N * ST;       // 1 kern in Joules
+const ZOR_W  = KRN_J / VL;       // 1 zor in Watts
+const BRK_PA = DAK_N / ST**2;    // 1 brak in Pascals
+
+function linCat(id, label, color, defaultFrom, defaultTo, units){
+  return {
+    id, label, color, defaultFrom, defaultTo, units,
+    convert(fId, tId, val){
+      const fu=this.units.find(u=>u.id===fId), tu=this.units.find(u=>u.id===tId);
+      return fu&&tu ? val * fu.toBase / tu.toBase : null;
+    },
+    formula(fId, tId, val, res){
+      const fu=this.units.find(u=>u.id===fId), tu=this.units.find(u=>u.id===tId);
+      return `${fmt(val)} ${fu.label} = ${fmt(res)} ${tu.label}`;
+    }
+  };
+}
+
+const CONV_CATS = [
+  // ── Temperature (non-linear, special-cased) ──
+  {
+    id:'temperature', label:'Temperature', color:'var(--orange)',
+    defaultFrom:'zn', defaultTo:'F',
+    units:[
+      {id:'zn', label:'zenn (zn)',       toK: v=>v/100+273.15,           fromK: K=>(K-273.15)*100},
+      {id:'C',  label:'Celsius (°C)',    toK: v=>v+273.15,               fromK: K=>K-273.15},
+      {id:'F',  label:'Fahrenheit (°F)', toK: v=>(v-32)*5/9+273.15,      fromK: K=>(K-273.15)*9/5+32},
+      {id:'K',  label:'Kelvin (K)',      toK: v=>v,                      fromK: K=>K},
+    ],
+    convert(fId, tId, val){
+      const fu=this.units.find(u=>u.id===fId), tu=this.units.find(u=>u.id===tId);
+      return fu&&tu ? tu.fromK(fu.toK(val)) : null;
+    },
+    formula(fId, tId, val, res){
+      const fv=fmt(val), rv=fmt(res);
+      const map={
+        'zn->C':`${fv} ÷ 100 = ${rv} °C`,
+        'C->zn':`${fv} × 100 = ${rv} zn`,
+        'zn->F':`(${fv} ÷ 100) × (9/5) + 32 = ${rv} °F`,
+        'F->zn':`(${fv} − 32) × (5/9) × 100 = ${rv} zn`,
+        'zn->K':`${fv} ÷ 100 + 273.15 = ${rv} K`,
+        'K->zn':`(${fv} − 273.15) × 100 = ${rv} zn`,
+        'C->F': `${fv} × (9/5) + 32 = ${rv} °F`,
+        'F->C': `(${fv} − 32) × (5/9) = ${rv} °C`,
+        'C->K': `${fv} + 273.15 = ${rv} K`,
+        'K->C': `${fv} − 273.15 = ${rv} °C`,
+        'F->K': `(${fv} − 32) × (5/9) + 273.15 = ${rv} K`,
+        'K->F': `(${fv} − 273.15) × (9/5) + 32 = ${rv} °F`,
+      };
+      return map[`${fId}->${tId}`] || (fId===tId ? `same unit — ${rv}` : `${fId} → ${tId} = ${rv}`);
+    }
+  },
+
+  // ── Length  (1 strad = 0.259 m) ──
+  linCat('length','Length','var(--cyan)','strad','m',[
+    {id:'strad', label:'strads (st)',    toBase: ST},
+    {id:'m',     label:'metres (m)',     toBase: 1},
+    {id:'cm',    label:'centimetres',    toBase: 0.01},
+    {id:'mm',    label:'millimetres',    toBase: 0.001},
+    {id:'km',    label:'kilometres',     toBase: 1000},
+    {id:'in',    label:'inches',         toBase: 0.0254},
+    {id:'ft',    label:'feet',           toBase: 0.3048},
+    {id:'mi',    label:'miles',          toBase: 1609.344},
+  ]),
+
+  // ── Area  (1 sel = strad² ≈ 0.0671 m²) ──
+  linCat('area','Area','var(--cyan)','sel','m2',[
+    {id:'sel',  label:'sels (sl)',       toBase: ST**2},
+    {id:'m2',   label:'m²',             toBase: 1},
+    {id:'cm2',  label:'cm²',            toBase: 1e-4},
+    {id:'km2',  label:'km²',            toBase: 1e6},
+    {id:'ha',   label:'hectares',       toBase: 1e4},
+    {id:'acre', label:'acres',          toBase: 4046.856},
+    {id:'ft2',  label:'ft²',            toBase: 0.092903},
+  ]),
+
+  // ── Volume  (1 cub = strad³ ≈ 0.0174 m³ = 17.4 L) ──
+  linCat('volume','Volume','var(--cyan)','cub','L',[
+    {id:'cub',  label:'cubs (cb)',       toBase: ST**3 * 1000},  // base = litres
+    {id:'L',    label:'litres (L)',      toBase: 1},
+    {id:'mL',   label:'millilitres',    toBase: 0.001},
+    {id:'m3',   label:'m³',             toBase: 1000},
+    {id:'gal',  label:'US gallons',     toBase: 3.785411784},
+    {id:'floz', label:'fl oz (US)',      toBase: 0.029573529625},
+  ]),
+
+  // ── Time ──
+  linCat('time','Time','var(--accent2)','vel','s',[
+    {id:'vel',  label:'vels (v)',        toBase: VL},
+    {id:'or',   label:'ors (TSM)',       toBase: VL*10000},
+    {id:'s',    label:'seconds',         toBase: 1},
+    {id:'min',  label:'minutes',         toBase: 60},
+    {id:'hr',   label:'hours',           toBase: 3600},
+    {id:'day',  label:'days',            toBase: 86400},
+    {id:'wk',   label:'weeks',           toBase: 604800},
+  ]),
+
+  // ── Speed  (1 lek = ST/VL ≈ 3.00 m/s) ──
+  linCat('speed','Speed','var(--green)','lek','ms',[
+    {id:'lek',  label:'leks (lk)',       toBase: ST/VL},
+    {id:'ms',   label:'m/s',            toBase: 1},
+    {id:'kmh',  label:'km/h',           toBase: 1/3.6},
+    {id:'mph',  label:'mph',            toBase: 0.44704},
+    {id:'knot', label:'knots',          toBase: 0.514444},
+    {id:'c',    label:'speed of light', toBase: 299792458},
+  ]),
+
+  // ── Mass  (1 dram = ST³×1000 kg ≈ 17.4 kg) ──
+  linCat('mass','Mass','var(--orange)','dram','kg',[
+    {id:'dram', label:'drams (dr)',      toBase: DR},
+    {id:'kg',   label:'kilograms',      toBase: 1},
+    {id:'g',    label:'grams',          toBase: 0.001},
+    {id:'t',    label:'tonnes',         toBase: 1000},
+    {id:'lb',   label:'pounds',         toBase: 0.45359237},
+    {id:'oz',   label:'ounces',         toBase: 0.028349523},
+  ]),
+
+  // ── Force  (1 dak ≈ DAK_N N) ──
+  linCat('force','Force','var(--red)','dak','N',[
+    {id:'dak',  label:'daks (dk)',       toBase: DAK_N},
+    {id:'N',    label:'Newtons (N)',     toBase: 1},
+    {id:'kN',   label:'kilonewtons',    toBase: 1000},
+    {id:'lbf',  label:'pound-force',    toBase: 4.44822},
+    {id:'kgf',  label:'kilogram-force', toBase: 9.80665},
+  ]),
+
+  // ── Energy  (1 kern ≈ KRN_J J) ──
+  linCat('energy','Energy','var(--yellow)','kern','J',[
+    {id:'kern', label:'kerns (kn)',      toBase: KRN_J},
+    {id:'J',    label:'joules (J)',      toBase: 1},
+    {id:'kJ',   label:'kilojoules',     toBase: 1000},
+    {id:'MJ',   label:'megajoules',     toBase: 1e6},
+    {id:'kWh',  label:'kWh',            toBase: 3.6e6},
+    {id:'cal',  label:'calories',       toBase: 4.184},
+    {id:'kcal', label:'kilocalories',   toBase: 4184},
+    {id:'eV',   label:'electronvolts',  toBase: 1.602e-19},
+  ]),
+
+  // ── Power  (1 zor ≈ ZOR_W W) ──
+  linCat('power','Power','var(--yellow)','zor','W',[
+    {id:'zor',  label:'zors (zo)',       toBase: ZOR_W},
+    {id:'W',    label:'watts (W)',       toBase: 1},
+    {id:'kW',   label:'kilowatts',      toBase: 1000},
+    {id:'MW',   label:'megawatts',      toBase: 1e6},
+    {id:'hp',   label:'horsepower',     toBase: 745.69987},
+  ]),
+
+  // ── Pressure  (1 brak ≈ BRK_PA Pa) ──
+  linCat('pressure','Pressure','var(--red)','brak','Pa',[
+    {id:'brak', label:'braks (bk)',      toBase: BRK_PA},
+    {id:'Pa',   label:'pascals (Pa)',    toBase: 1},
+    {id:'kPa',  label:'kilopascals',    toBase: 1000},
+    {id:'bar',  label:'bar',            toBase: 1e5},
+    {id:'atm',  label:'atmospheres',    toBase: 101325},
+    {id:'psi',  label:'psi',            toBase: 6894.757},
+  ]),
+
+  // ── Electric Charge ──
+  linCat('charge','Electric Charge','var(--cyan)','lm','C',[
+    {id:'lm',  label:'lumes (lm)',       toBase: 1.602e-3},
+    {id:'C',   label:'Coulombs (C)',     toBase: 1},
+    {id:'mC',  label:'millicoulombs',   toBase: 0.001},
+    {id:'μC',  label:'microcoulombs',   toBase: 1e-6},
+  ]),
+];
+
+function fmt(n){
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  const abs=Math.abs(n);
+  if(abs===0) return '0';
+  if(abs>=1e9||abs<0.0001) return n.toExponential(4);
+  return parseFloat(n.toPrecision(7)).toString();
+}
+
+let convCat = CONV_CATS[0];
+
+function initConvCats(){
+  const el=document.getElementById('conv-cats');
+  CONV_CATS.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='conv-cat-btn'+(cat.id===convCat.id?' active':'');
+    btn.textContent=cat.label;
+    btn.dataset.id=cat.id;
+    btn.onclick=()=>selectConvCat(cat.id);
+    el.appendChild(btn);
+  });
+}
+
+function selectConvCat(id){
+  convCat=CONV_CATS.find(c=>c.id===id);
+  document.querySelectorAll('.conv-cat-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.id===id);
+  });
+  rebuildUnitSelects();
+  const noteBox=document.getElementById('conv-note-box');
+  const main=document.getElementById('conv-main');
+  if(convCat.note){
+    noteBox.style.display='block';
+    noteBox.textContent=convCat.noteText;
+    main.style.opacity='0.35';
+    main.style.pointerEvents='none';
+    document.getElementById('conv-formula').textContent='no direct SI conversion — see note below';
+    document.getElementById('conv-to-val').textContent='—';
+  } else {
+    noteBox.style.display='none';
+    main.style.opacity='1';
+    main.style.pointerEvents='';
+    doConvert();
+  }
+}
+
+function rebuildUnitSelects(){
+  ['conv-from-unit','conv-to-unit'].forEach((elId,idx)=>{
+    const sel=document.getElementById(elId);
+    sel.innerHTML='';
+    (convCat.units||[]).forEach((u,i)=>{
+      const opt=document.createElement('option');
+      opt.value=u.id;
+      opt.textContent=u.label;
+      if(idx===0 && u.id===convCat.defaultFrom) opt.selected=true;
+      if(idx===1 && u.id===convCat.defaultTo)   opt.selected=true;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function doConvert(){
+  if(convCat.note||!convCat.units.length) return;
+  const fromId=document.getElementById('conv-from-unit').value;
+  const toId  =document.getElementById('conv-to-unit').value;
+  const val   =parseFloat(document.getElementById('conv-from-val').value);
+  const result=isNaN(val) ? null : convCat.convert(fromId, toId, val);
+  const resStr=result===null ? '—' : fmt(result);
+  document.getElementById('conv-to-val').textContent=resStr;
+  document.getElementById('conv-formula').textContent=
+    result===null ? 'enter a value' : convCat.formula(fromId, toId, val, result);
+}
+
+function swapConv(){
+  if(convCat.note||!convCat.units.length) return;
+  const fu=document.getElementById('conv-from-unit');
+  const tu=document.getElementById('conv-to-unit');
+  const tv=document.getElementById('conv-to-val').textContent;
+  const tmp=fu.value; fu.value=tu.value; tu.value=tmp;
+  const parsed=parseFloat(tv);
+  if(!isNaN(parsed)) document.getElementById('conv-from-val').value=parsed;
+  doConvert();
+}
+
+initConvCats();
+rebuildUnitSelects();
+document.getElementById('conv-from-val').addEventListener('input',doConvert);
+document.getElementById('conv-from-unit').addEventListener('change',doConvert);
+document.getElementById('conv-to-unit').addEventListener('change',doConvert);
+doConvert();
+
+// ═══ NOTES ═══
+const NA=document.getElementById('notes-area');
+try{ NA.value=localStorage.getItem('trig-notes')||''; }catch(e){}
+function saveNotes(){
+  try{localStorage.setItem('trig-notes',NA.value); document.getElementById('notes-status').textContent='saved.';}
+  catch(e){document.getElementById('notes-status').textContent='error saving.';}
+  setTimeout(()=>document.getElementById('notes-status').textContent='',2000);
+}
+function clearNotes(){
+  NA.value='';
+  try{localStorage.removeItem('trig-notes');}catch(e){}
+  document.getElementById('notes-status').textContent='cleared.';
+  setTimeout(()=>document.getElementById('notes-status').textContent='',2000);
+}
+NA.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveNotes();}});
+
+// ═══ INTERACTIVE CALENDAR ═══
+// State
+let icalViewYear  = null;
+let icalViewMonth = null; // 1-indexed
+let icalSelDay    = null;
+let icalTodayData = null;
+
+// Load/save day notes in localStorage
+function icalNoteKey(y, m, d){ return `trig-cal-note-${y}-${m}-${d}`; }
+function icalGetNote(y, m, d){
+  try{ return localStorage.getItem(icalNoteKey(y,m,d)) || ''; }catch(e){ return ''; }
+}
+function icalSetNote(y, m, d, v){
+  try{
+    if(v) localStorage.setItem(icalNoteKey(y,m,d), v);
+    else localStorage.removeItem(icalNoteKey(y,m,d));
+  }catch(e){}
+}
+
+// Days in a given period: months 1-10 always 36, month 0 = Stilldays (5 or 6)
+function icalMonthDays(year, month){
+  if(month === 0) return rxStillDays(year);
+  return RX_DAYS_PER_MONTH;
+}
+
+// Gregorian date for Trigian year/month/day.
+// Strategy: convert to SI seconds since the proleptic Gregorian epoch (year 0, Jan 1),
+// using the same Trigian constants as computeRedux, then subtract the JS Date epoch offset.
+// RX_DAY_S = 86400 exactly, so each Trigian day = 1 real solar day. The calendar drift
+// is purely in year length (360 vs 365.25 days/year), so Trigian day N maps to a
+// specific, unique Gregorian date that advances at 1 real day per Trigian day.
+function icalToGregorian(ty, tm, td){
+  let trigDays = 0;
+  for(let y = 0; y < ty; y++){
+    trigDays += RX_YEAR_DAYS_BASE + (rxLeap(y) ? 1 : 0);
+  }
+  if(tm === 0){
+    // Stilldays: after all 10 months
+    trigDays += RX_DAYS_PER_MONTH * RX_MONTHS;
+  } else {
+    for(let m = 1; m < tm; m++) trigDays += RX_DAYS_PER_MONTH;
+  }
+  trigDays += (td - 1);
+  const siFromEpoch = trigDays * RX_DAY_S;
+  const jsEpochSI = secsSinceEpoch(new Date(0));
+  return new Date((siFromEpoch - jsEpochSI) * 1000);
+}
+
+function icalBuild(){
+  const ty = icalViewYear;
+  const tm = icalViewMonth;
+  const days = icalMonthDays(ty, tm);
+  const isStill = tm === 0;
+  const isLeapStill = isStill && rxLeap(ty);
+
+  // Title
+  const titleEl = document.getElementById('ical-title');
+  if(isStill){
+    titleEl.innerHTML = `<span class="month-num">Stilldays</span> &nbsp;<span style="color:var(--muted2);font-size:0.75rem;font-weight:400">Year ${ty}</span>${isLeapStill ? ' <span style="color:var(--yellow);font-size:0.7rem">&#9733; 6 days</span>' : ' <span style="color:var(--muted);font-size:0.7rem">5 days</span>'}`;
+  } else {
+    titleEl.innerHTML = `<span class="month-num">${MONTH_NAMES[tm-1]}</span> &nbsp;<span style="color:var(--muted2);font-size:0.75rem;font-weight:400">Year ${ty}</span>`;
+  }
+
+  // Day-of-week header
+  const dowEl = document.getElementById('ical-dow');
+  dowEl.innerHTML = '';
+  if(isStill){
+    // Stilldays have no week structure — show generic labels
+    dowEl.style.gridTemplateColumns = `repeat(${days}, 1fr)`;
+    for(let i = 1; i <= days; i++){
+      const s = document.createElement('span');
+      s.textContent = `Still ${i}`;
+      dowEl.appendChild(s);
+    }
+  } else {
+    dowEl.style.gridTemplateColumns = 'repeat(6, 1fr)';
+    ['Oneday','Twoday','Threeday','Fourday','Fiveday','Sixday'].forEach(lbl => {
+      const s = document.createElement('span');
+      s.textContent = lbl;
+      dowEl.appendChild(s);
+    });
+  }
+
+  // Grid
+  const gridEl = document.getElementById('ical-grid');
+  gridEl.innerHTML = '';
+  if(isStill){
+    gridEl.style.gridTemplateColumns = `repeat(${days}, 1fr)`;
+  } else {
+    gridEl.style.gridTemplateColumns = 'repeat(6, 1fr)';
+  }
+
+  for(let d = 1; d <= days; d++){
+    const cell = document.createElement('div');
+    cell.className = 'ical-day';
+    const isToday = icalTodayData && ty === icalTodayData.year && tm === icalTodayData.month && d === icalTodayData.day;
+    const isSel   = icalSelDay === d;
+    const isLeapDay = isStill && rxLeap(ty) && d === 6;
+    if(isToday) cell.classList.add('today');
+    if(isSel)   cell.classList.add('selected');
+    if(isLeapDay) cell.classList.add('leap-day');
+
+    const numDiv = document.createElement('div');
+    numDiv.className = 'day-num';
+    numDiv.textContent = isStill ? `${d}` : d;
+    cell.appendChild(numDiv);
+
+    const note = icalGetNote(ty, tm, d);
+    if(note){
+      const nd = document.createElement('div');
+      nd.className = 'day-note';
+      nd.textContent = note.length > 22 ? note.slice(0,22)+'…' : note;
+      cell.appendChild(nd);
+    }
+
+    cell.addEventListener('click', () => icalSelectDay(d));
+    gridEl.appendChild(cell);
+  }
+
+  // Fill trailing empty cells for normal months
+  if(!isStill){
+    const filled = days % 6;
+    if(filled !== 0){
+      for(let i = 0; i < 6 - filled; i++){
+        const empty = document.createElement('div');
+        empty.className = 'ical-day empty';
+        gridEl.appendChild(empty);
+      }
+    }
+  }
+
+  if(icalSelDay) icalRenderDetail(icalSelDay);
+}
+
+function icalSelectDay(d){
+  icalSelDay = d;
+  icalBuild(); // re-render to update selected highlight
+  icalRenderDetail(d);
+  // Show note row
+  const nr = document.getElementById('ical-note-row');
+  nr.style.display = 'flex';
+  const ni = document.getElementById('ical-note-input');
+  ni.value = icalGetNote(icalViewYear, icalViewMonth, d);
+  ni.focus();
+}
+
+function icalRenderDetail(d){
+  const ty = icalViewYear;
+  const tm = icalViewMonth;
+  const isStill = tm === 0;
+  const greg = icalToGregorian(ty, tm, d);
+  const gregStr = greg.toLocaleDateString(undefined, {year:'numeric',month:'long',day:'numeric'});
+  const isLeapDay = isStill && rxLeap(ty) && d === 6;
+  const isToday = icalTodayData && ty === icalTodayData.year && tm === icalTodayData.month && d === icalTodayData.day;
+
+  const DOW_NAMES = ['Oneday','Twoday','Threeday','Fourday','Fiveday','Sixday'];
+  const dowName = isStill ? '—' : DOW_NAMES[(d - 1) % 6];
+
+  const dateLabel = isStill ? `Stillday ${d}, Year ${ty}` : `${MONTH_NAMES[tm-1]} ${d}, Year ${ty}`;
+  const detailEl = document.getElementById('ical-detail');
+  const note = icalGetNote(ty, tm, d);
+  detailEl.innerHTML = `
+    <div class="d-date">${dateLabel}</div>
+    <div class="d-chips">
+      <div class="d-chip"><strong>Gregorian</strong> ${gregStr}</div>
+      ${!isStill ? `<div class="d-chip"><strong>Weekday</strong> ${dowName}</div>` : '<div class="d-chip" style="color:var(--muted)">outside week cycle</div>'}
+      ${isToday ? '<div class="d-chip" style="border-color:var(--accent2);color:var(--accent2)"><strong>today</strong></div>' : ''}
+      ${isLeapDay ? '<div class="d-chip" style="border-color:var(--yellow);color:var(--yellow)"><strong>&#9733; leap Stillday</strong></div>' : ''}
+      ${note ? `<div class="d-chip" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>note:</strong> ${note}</div>` : ''}
+    </div>
+  `;
+}
+
+// Period order: 1,2,3,4,5,6,7,8,9,10,0(Still),1(next year)...
+function icalNav(delta){
+  icalSelDay = null;
+  document.getElementById('ical-note-row').style.display = 'none';
+  if(delta === 1){
+    if(icalViewMonth === 10){ icalViewMonth = 0; }           // Dec → Stilldays
+    else if(icalViewMonth === 0){ icalViewMonth = 1; icalViewYear++; } // Still → Jan next yr
+    else { icalViewMonth++; }
+  } else {
+    if(icalViewMonth === 1){ icalViewMonth = 0; icalViewYear--; }  // Jan → Stilldays prev yr
+    else if(icalViewMonth === 0){ icalViewMonth = 10; }            // Still → Dec
+    else { icalViewMonth--; }
+  }
+  icalBuild();
+  document.getElementById('ical-detail').innerHTML = '<span class="dim" style="font-size:0.75rem">select a day to see details</span>';
+}
+
+function icalGoToday(){
+  icalSelDay = null;
+  document.getElementById('ical-note-row').style.display = 'none';
+  if(icalTodayData){
+    icalViewYear  = icalTodayData.year;
+    icalViewMonth = icalTodayData.inStill ? 0 : icalTodayData.month;
+    icalSelDay    = icalTodayData.day;
+  }
+  icalBuild();
+  if(icalSelDay) icalRenderDetail(icalSelDay);
+}
+
+function icalSaveNote(){
+  if(icalSelDay === null) return;
+  const v = document.getElementById('ical-note-input').value.trim();
+  icalSetNote(icalViewYear, icalViewMonth, icalSelDay, v);
+  icalBuild();
+  icalRenderDetail(icalSelDay);
+}
+
+function icalClearNote(){
+  if(icalSelDay === null) return;
+  icalSetNote(icalViewYear, icalViewMonth, icalSelDay, '');
+  document.getElementById('ical-note-input').value = '';
+  icalBuild();
+  icalRenderDetail(icalSelDay);
+}
+
+// Allow Enter key to save note
+document.getElementById('ical-note-input').addEventListener('keydown', e => {
+  if(e.key === 'Enter') icalSaveNote();
+});
+
+// Init: set view to current Trigian date
+function icalInit(){
+  const now = new Date();
+  icalTodayData = computeRedux(now);
+  icalViewYear  = icalTodayData.year;
+  icalViewMonth = icalTodayData.inStill ? 0 : icalTodayData.month;
+  icalSelDay    = icalTodayData.day;
+  icalBuild();
+  icalRenderDetail(icalSelDay);
+  document.getElementById('ical-note-row').style.display = 'flex';
+  document.getElementById('ical-note-input').value = icalGetNote(icalViewYear, icalViewMonth, icalSelDay);
+}
+icalInit();
+
+// Keep today marker fresh (update once per minute is enough)
+setInterval(() => {
+  icalTodayData = computeRedux(new Date());
+  // Only re-render if we're viewing today's month and something changed
+  if(icalViewYear === icalTodayData.year && icalViewMonth === icalTodayData.month){
+    icalBuild();
+  }
+}, 60000);
+</script>
+</body>
+</html>

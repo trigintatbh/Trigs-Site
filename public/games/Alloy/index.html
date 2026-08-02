@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alloy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root {
+  --bg:        #0d0b08;
+  --bg2:       #131009;
+  --surface:   #1a1510;
+  --surf2:     #201a12;
+  --surf3:     #272018;
+  --blue:      #FFBF00;
+  --blue-dim:  rgba(255,191,0,0.12);
+  --blue-glow: rgba(255,191,0,0.25);
+  --purple:    #FF6A00;
+  --teal:      #FFD966;
+  --accent:    #FFBF00;
+  --bdr:       rgba(255,220,120,0.09);
+  --bdr-lit:   rgba(255,191,0,0.22);
+  --bdr-hot:   rgba(255,191,0,0.50);
+  --text:      #f0ebe0;
+  --text-dim:  rgba(240,235,224,0.55);
+  --text-mute: rgba(240,235,224,0.30);
+  --green:     #34d399;
+  --r:         10px;
+  --r2:        14px;
+  --r3:        20px;
+  --card-h:    148px;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+body::before {
+  content:'';
+  position:fixed;
+  width:700px; height:600px;
+  top:-200px; left:-100px;
+  background: radial-gradient(ellipse, rgba(255,191,0,0.06) 0%, transparent 65%);
+  pointer-events:none; z-index:0;
+  filter:blur(60px);
+}
+body::after {
+  content:'';
+  position:fixed;
+  width:500px; height:400px;
+  bottom:-100px; right:10%;
+  background: radial-gradient(ellipse, rgba(255,106,0,0.05) 0%, transparent 65%);
+  pointer-events:none; z-index:0;
+  filter:blur(60px);
+}
+
+/* ── RAIL ── */
+.rail {
+  width: 60px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--bdr);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0;
+  gap: 2px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.rail-logo {
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FFBF00 0%, #FF6A00 100%);
+  display: flex; align-items:center; justify-content:center;
+  font-size: 15px; color: #0d0b08;
+  box-shadow: 0 4px 20px rgba(255,191,0,0.40);
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+.rail-spacer { flex:1; }
+.rail-btn {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 14px;
+  color: var(--text-dim);
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  position: relative;
+  flex-shrink: 0;
+}
+.rail-btn:hover { background: var(--blue-dim); border-color: var(--bdr-lit); color: var(--blue); }
+.rail-btn.active { background: var(--blue-dim); border-color: var(--bdr-hot); color: var(--blue); box-shadow: 0 0 14px rgba(255,191,0,0.12); }
+.rail-btn .rtooltip {
+  position:absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+  background: var(--surf2); border: 1px solid var(--bdr-lit);
+  color: var(--text); font-size: 11px; font-weight: 500;
+  padding: 5px 10px; border-radius: 8px; white-space:nowrap;
+  opacity:0; pointer-events:none; transition:opacity 0.15s; z-index:100;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.rail-btn:hover .rtooltip { opacity:1; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 300px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--bdr);
+  height: 100vh; position: sticky; top:0; z-index:5;
+}
+.sidebar-header {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--bdr);
+}
+.panel-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.panel-sub { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+.sidebar-scroll { flex:1; overflow-y:auto; overflow-x:hidden; }
+.sidebar-scroll::-webkit-scrollbar { width:3px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,191,0,0.18); border-radius:4px; }
+.sidebar-footer {
+  padding: 12px 14px;
+  border-top: 1px solid var(--bdr);
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--bg2); flex-shrink: 0;
+}
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* ── SECTIONS ── */
+.section { padding: 14px 16px; border-bottom: 1px solid var(--bdr); }
+.section:last-child { border-bottom:none; }
+.sec-label {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--text-mute); margin-bottom: 10px;
+}
+.field-lbl {
+  font-size: 10px; font-weight: 600;
+  color: var(--text-mute); margin-bottom: 5px; margin-top: 12px;
+  letter-spacing: 0.6px; text-transform: uppercase;
+}
+.field-lbl:first-child { margin-top:0; }
+.note { font-size: 10.5px; color: var(--text-mute); line-height: 1.6; margin-top: 5px; }
+
+/* ── INPUTS ── */
+.ui-input {
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--text); background: var(--surf2);
+  border: 1px solid var(--bdr); border-radius: var(--r);
+  padding: 8px 12px; width: 100%; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.ui-input:focus { border-color: rgba(255,191,0,0.5); background: rgba(255,191,0,0.04); box-shadow: 0 0 0 3px rgba(255,191,0,0.08); }
+.ui-input::placeholder { color: var(--text-mute); }
+.ui-select {
+  font-family: 'DM Sans', sans-serif; font-size: 12px;
+  color: var(--text); background: var(--surf2);
+  border: 1px solid var(--bdr); border-radius: var(--r);
+  padding: 8px 28px 8px 11px; width: 100%; outline: none;
+  cursor: pointer; appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(232,234,237,0.3)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ui-select:focus { border-color: rgba(255,191,0,0.5); box-shadow: 0 0 0 3px rgba(255,191,0,0.08); }
+.ui-select option { background: #1e2028; }
+.inline-select {
+  font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600;
+  background: var(--blue-dim); border: 1px solid rgba(255,191,0,0.22);
+  border-radius: 7px; padding: 3px 18px 3px 8px; color: var(--blue);
+  outline: none; cursor: pointer; appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23FFBF00' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 5px center;
+}
+.inline-select option { background: #1e2028; color: var(--text); }
+
+/* ── COLOR PICKERS ── */
+input[type=color] {
+  background: transparent; border: 1.5px solid var(--bdr-lit); border-radius: 9px;
+  padding: 3px; cursor: pointer; flex-shrink: 0;
+  height: 38px; width: 48px; transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type=color]:hover { border-color: var(--bdr-hot); box-shadow: 0 0 10px rgba(255,191,0,0.2); }
+.color-main-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+.wcolor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.wcolor-item { display:flex; flex-direction:column; gap:4px; }
+.wcolor-item input[type=color] { width:100%; height:32px; border-radius:7px; }
+
+/* ── PRESETS ── */
+.presets-grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 5px; margin-bottom: 12px; }
+.preset-dot {
+  aspect-ratio:1; border-radius:50%;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform 0.15s cubic-bezier(.34,1.56,.64,1), box-shadow 0.15s;
+}
+.preset-dot::after {
+  content:''; position:absolute; inset:0; z-index:10; border-radius:50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 55%);
+  pointer-events:none;
+}
+.preset-dot:hover { transform: scale(1.22); }
+.preset-dot.sel {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.7), 0 0 0 3px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.5);
+  transform: scale(1.12);
+}
+
+/* ── SLIDERS ── */
+.slider-row { display:flex; align-items:center; gap:10px; }
+.slider-row input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  border-radius: 4px; outline: none; cursor: pointer;
+}
+.slider-row input[type=range]::-webkit-slider-runnable-track {
+  height: 3px; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 4px;
+}
+.slider-row input[type=range]::-moz-range-track {
+  height: 3px; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 4px;
+}
+.slider-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+  background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,191,0,0.4);
+  cursor: pointer; margin-top: -6px; transition: box-shadow 0.15s, transform 0.1s;
+}
+.slider-row input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.18); box-shadow: 0 2px 10px rgba(255,191,0,0.5), 0 0 0 3px rgba(255,191,0,0.3);
+}
+.slider-row input[type=range]::-moz-range-thumb {
+  width:15px; height:15px; border-radius:50%; background:white; border:none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.slider-val {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color: var(--blue); width:30px; text-align:right; flex-shrink:0; font-weight:500;
+}
+
+/* ── ITEM CARDS (items tab) ── */
+.item-cards-list { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.item-card {
+  background: var(--surf2); border: 1px solid var(--bdr);
+  border-radius: var(--r2); padding: 9px 11px;
+  display: flex; align-items: center; gap: 10px;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  cursor: default;
+}
+.item-card:hover { border-color: var(--bdr-lit); background: rgba(255,191,0,0.03); }
+.item-card.enabled { border-color: rgba(255,191,0,0.28); background: rgba(255,191,0,0.05); }
+.item-card.enabled:hover { border-color: var(--bdr-hot); box-shadow: 0 2px 12px rgba(255,191,0,0.10); }
+.ic-toggle { flex-shrink:0; cursor:pointer; }
+.ic-toggle input { display:none; }
+.ic-toggle .cbox { width:15px; height:15px; }
+.ic-toggle input:checked + .cbox { background: var(--blue); border-color: transparent; box-shadow: 0 2px 8px rgba(255,191,0,0.4); }
+.ic-toggle input:checked + .cbox::after {
+  content:''; position:absolute; left:3.5px; top:1px;
+  width:4px; height:8px; border: 2px solid #0d0b08;
+  border-top:none; border-left:none; transform: rotate(42deg);
+}
+.ic-icon {
+  width: 32px; height: 32px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  border-radius: 8px; background: rgba(0,0,0,0.25);
+  overflow:hidden; position:relative;
+}
+.ic-icon img {
+  width: 26px; height: 26px;
+  image-rendering: pixelated;
+  object-fit: contain;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.item-card.enabled .ic-icon img { opacity: 1; }
+.ic-info { flex:1; min-width:0; }
+.ic-name { font-size:12px; font-weight:600; color:var(--text); }
+.ic-desc { font-size:9.5px; color:var(--text-mute); margin-top:1px; }
+.ic-select {
+  font-family:'DM Sans',sans-serif; font-size:10px; font-weight:500;
+  background: var(--surf3); border: 1px solid var(--bdr);
+  border-radius: 7px; padding: 4px 20px 4px 7px; color: var(--text-dim);
+  outline:none; cursor:pointer; appearance:none; -webkit-appearance:none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M1 1l3 3 3-3' stroke='rgba(240,235,224,0.35)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position: right 5px center;
+  max-width: 84px; flex-shrink:0;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+}
+.item-card.enabled .ic-select {
+  background-color: var(--blue-dim); border-color: rgba(255,191,0,0.30);
+  color: var(--blue);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23FFBF00' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.ic-select option { background:#1e2028; color:var(--text); }
+.ic-select:focus { outline:none; }
+.items-group-label {
+  font-size:9px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase;
+  color:var(--text-mute); padding: 12px 12px 4px; 
+}
+.items-select-row {
+  display:flex; gap:6px; padding: 6px 12px 2px; align-items:center;
+}
+.items-select-row .items-sel-btn {
+  font-size:10px; font-weight:600; color:var(--text-mute);
+  background:none; border:none; cursor:pointer; padding:2px 5px;
+  border-radius:5px; transition: color 0.15s, background 0.15s;
+}
+.items-select-row .items-sel-btn:hover { color:var(--blue); background:var(--blue-dim); }
+.inline-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.inline-row .field-lbl { margin:0; }
+
+/* ── CHECKBOXES (wood tab) ── */
+.check-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+.check-full { grid-column:1/-1; }
+.ui-check {
+  display:flex; align-items:center; gap:8px; cursor:pointer;
+  font-size:11.5px; color:var(--text); user-select:none;
+  background: var(--surf2); padding: 7px 10px;
+  border-radius: var(--r); border: 1px solid var(--bdr);
+  transition: border-color 0.18s, background 0.18s;
+}
+.ui-check:hover { border-color: var(--bdr-lit); background: rgba(255,191,0,0.04); }
+.ui-check input[type=checkbox] { display:none; }
+.cbox {
+  width: 15px; height: 15px; flex-shrink: 0;
+  border-radius: 4px; border: 1.5px solid rgba(232,234,237,0.2);
+  position: relative; background: rgba(0,0,0,0.3);
+  transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+.ui-check input:checked + .cbox { background: var(--blue); border-color: transparent; box-shadow: 0 2px 8px rgba(255,191,0,0.4); }
+.ui-check input:checked + .cbox::after {
+  content:''; position:absolute; left:3.5px; top:1px;
+  width:4px; height:8px; border: 2px solid #0d0b08;
+  border-top:none; border-left:none; transform: rotate(42deg);
+}
+
+/* ── PROGRESS ── */
+.progress-wrap { display:none; }
+.progress-wrap.open { display:block; }
+.progress-track { height: 3px; background: var(--surf3); border-radius: 4px; overflow: hidden; }
+.progress-fill {
+  height:100%; width:0%;
+  background: linear-gradient(90deg, var(--blue), var(--purple), var(--blue));
+  background-size: 200% 100%; animation: flow 1.8s linear infinite;
+  transition: width 0.12s; border-radius: 4px;
+}
+@keyframes flow { 0%{background-position:200%} 100%{background-position:-200%} }
+.progress-text { font-size:10px; color:var(--text-mute); margin-top:5px; text-align:center; font-family:'JetBrains Mono',monospace; }
+
+/* ── BUTTONS ── */
+.ui-btn {
+  font-family:'DM Sans',sans-serif; font-weight:700; font-size:13px;
+  padding:11px 18px; width:100%; border:none; border-radius: var(--r2);
+  cursor:pointer; text-align:center;
+  transition: transform 0.1s, box-shadow 0.2s, filter 0.2s;
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.ui-btn:active { transform:scale(0.975); }
+.btn-primary {
+  background: linear-gradient(135deg, #FFBF00 0%, #FF6A00 100%);
+  color: #0d0b08; box-shadow: 0 4px 20px rgba(255,150,0,0.35);
+}
+.btn-primary:hover { filter:brightness(1.08); box-shadow: 0 6px 28px rgba(255,150,0,0.50); transform:translateY(-1px); }
+
+.btn-zip {
+  font-family:'DM Sans',sans-serif; font-weight:700; font-size:12px;
+  padding:8px 14px; border:1.5px solid rgba(255,191,0,0.40);
+  border-radius: var(--r); cursor:pointer; text-align:center;
+  background: rgba(255,191,0,0.08); color: var(--blue);
+  transition: background 0.18s, border-color 0.18s, transform 0.1s, box-shadow 0.2s;
+  display:flex; align-items:center; gap:7px; white-space:nowrap;
+  flex-shrink:0;
+}
+.btn-zip:hover { background: rgba(255,191,0,0.16); border-color: var(--bdr-hot); box-shadow: 0 0 16px rgba(255,191,0,0.2); }
+.btn-zip:active { transform:scale(0.975); }
+.btn-zip:disabled { opacity:0.35; cursor:not-allowed; }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; position:relative; z-index:1; }
+.main-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 22px; border-bottom:1px solid var(--bdr);
+  background: rgba(13,14,17,0.90); backdrop-filter:blur(12px); gap:16px;
+}
+.header-left { display:flex; align-items:center; gap:10px; }
+.header-title { font-size:13px; font-weight:600; color:var(--text); }
+.header-count {
+  font-size:11px; font-weight:600; background: var(--blue-dim);
+  border: 1px solid rgba(255,191,0,0.22); color: var(--blue);
+  padding:3px 10px; border-radius:20px; display:none;
+}
+.header-count.show { display:inline-flex; }
+.status-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11px; color:var(--text-mute);
+  background: var(--surf2); border:1px solid var(--bdr);
+  padding:5px 12px; border-radius:20px; font-family:'JetBrains Mono',monospace;
+}
+.sdot { width:6px; height:6px; border-radius:50%; background:var(--text-mute); flex-shrink:0; transition: background 0.3s; }
+.sdot.ready { background:var(--green); box-shadow:0 0 8px rgba(52,211,153,0.4); }
+.sdot.busy  { background:var(--blue); box-shadow:0 0 8px rgba(255,191,0,0.5); animation:blink 0.9s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── PREVIEW AREA ── */
+.preview-area {
+  flex:1; overflow-y:auto; padding:24px 26px;
+  background:
+    radial-gradient(ellipse at 70% 5%, rgba(255,191,0,0.04) 0%, transparent 45%),
+    radial-gradient(ellipse at 15% 90%, rgba(255,106,0,0.03) 0%, transparent 45%),
+    var(--bg);
+}
+.preview-area::-webkit-scrollbar { width:4px; }
+.preview-area::-webkit-scrollbar-thumb { background: rgba(255,191,0,0.2); border-radius:4px; }
+
+.empty-state {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; text-align:center;
+  padding:80px 40px; gap:14px; min-height:70vh;
+}
+.empty-glyph {
+  width:76px; height:76px; border-radius:24px;
+  background: linear-gradient(135deg, rgba(255,191,0,0.10), rgba(255,106,0,0.08));
+  border:1px solid rgba(255,191,0,0.20);
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; color: var(--blue);
+  box-shadow: 0 8px 40px rgba(255,191,0,0.08);
+}
+.empty-state h3 { font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.4px; }
+.empty-state p { font-size:12.5px; color:var(--text-dim); line-height:1.7; max-width:300px; }
+
+.cat-section { margin-bottom:28px; }
+.cat-label {
+  font-size:9px; font-weight:700; letter-spacing:1.8px; text-transform:uppercase;
+  color:var(--text-mute); margin-bottom:12px;
+  display:flex; align-items:center; gap:10px;
+}
+.cat-label::after { content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--bdr), transparent); }
+.cards-row { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+
+/* ── TEXTURE CARDS — FIXED HEIGHT ── */
+.tex-card {
+  background: var(--surf2);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
+  height: var(--card-h);  /* Fixed! No more height weirdness */
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.tex-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,191,0,0.15), transparent);
+  pointer-events:none;
+}
+.tex-card:hover {
+  border-color: rgba(255,191,0,0.35);
+  box-shadow: 0 4px 24px rgba(255,191,0,0.10);
+  transform: translateY(-2px);
+}
+.card-img-area {
+  width: 100%; flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px 10px 8px;
+}
+.tex-card canvas {
+  image-rendering: pixelated;
+  width: 56px; height: 56px;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.6));
+  transition: filter 0.2s, transform 0.2s;
+  border-radius: 3px; flex-shrink: 0;
+}
+.tex-card canvas.wide { width: 80px; height: auto; max-height: 52px; }
+.card-meta {
+  width: 100%; padding: 6px 8px 9px;
+  text-align: center; flex-shrink: 0;
+  border-top: 1px solid var(--bdr);
+  background: rgba(0,0,0,0.12);
+}
+.tex-name {
+  font-size: 10px; font-weight: 600; color: var(--text);
+  text-transform: capitalize; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.tex-path {
+  font-size: 8px; color: var(--text-mute); font-family: 'JetBrains Mono', monospace;
+  text-align: center; line-height: 1.3; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+}
+
+/* Download overlay */
+.dl-overlay {
+  position:absolute; inset:0; z-index:10;
+  background: linear-gradient(145deg, rgba(255,191,0,0.93) 0%, rgba(255,106,0,0.93) 100%);
+  border-radius: var(--r2);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:5px; opacity:0; transition: opacity 0.18s; pointer-events:none;
+  backdrop-filter:blur(3px);
+}
+.tex-card:hover .dl-overlay { opacity:1; pointer-events:all; }
+.dl-overlay .dl-icon { font-size:18px; color: #0d0b08; }
+.dl-overlay .dl-label { font-size:10px; font-weight:700; color: #0d0b08; letter-spacing:0.8px; text-transform:uppercase; }
+.dl-overlay .dl-fname {
+  font-family:'JetBrains Mono',monospace; font-size:7.5px; color: rgba(13,11,8,0.6);
+  text-align:center; padding:0 6px; line-height:1.4;
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* ── UPLOAD ZONE ── */
+.upload-zone {
+  border: 1.5px dashed rgba(255,191,0,0.20); border-radius: var(--r2);
+  padding: 24px 16px; text-align:center; cursor:pointer;
+  font-size:12px; font-weight:500; color:var(--text-dim);
+  transition:all 0.22s; display:block; background: rgba(255,191,0,0.02);
+}
+.upload-zone:hover { border-color: rgba(255,191,0,0.45); color: var(--blue); background: rgba(255,191,0,0.04); }
+.upload-zone input { display:none; }
+.upload-icon { font-size:22px; margin-bottom:7px; color: var(--blue); opacity:0.7; }
+.upload-ok { font-size:10.5px; color:var(--green); margin-top:7px; font-weight:600; display:none; }
+.upload-ok.show { display:block; }
+
+/* ── WOOD TOGGLE ── */
+.wood-toggle-card {
+  background: rgba(255,191,0,0.05); border: 1px solid rgba(255,191,0,0.15);
+  border-radius: var(--r2); padding:12px 14px; margin-bottom:14px; cursor:pointer;
+  transition: border-color 0.2s, background 0.2s; display:flex; align-items:center; gap:10px;
+}
+.wood-toggle-card:hover { border-color: var(--bdr-hot); }
+.wood-toggle-card input[type=checkbox] { display:none; }
+.wood-toggle-card .cbox {
+  width:16px; height:16px; border-radius:5px;
+  border: 1.5px solid rgba(232,234,237,0.2);
+  position:relative; background:rgba(0,0,0,0.3); flex-shrink:0;
+}
+.wood-toggle-card input:checked + .cbox { background: var(--blue); border-color:transparent; box-shadow: 0 2px 8px rgba(255,191,0,0.4); }
+.wood-toggle-card input:checked + .cbox::after {
+  content:''; position:absolute; left:3.5px; top:1px;
+  width:5px; height:9px; border:2px solid #0d0b08; border-top:none; border-left:none; transform:rotate(42deg);
+}
+.wood-toggle-label { font-size:12px; font-weight:700; color:var(--text); }
+.wood-toggle-sub   { font-size:10px; color:var(--text-dim); margin-top:1px; }
+.inline-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.inline-row .field-lbl { margin:0; }
+</style>
+</head>
+<body>
+
+<div class="rail">
+  <div class="rail-logo"><i class="fa-solid fa-flask"></i></div>
+  <button class="rail-btn active" data-tab="color" onclick="switchTab(this)">
+    <i class="fa-solid fa-palette"></i><span class="rtooltip">Colors</span>
+  </button>
+  <button class="rail-btn" data-tab="items" onclick="switchTab(this)">
+    <i class="fa-solid fa-shield-halved"></i><span class="rtooltip">Items</span>
+  </button>
+  <button class="rail-btn" data-tab="wood" onclick="switchTab(this)">
+    <i class="fa-solid fa-tree"></i><span class="rtooltip">Wood</span>
+  </button>
+  <button class="rail-btn" data-tab="import" onclick="switchTab(this)">
+    <i class="fa-solid fa-folder-open"></i><span class="rtooltip">Import</span>
+  </button>
+  <div class="rail-spacer"></div>
+  <button class="rail-btn" onclick="generate()">
+    <i class="fa-solid fa-bolt"></i><span class="rtooltip">Generate</span>
+  </button>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="panel-title" id="panelTitle">Color Settings</div>
+    <div class="panel-sub" id="panelSub">Palette, blend &amp; saturation</div>
+  </div>
+  <div class="sidebar-scroll">
+
+    <div class="tab-panel active" id="tab-color">
+      <div class="section">
+        <div class="field-lbl">Material Name</div>
+        <input class="ui-input" type="text" id="matName" value="Ruby" placeholder="e.g. Ruby, Titanium">
+      </div>
+      <div class="section">
+        <div class="sec-label">Quick Presets</div>
+        <div class="presets-grid" id="presets"></div>
+        <div class="field-lbl">Main Color</div>
+        <div class="color-main-row">
+          <input type="color" id="colorPicker" value="#cc2244">
+          <input type="text" class="ui-input" id="colorHex" value="#cc2244" maxlength="7" style="font-family:'JetBrains Mono',monospace;font-size:12px;">
+        </div>
+        <div class="field-lbl">Blend Strength</div>
+        <div class="slider-row">
+          <input type="range" id="blendStr" min="0" max="100" value="100">
+          <span class="slider-val" id="blendVal">100</span>
+        </div>
+        <div class="note">Luminance overlay preserves shading depth.</div>
+        <div class="field-lbl" style="margin-top:14px;">Saturation Boost</div>
+        <div class="slider-row">
+          <input type="range" id="satBoost" min="20" max="300" value="100">
+          <span class="slider-val" id="satVal">100</span>
+        </div>
+        <div class="note">&gt;100 makes pale hues more vivid.</div>
+        <div class="field-lbl" style="margin-top:14px;">Tool Handle Tint</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+          <input type="color" id="stickColor" value="#7a4e1a">
+          <input type="range" id="stickBlend" min="0" max="100" value="0" style="flex:1;">
+          <span class="slider-val" id="stickBlendVal">0</span>
+        </div>
+        <div class="note">Tints the wooden handle on tools.</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-items">
+      <div class="items-select-row">
+        <span style="font-size:10px;color:var(--text-mute);flex:1;">Toggle items &amp; pick base type</span>
+        <button class="items-sel-btn" onclick="setAllItems(true)">All</button>
+        <button class="items-sel-btn" onclick="setAllItems(false)">None</button>
+      </div>
+
+      <div class="items-group-label">Ingot &amp; Nugget</div>
+      <div class="item-cards-list" id="icl-ingot">
+
+        <div class="item-card enabled" id="icard-ingot">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="ingot" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="2,5 14,5 12,11 4,11"/><rect x="1" y="4" width="14" height="2" rx="1"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Ingot</div><div class="ic-desc">Metal bar item</div></div>
+          <select class="ic-select ttog-select" data-for="ingot" onchange="syncSelectBase(this,'ingotBase')">
+            <option value="iron">Iron</option><option value="copper">Copper</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-nugget">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="nugget" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="4.5"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Nugget</div><div class="ic-desc">Small metal piece</div></div>
+          <select class="ic-select ttog-select" data-for="nugget" onchange="syncSelectBase(this,'ingotBase')">
+            <option value="iron">Iron</option><option value="copper">Copper</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card" id="icard-dust">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="dust" onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="9" r="2"/><circle cx="10" cy="7" r="2"/><circle cx="8" cy="12" r="1.5"/><circle cx="4" cy="5" r="1"/><circle cx="12" cy="11" r="1.5"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Dust</div><div class="ic-desc">Powder form</div></div>
+        </div>
+
+      </div>
+
+      <div class="items-group-label">Raw &amp; Ore</div>
+      <div class="item-cards-list">
+
+        <div class="item-card enabled" id="icard-raw">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="raw" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="8,2 13,6 11,13 5,13 3,6"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Raw</div><div class="ic-desc">Unrefined ore drop</div></div>
+          <select class="ic-select ttog-select" data-for="raw" onchange="syncSelectBase(this,'rawBase')">
+            <option value="iron">Iron</option><option value="copper">Copper</option><option value="gold">Gold</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-rawblock">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="rawblock" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3" width="12" height="10" rx="2"/><polygon points="8,1 14,3 14,13 8,15 2,13 2,3" fill-rule="evenodd"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Raw Block</div><div class="ic-desc">Compressed raw storage</div></div>
+          <select class="ic-select ttog-select" data-for="rawblock" onchange="syncSelectBase(this,'rawBase')">
+            <option value="iron">Iron</option><option value="copper">Copper</option><option value="gold">Gold</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-ore">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="ore" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="14" height="14" rx="2"/><polygon points="6,5 10,5 12,8 10,11 6,11 4,8" style="fill:var(--bg2)"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Ore</div><div class="ic-desc">Stone ore block</div></div>
+          <select class="ic-select ttog-select" data-for="ore" onchange="syncSelectBase(this,'oreBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="copper">Copper</option><option value="gold">Gold</option>
+            <option value="coal">Coal</option><option value="emerald">Emerald</option>
+            <option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-deepslate_ore">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="deepslate_ore" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="14" height="14" rx="2" opacity="0.7"/><polygon points="6,5 10,5 12,8 10,11 6,11 4,8" style="fill:var(--bg2)"/><line x1="1" y1="8" x2="15" y2="8" stroke="var(--bg)" stroke-width="0.8"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Deepslate Ore</div><div class="ic-desc">Deep ore variant</div></div>
+          <select class="ic-select ttog-select" data-for="deepslate_ore" onchange="syncSelectBase(this,'oreBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="copper">Copper</option><option value="gold">Gold</option>
+            <option value="coal">Coal</option><option value="emerald">Emerald</option>
+            <option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="items-group-label">Gem &amp; Block</div>
+      <div class="item-cards-list">
+
+        <div class="item-card" id="icard-gem">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="gem" onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="8,2 13,6 10,14 6,14 3,6"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Gem</div><div class="ic-desc">Crystal/gem item</div></div>
+          <select class="ic-select ttog-select" data-for="gem" onchange="syncSelectBase(this,'gemBase')">
+            <option value="diamond">Diamond</option><option value="emerald">Emerald</option>
+            <option value="amethyst_shard">Amethyst</option><option value="quartz">Quartz</option>
+            <option value="prismarine_shard">Prismarine</option><option value="lapis_lazuli">Lapis</option>
+            <option value="coal">Coal</option>
+          </select>
+        </div>
+
+        <div class="item-card" id="icard-shard">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="shard" onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><polygon points="8,2 11,7 9,14 7,14 5,7"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Shard</div><div class="ic-desc">Crystal fragment</div></div>
+        </div>
+
+        <div class="item-card enabled" id="icard-block">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="block" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="12" height="12" rx="2"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Block</div><div class="ic-desc">Storage block</div></div>
+          <select class="ic-select ttog-select" data-for="block" onchange="syncSelectBase(this,'blockBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="copper">Copper</option><option value="gold">Gold</option>
+            <option value="coal">Coal</option><option value="emerald">Emerald</option>
+            <option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="items-group-label">Tools</div>
+      <div class="item-cards-list">
+
+        <div class="item-card enabled" id="icard-sword">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="sword" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="1" width="2" height="10" rx="1"/><rect x="4" y="9" width="8" height="1.5" rx="0.75"/><rect x="7" y="11" width="2" height="4" rx="1" opacity="0.5"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Sword</div><div class="ic-desc">Melee weapon</div></div>
+        </div>
+
+        <div class="item-card enabled" id="icard-pickaxe">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="pickaxe" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="6" width="2" height="9" rx="1" opacity="0.5"/><polygon points="2,3 14,3 12,7 8,7 4,7"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Pickaxe</div><div class="ic-desc">Mining tool</div></div>
+        </div>
+
+        <div class="item-card enabled" id="icard-axe">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="axe" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="7" width="2" height="8" rx="1" opacity="0.5"/><polygon points="4,2 12,2 12,8 8,8"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Axe</div><div class="ic-desc">Chopping tool</div></div>
+        </div>
+
+        <div class="item-card enabled" id="icard-shovel">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="shovel" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="1" width="2" height="9" rx="1"/><rect x="5" y="9" width="6" height="4" rx="1" opacity="0.5"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Shovel</div><div class="ic-desc">Digging tool</div></div>
+        </div>
+
+        <div class="item-card enabled" id="icard-hoe">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="hoe" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="7" width="2" height="8" rx="1" opacity="0.5"/><rect x="4" y="3" width="8" height="3" rx="1"/><rect x="4" y="3" width="2.5" height="5" rx="1"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Hoe</div><div class="ic-desc">Farming tool</div></div>
+        </div>
+
+      </div>
+
+      <div class="items-group-label">Armor</div>
+      <div class="item-cards-list" style="padding-bottom:14px;">
+
+        <div class="item-card enabled" id="icard-helmet">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="helmet" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M3 9 Q3 3 8 3 Q13 3 13 9 L13 11 L11 11 L11 9 L5 9 L5 11 L3 11 Z"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Helmet</div><div class="ic-desc">Head armor</div></div>
+          <select class="ic-select ttog-select" data-for="helmet" onchange="syncSelectBase(this,'armorBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-chestplate">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="chestplate" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 4 L5 2 L8 4 L11 2 L14 4 L14 12 L10 12 L10 8 L6 8 L6 12 L2 12 Z"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Chestplate</div><div class="ic-desc">Torso armor</div></div>
+          <select class="ic-select ttog-select" data-for="chestplate" onchange="syncSelectBase(this,'armorBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-leggings">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="leggings" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 2 L14 2 L14 5 L10 5 L10 14 L6 14 L6 5 L2 5 Z"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Leggings</div><div class="ic-desc">Leg armor</div></div>
+          <select class="ic-select ttog-select" data-for="leggings" onchange="syncSelectBase(this,'armorBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-boots">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="boots" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M4 2 L4 10 L3 10 L3 13 L12 13 L12 10 L8 10 L8 2 Z"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Boots</div><div class="ic-desc">Foot armor</div></div>
+          <select class="ic-select ttog-select" data-for="boots" onchange="syncSelectBase(this,'armorBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-armor_layer1">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="armor_layer1" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="4" width="14" height="8" rx="1" opacity="0.4"/><path d="M1 4 L8 2 L15 4 L15 7 L8 9 L1 7 Z"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Armor Layer 1</div><div class="ic-desc">Body armor texture</div></div>
+          <select class="ic-select ttog-select" data-for="armor_layer1" onchange="syncSelectBase(this,'armorBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+        <div class="item-card enabled" id="icard-armor_layer2">
+          <label class="ic-toggle"><input type="checkbox" class="ttog" value="armor_layer2" checked onchange="syncCard(this)"><div class="cbox"></div></label>
+          <div class="ic-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="4" width="14" height="8" rx="1" opacity="0.4"/><path d="M2 8 L14 8 L14 11 L8 13 L2 11 Z"/></svg></div>
+          <div class="ic-info"><div class="ic-name">Armor Layer 2</div><div class="ic-desc">Leg armor texture</div></div>
+          <select class="ic-select ttog-select" data-for="armor_layer2" onchange="syncSelectBase(this,'armorBase')">
+            <option value="diamond">Diamond</option><option value="iron">Iron</option>
+            <option value="gold">Gold</option><option value="netherite">Netherite</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Hidden sync inputs so generate() still reads these IDs -->
+      <input type="hidden" id="rawBase" value="iron">
+      <input type="hidden" id="oreBase" value="diamond">
+      <input type="hidden" id="blockBase" value="diamond">
+      <input type="hidden" id="gemBase" value="diamond">
+      <input type="hidden" id="ingotBase" value="iron">
+      <input type="hidden" id="armorBase" value="diamond">
+    </div>
+
+    <div class="tab-panel" id="tab-wood">
+      <div class="section">
+        <label class="wood-toggle-card">
+          <input type="checkbox" id="woodToggle">
+          <div class="cbox"></div>
+          <div>
+            <div class="wood-toggle-label"><i class="fa-solid fa-tree" style="margin-right:6px;opacity:0.6;"></i>Generate Wood Set</div>
+            <div class="wood-toggle-sub">Logs, planks, leaves &amp; sapling</div>
+          </div>
+        </label>
+        <div id="woodConfig" style="display:none;">
+          <div class="field-lbl">Base Wood Shape</div>
+          <select class="ui-select" id="woodBase" style="margin-bottom:12px;">
+            <option value="oak">Oak</option><option value="birch">Birch</option>
+            <option value="spruce">Spruce</option><option value="dark_oak">Dark Oak</option>
+            <option value="jungle">Jungle</option><option value="acacia">Acacia</option>
+            <option value="cherry">Cherry</option><option value="mangrove">Mangrove</option>
+          </select>
+          <div class="check-grid" style="margin-bottom:14px;">
+            <label class="ui-check"><input type="checkbox" class="ttog" value="log" checked><div class="cbox"></div>Log</label>
+            <label class="ui-check"><input type="checkbox" class="ttog" value="log_top" checked><div class="cbox"></div>Log Top</label>
+            <label class="ui-check"><input type="checkbox" class="ttog" value="planks" checked><div class="cbox"></div>Planks</label>
+            <label class="ui-check"><input type="checkbox" class="ttog" value="leaves" checked><div class="cbox"></div>Leaves</label>
+            <label class="ui-check"><input type="checkbox" class="ttog" value="sapling" checked><div class="cbox"></div>Sapling</label>
+          </div>
+          <div class="sec-label">Wood Colors</div>
+          <div class="note" style="margin-bottom:8px;">Log top auto-masks bark on outer border pixels.</div>
+          <div class="wcolor-grid">
+            <div class="wcolor-item"><span class="field-lbl" style="margin:0;">Bark</span><input type="color" id="wBark" value="#3d2a14"></div>
+            <div class="wcolor-item"><span class="field-lbl" style="margin:0;">Inner Wood</span><input type="color" id="wWood" value="#a06030"></div>
+            <div class="wcolor-item"><span class="field-lbl" style="margin:0;">Planks</span><input type="color" id="wPlanks" value="#c8843a"></div>
+            <div class="wcolor-item"><span class="field-lbl" style="margin:0;">Leaves</span><input type="color" id="wLeaves" value="#2a7a20"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-import">
+      <div class="section">
+        <div class="sec-label">Custom Overrides</div>
+        <div class="note" style="margin-bottom:12px;">
+          Upload PNGs to replace built-in bases. Names must match standard formats —
+          <code style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--blue);background:var(--blue-dim);padding:1px 5px;border-radius:4px;">iron_ingot.png</code>,
+          <code style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--blue);background:var(--blue-dim);padding:1px 5px;border-radius:4px;">oak_log.png</code>, etc.
+        </div>
+        <label class="upload-zone">
+          <input type="file" id="customFiles" multiple accept=".png">
+          <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <div>Click or drop PNG files</div>
+          <div class="upload-ok" id="uploadOk"></div>
+        </label>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="ui-btn btn-primary" onclick="generate()">
+      <i class="fa-solid fa-bolt"></i> Generate Textures
+    </button>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+      <div class="progress-text" id="progText">Starting…</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="main-header">
+    <div class="header-left">
+      <div class="header-title">Preview Board</div>
+      <div class="header-count" id="headerCount"></div>
+    </div>
+    <div class="status-pill">
+      <div class="sdot ready" id="sdot"></div>
+      <span id="statusMsg">Ready to generate</span>
+    </div>
+    <button class="btn-zip" id="zipBtn" onclick="downloadAll()" disabled title="Generate textures first">
+      <i class="fa-solid fa-file-zipper"></i> Download All
+    </button>
+  </div>
+  <div class="preview-area" id="previewArea">
+    <div class="empty-state">
+      <div class="empty-glyph"><i class="fa-solid fa-flask"></i></div>
+      <h3>No Textures Yet</h3>
+      <p>Pick a preset or enter a hex color, configure your options, and hit Generate — then hover any card to download it.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const PANEL_META = {
+  color:  { title:'Color Settings',    sub:'Palette, blend &amp; saturation' },
+  items:  { title:'Items &amp; Armor', sub:'Choose textures to generate' },
+  wood:   { title:'Wood Set',          sub:'Logs, planks, leaves &amp; sapling' },
+  import: { title:'Custom Overrides',  sub:'Upload your own base PNGs' },
+};
+function switchTab(btn) {
+  const tab = btn.dataset.tab;
+  document.querySelectorAll('.rail-btn[data-tab]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  const m = PANEL_META[tab];
+  document.getElementById('panelTitle').innerHTML = m.title;
+  document.getElementById('panelSub').innerHTML   = m.sub;
+}
+
+const AB = 'https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.21.1/assets/minecraft/textures/';
+const GEM_BASES = {
+  diamond: AB+'item/diamond.png', emerald: AB+'item/emerald.png',
+  amethyst_shard: AB+'item/amethyst_shard.png', quartz: AB+'item/quartz.png',
+  prismarine_shard: AB+'item/prismarine_shard.png', lapis_lazuli: AB+'item/lapis_lazuli.png',
+  coal: AB+'item/coal.png',
+};
+const BLOCK_BASES = {
+  diamond: AB+'block/diamond_block.png', iron: AB+'block/iron_block.png',
+  gold: AB+'block/gold_block.png', emerald: AB+'block/emerald_block.png',
+  netherite: AB+'block/netherite_block.png', coal: AB+'block/coal_block.png',
+  copper: AB+'block/copper_block.png',
+};
+const PRESETS = [
+  {n:'Ruby',c:'#cc2244'},{n:'Sapphire',c:'#1a4acc'},{n:'Amethyst',c:'#9b5fcf'},{n:'Topaz',c:'#e8a020'},
+  {n:'Emerald',c:'#10b45a'},{n:'Copper',c:'#b87333'},{n:'Gold',c:'#f5c400'},{n:'Silver',c:'#b8b8c4'},
+  {n:'Obsidian',c:'#4a1a7a'},{n:'Crimson',c:'#8b0010'},{n:'Rose Gold',c:'#d48070'},{n:'Aqua',c:'#00bcd4'},
+  {n:'Jade',c:'#00a878'},{n:'Titanium',c:'#7a8899'},{n:'Netherite',c:'#3a3040'},{n:'Void',c:'#120820'},
+];
+const TEX = {
+  ingot:AB+'item/iron_ingot.png', nugget:AB+'item/iron_nugget.png',
+  shard:AB+'item/amethyst_shard.png', dust:AB+'item/redstone.png',
+  sword:AB+'item/diamond_sword.png', pickaxe:AB+'item/diamond_pickaxe.png',
+  axe:AB+'item/diamond_axe.png', shovel:AB+'item/diamond_shovel.png', hoe:AB+'item/diamond_hoe.png',
+};
+
+function getDynamicUrl(key,rawBase,oreBase,armorBase,ingotBase) {
+  if (key==='ingot'&&ingotBase) return AB+`item/${ingotBase}_ingot.png`;
+  if (key==='nugget'&&(ingotBase==='iron'||ingotBase==='gold')) return AB+`item/${ingotBase}_nugget.png`;
+  if (key==='raw') { if(rawBase==='netherite') return AB+'item/netherite_scrap.png'; return AB+`item/raw_${rawBase}.png`; }
+  if (key==='rawblock') { if(rawBase==='netherite') return AB+'block/netherite_block.png'; return AB+`block/raw_${rawBase}_block.png`; }
+  if (key==='ore') { if(oreBase==='netherite') return AB+'block/ancient_debris_side.png'; return AB+`block/${oreBase}_ore.png`; }
+  if (key==='deepslate_ore') { if(oreBase==='netherite') return AB+'block/ancient_debris_top.png'; if(oreBase==='coal') return AB+'block/deepslate_coal_ore.png'; return AB+`block/deepslate_${oreBase}_ore.png`; }
+  if (key.startsWith('armor_layer')) { let b=armorBase==='gold'?'golden':armorBase; if(b==='emerald')b='diamond'; return AB+`models/armor/${b}_layer_${key==='armor_layer1'?'1':'2'}.png`; }
+  if (['helmet','chestplate','leggings','boots'].includes(key)) { let b=armorBase==='gold'?'golden':armorBase; if(b==='emerald')b='diamond'; return AB+`item/${b}_${key}.png`; }
+  return null;
+}
+function getWoodUrl(key,base) {
+  if(key==='log')     return AB+`block/${base}_log.png`;
+  if(key==='log_top') return AB+`block/${base}_log_top.png`;
+  if(key==='planks')  return AB+`block/${base}_planks.png`;
+  if(key==='leaves')  return base==='mangrove'?AB+'block/mangrove_leaves.png':AB+`block/${base}_leaves.png`;
+  if(key==='sapling') { if(base==='mangrove')return AB+'item/mangrove_propagule.png'; return AB+`block/${base}_sapling.png`; }
+  return null;
+}
+const ZIP_PATH = {
+  ingot:n=>`textures/item/${n}_ingot.png`, nugget:n=>`textures/item/${n}_nugget.png`,
+  gem:n=>`textures/item/${n}.png`, shard:n=>`textures/item/${n}_shard.png`,
+  block:n=>`textures/block/${n}_block.png`, raw:n=>`textures/item/raw_${n}.png`,
+  rawblock:n=>`textures/block/raw_${n}_block.png`, ore:n=>`textures/block/${n}_ore.png`,
+  deepslate_ore:n=>`textures/block/deepslate_${n}_ore.png`, dust:n=>`textures/item/${n}_dust.png`,
+  sword:n=>`textures/item/${n}_sword.png`, pickaxe:n=>`textures/item/${n}_pickaxe.png`,
+  axe:n=>`textures/item/${n}_axe.png`, shovel:n=>`textures/item/${n}_shovel.png`,
+  hoe:n=>`textures/item/${n}_hoe.png`, helmet:n=>`textures/item/${n}_helmet.png`,
+  chestplate:n=>`textures/item/${n}_chestplate.png`, leggings:n=>`textures/item/${n}_leggings.png`,
+  boots:n=>`textures/item/${n}_boots.png`, armor_layer1:n=>`textures/models/armor/${n}_layer_1.png`,
+  armor_layer2:n=>`textures/models/armor/${n}_layer_2.png`, log:n=>`textures/block/${n}_log.png`,
+  log_top:n=>`textures/block/${n}_log_top.png`, planks:n=>`textures/block/${n}_planks.png`,
+  leaves:n=>`textures/block/${n}_leaves.png`, sapling:n=>`textures/item/${n}_sapling.png`,
+};
+const CATS = [
+  {label:'Materials & Blocks', keys:['ingot','nugget','gem','shard','block','raw','rawblock','ore','deepslate_ore','dust']},
+  {label:'Tools & Armor',      keys:['sword','pickaxe','axe','shovel','hoe','helmet','chestplate','leggings','boots','armor_layer1','armor_layer2']},
+  {label:'Wood Set',           keys:['log','log_top','planks','leaves','sapling']},
+];
+const WOOD_KEYS = new Set(['log','log_top','planks','leaves','sapling']);
+const TOOL_KEYS = new Set(['sword','pickaxe','axe','shovel','hoe']);
+let generated={}, customMap={};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const pg = document.getElementById('presets');
+  PRESETS.forEach((p,i) => {
+    const d = document.createElement('div');
+    d.className='preset-dot'+(i===0?' sel':'');
+    d.title=p.n;
+    d.style.background=`radial-gradient(circle at 35% 35%, ${lighten(p.c,0.28)}, ${p.c})`;
+    d.onclick=()=>{ document.querySelectorAll('.preset-dot').forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); document.getElementById('colorPicker').value=p.c; document.getElementById('colorHex').value=p.c; document.getElementById('matName').value=p.n; };
+    pg.appendChild(d);
+  });
+  const cp=document.getElementById('colorPicker'), ch=document.getElementById('colorHex');
+  cp.oninput=()=>{ch.value=cp.value;};
+  ch.oninput=()=>{if(/^#[0-9a-fA-F]{6}$/.test(ch.value))cp.value=ch.value;};
+  [['blendStr','blendVal'],['satBoost','satVal'],['stickBlend','stickBlendVal']].forEach(([id,vid])=>{
+    const el=document.getElementById(id), vl=document.getElementById(vid);
+    if(el&&vl) el.oninput=()=>{vl.textContent=el.value;};
+  });
+  document.getElementById('woodToggle').onchange=e=>{document.getElementById('woodConfig').style.display=e.target.checked?'block':'none';};
+  document.getElementById('customFiles').onchange=loadCustom;
+
+  // Init card icons with real MC textures
+  initCardIcons();
+});
+
+const CARD_ICON_URLS = {
+  ingot:     v => AB+`item/${v}_ingot.png`,
+  nugget:    v => AB+`item/${v === 'gold' ? 'gold' : 'iron'}_nugget.png`,
+  dust:      ()=> AB+'item/redstone.png',
+  raw:       v => AB+`item/raw_${v}.png`,
+  rawblock:  v => AB+`block/raw_${v}_block.png`,
+  ore:       v => v==='netherite' ? AB+'block/ancient_debris_side.png' : AB+`block/${v}_ore.png`,
+  deepslate_ore: v => v==='netherite' ? AB+'block/ancient_debris_top.png' : AB+`block/deepslate_${v}_ore.png`,
+  gem:       v => ({ diamond:AB+'item/diamond.png', emerald:AB+'item/emerald.png', amethyst_shard:AB+'item/amethyst_shard.png', quartz:AB+'item/quartz.png', prismarine_shard:AB+'item/prismarine_shard.png', lapis_lazuli:AB+'item/lapis_lazuli.png', coal:AB+'item/coal.png' })[v] || AB+'item/diamond.png',
+  shard:     ()=> AB+'item/amethyst_shard.png',
+  block:     v => ({ diamond:AB+'block/diamond_block.png', iron:AB+'block/iron_block.png', copper:AB+'block/copper_block.png', gold:AB+'block/gold_block.png', coal:AB+'block/coal_block.png', emerald:AB+'block/emerald_block.png', netherite:AB+'block/netherite_block.png' })[v] || AB+'block/diamond_block.png',
+  sword:     ()=> AB+'item/diamond_sword.png',
+  pickaxe:   ()=> AB+'item/diamond_pickaxe.png',
+  axe:       ()=> AB+'item/diamond_axe.png',
+  shovel:    ()=> AB+'item/diamond_shovel.png',
+  hoe:       ()=> AB+'item/diamond_hoe.png',
+  helmet:    v => AB+`item/${v==='gold'?'golden':v}_helmet.png`,
+  chestplate:v => AB+`item/${v==='gold'?'golden':v}_chestplate.png`,
+  leggings:  v => AB+`item/${v==='gold'?'golden':v}_leggings.png`,
+  boots:     v => AB+`item/${v==='gold'?'golden':v}_boots.png`,
+  armor_layer1: ()=> AB+'models/armor/diamond_layer_1.png',
+  armor_layer2: ()=> AB+'models/armor/diamond_layer_2.png',
+};
+
+function getCardIconUrl(key) {
+  const sel = document.querySelector(`.ttog-select[data-for="${key}"]`);
+  const val = sel ? sel.value : 'iron';
+  const fn = CARD_ICON_URLS[key];
+  return fn ? fn(val) : null;
+}
+
+function setCardIcon(key) {
+  const card = document.getElementById('icard-' + key);
+  if (!card) return;
+  const iconEl = card.querySelector('.ic-icon');
+  if (!iconEl) return;
+  const url = getCardIconUrl(key);
+  if (!url) return;
+  iconEl.innerHTML = `<img src="${url}" crossorigin="anonymous" style="width:26px;height:26px;image-rendering:pixelated;object-fit:contain;" onerror="this.style.opacity='0.3'">`;
+}
+
+function initCardIcons() {
+  Object.keys(CARD_ICON_URLS).forEach(key => setCardIcon(key));
+}
+
+function lighten(hex,amount){ const [r,g,b]=hexRgb(hex); const mx=v=>Math.min(255,Math.round(v+(255-v)*amount)); return `#${mx(r).toString(16).padStart(2,'0')}${mx(g).toString(16).padStart(2,'0')}${mx(b).toString(16).padStart(2,'0')}`; }
+function hexRgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function rgbHsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0;const l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h/=6;}return[h,s,l];}
+function hue2rgb(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}
+function hslRgb(h,s,l){if(s===0){const v=Math.round(l*255);return[v,v,v];}const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;return[Math.round(hue2rgb(p,q,h+1/3)*255),Math.round(hue2rgb(p,q,h)*255),Math.round(hue2rgb(p,q,h-1/3)*255)];}
+function isStick(r,g,b,h,s,l){return h>=0.05&&h<=0.16&&s>=0.08&&s<=0.62&&l>=0.09&&l<=0.58;}
+function toCanvas(url){return new Promise((res,rej)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{const c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);res(c);};img.onerror=()=>rej(new Error('Load failed:'+url));img.src=url;});}
+function getAverageL(d,fn){let t=0,n=0;for(let i=0;i<d.length;i+=4){if(d[i+3]>0){const r=d[i],g=d[i+1],b=d[i+2];if(!fn||fn(r,g,b)){t+=rgbHsl(r,g,b)[2];n++;}}}return n>0?t/n:0.5;}
+function mapColor(r,g,b,tr,tg,tb,avgL,sat){const[tH,tS,tL]=rgbHsl(tr,tg,tb),[,,pL]=rgbHsl(r,g,b);const delta=pL-avgL;// Scale the deviation: bright side gets more room, dark side more depth
+const scale=delta>=0?(1-tL)/(avgL>0.99?1:1-avgL+0.01):(tL)/(avgL<0.01?1:avgL+0.01);const nL=Math.max(0,Math.min(1,tL+delta*scale*1.15));let effS=tS*(sat/100),st=1;if(nL<0.20)st=nL/0.20;if(nL>0.88)st=(1-nL)/0.12;return hslRgb(tH,Math.max(0,Math.min(1,effS*st)),nL);}
+function colorizeCanvas(src,hex,bp,sp){const[tr,tg,tb]=hexRgb(hex),bl=bp/100;const dst=document.createElement('canvas');dst.width=src.width;dst.height=src.height;const ctx=dst.getContext('2d');ctx.drawImage(src,0,0);const id=ctx.getImageData(0,0,dst.width,dst.height),d=id.data,avg=getAverageL(d);for(let i=0;i<d.length;i+=4){if(d[i+3]===0)continue;const[cr,cg,cb]=mapColor(d[i],d[i+1],d[i+2],tr,tg,tb,avg,sp);d[i]=Math.round(d[i]*(1-bl)+cr*bl);d[i+1]=Math.round(d[i+1]*(1-bl)+cg*bl);d[i+2]=Math.round(d[i+2]*(1-bl)+cb*bl);}ctx.putImageData(id,0,0);return dst;}
+function colorizeCanvasOre(src,hex,bp,sp){const[tr,tg,tb]=hexRgb(hex),bl=bp/100;const dst=document.createElement('canvas');dst.width=src.width;dst.height=src.height;const ctx=dst.getContext('2d');ctx.drawImage(src,0,0);const id=ctx.getImageData(0,0,dst.width,dst.height),d=id.data;const fn=(r,g,b)=>{const[h,s]=rgbHsl(r,g,b);return s>0.10||(h>0.4&&h<0.65&&s>0.03);};const avg=getAverageL(d,fn);for(let i=0;i<d.length;i+=4){if(d[i+3]===0||!fn(d[i],d[i+1],d[i+2]))continue;const[cr,cg,cb]=mapColor(d[i],d[i+1],d[i+2],tr,tg,tb,avg,sp);d[i]=Math.round(d[i]*(1-bl)+cr*bl);d[i+1]=Math.round(d[i+1]*(1-bl)+cg*bl);d[i+2]=Math.round(d[i+2]*(1-bl)+cb*bl);}ctx.putImageData(id,0,0);return dst;}
+function colorizeCanvasTool(src,hh,bp,sp,hs,sbp){const[hR,hG,hB]=hexRgb(hh),bl=bp/100,[sR,sG,sB]=hexRgb(hs),sb=sbp/100;const dst=document.createElement('canvas');dst.width=src.width;dst.height=src.height;const ctx=dst.getContext('2d');ctx.drawImage(src,0,0);const id=ctx.getImageData(0,0,dst.width,dst.height),d=id.data;const sf=(r,g,b)=>{const[h,s,l]=rgbHsl(r,g,b);return isStick(r,g,b,h,s,l);};const al=getAverageL(d,(...a)=>!sf(...a)),sl=getAverageL(d,sf);for(let i=0;i<d.length;i+=4){if(d[i+3]===0)continue;const r=d[i],g=d[i+1],b=d[i+2];if(sf(r,g,b)){const[cr,cg,cb]=mapColor(r,g,b,sR,sG,sB,sl,100);d[i]=Math.round(r*(1-sb)+cr*sb);d[i+1]=Math.round(g*(1-sb)+cg*sb);d[i+2]=Math.round(b*(1-sb)+cb*sb);}else{const[cr,cg,cb]=mapColor(r,g,b,hR,hG,hB,al,sp);d[i]=Math.round(r*(1-bl)+cr*bl);d[i+1]=Math.round(g*(1-bl)+cg*bl);d[i+2]=Math.round(b*(1-bl)+cb*bl);}}ctx.putImageData(id,0,0);return dst;}
+function colorizeCanvasWood(src,key,hb,hw,bp,sp){const[bR,bG,bB]=hexRgb(hb),[wR,wG,wB]=hexRgb(hw),bl=bp/100;const dst=document.createElement('canvas');dst.width=src.width;dst.height=src.height;const ctx=dst.getContext('2d');ctx.drawImage(src,0,0);const id=ctx.getImageData(0,0,dst.width,dst.height),d=id.data;const bs=Math.max(1,Math.floor(dst.width/16));let bt=0,bc=0,wt=0,wc=0;for(let y=0;y<dst.height;y++)for(let x=0;x<dst.width;x++){const i=(y*dst.width+x)*4;if(d[i+3]>0){const ib=key==='log'?true:(x<bs||x>=dst.width-bs||y<bs||y>=dst.height-bs);const l=rgbHsl(d[i],d[i+1],d[i+2])[2];if(ib){bt+=l;bc++;}else{wt+=l;wc++;}}}const ba=bc>0?bt/bc:0.5,wa=wc>0?wt/wc:0.5;for(let y=0;y<dst.height;y++)for(let x=0;x<dst.width;x++){const i=(y*dst.width+x)*4;if(d[i+3]===0)continue;const r=d[i],g=d[i+1],b=d[i+2];const ib=key==='log'?true:(x<bs||x>=dst.width-bs||y<bs||y>=dst.height-bs);const[cr,cg,cb]=ib?mapColor(r,g,b,bR,bG,bB,ba,sp):mapColor(r,g,b,wR,wG,wB,wa,sp);d[i]=Math.round(r*(1-bl)+cr*bl);d[i+1]=Math.round(g*(1-bl)+cg*bl);d[i+2]=Math.round(b*(1-bl)+cb*bl);}ctx.putImageData(id,0,0);return dst;}
+function colorizeCanvasSapling(src,hl,hs,bp,sp){const[lR,lG,lB]=hexRgb(hl),[sR,sG,sB]=hexRgb(hs),bl=bp/100;const dst=document.createElement('canvas');dst.width=src.width;dst.height=src.height;const ctx=dst.getContext('2d');ctx.drawImage(src,0,0);const id=ctx.getImageData(0,0,dst.width,dst.height),d=id.data;const lf=(r,g,b)=>{const[h,s]=rgbHsl(r,g,b);return h>=0.22&&h<=0.50&&s>0.12;};const al=getAverageL(d,lf),as=getAverageL(d,(r,g,b)=>!lf(r,g,b));for(let i=0;i<d.length;i+=4){if(d[i+3]===0)continue;const r=d[i],g=d[i+1],b=d[i+2];const[cr,cg,cb]=lf(r,g,b)?mapColor(r,g,b,lR,lG,lB,al,sp):mapColor(r,g,b,sR,sG,sB,as,sp);d[i]=Math.round(r*(1-bl)+cr*bl);d[i+1]=Math.round(g*(1-bl)+cg*bl);d[i+2]=Math.round(b*(1-bl)+cb*bl);}ctx.putImageData(id,0,0);return dst;}
+
+async function loadCustom(e){customMap={};for(const f of e.target.files){const url=URL.createObjectURL(f);try{customMap[f.name]=await toCanvas(url);}catch{}URL.revokeObjectURL(url);}const n=Object.keys(customMap).length;const ok=document.getElementById('uploadOk');ok.textContent=n>0?`✓ ${n} file${n!==1?'s':''} loaded`:'';ok.className='upload-ok'+(n>0?' show':'');}
+function findCustom(key,wb,gb,bb,rb,ob,ab){let aB=ab==='gold'?'golden':ab;if(aB==='emerald')aB='diamond';const c={ingot:['iron_ingot.png','gold_ingot.png'],nugget:['iron_nugget.png'],gem:[`${gb}.png`,'diamond.png','emerald.png','gem.png'],shard:['amethyst_shard.png','shard.png'],block:[`${bb}_block.png`,'diamond_block.png','iron_block.png'],raw:[rb==='netherite'?'netherite_scrap.png':`raw_${rb}.png`],rawblock:[rb==='netherite'?'netherite_block.png':`raw_${rb}_block.png`],ore:[ob==='netherite'?'ancient_debris_side.png':`${ob}_ore.png`],deepslate_ore:[ob==='netherite'?'ancient_debris_top.png':`deepslate_${ob}_ore.png`],dust:['redstone.png','dust.png'],sword:['diamond_sword.png','iron_sword.png'],pickaxe:['diamond_pickaxe.png','iron_pickaxe.png'],axe:['diamond_axe.png','iron_axe.png'],shovel:['diamond_shovel.png','iron_shovel.png'],hoe:['diamond_hoe.png','iron_hoe.png'],helmet:[`${aB}_helmet.png`,'diamond_helmet.png'],chestplate:[`${aB}_chestplate.png`,'diamond_chestplate.png'],leggings:[`${aB}_leggings.png`,'diamond_leggings.png'],boots:[`${aB}_boots.png`,'diamond_boots.png'],armor_layer1:[`${aB}_layer_1.png`,'diamond_layer_1.png'],armor_layer2:[`${aB}_layer_2.png`,'diamond_layer_2.png'],log:[`${wb}_log.png`,'oak_log.png'],log_top:[`${wb}_log_top.png`,'oak_log_top.png'],planks:[`${wb}_planks.png`,'oak_planks.png'],leaves:[`${wb}_leaves.png`,'oak_leaves.png'],sapling:[`${wb}_sapling.png`,'oak_sapling.png']};return(c[key]||[]).find(fn=>customMap[fn])||null;}
+
+function syncCard(checkbox) {
+  const card = document.getElementById('icard-' + checkbox.value);
+  if (card) card.classList.toggle('enabled', checkbox.checked);
+}
+function syncSelectBase(sel, hiddenId) {
+  const hidden = document.getElementById(hiddenId);
+  if (!hidden) return;
+  hidden.value = sel.value;
+  // Sync other selects pointing to same hidden input
+  document.querySelectorAll(`.ttog-select`).forEach(s => {
+    if (s !== sel) {
+      const fn = s.getAttribute('onchange');
+      if (fn && fn.includes("'" + hiddenId + "'")) s.value = sel.value;
+    }
+  });
+  // Refresh icon for this card
+  const key = sel.getAttribute('data-for');
+  if (key) setCardIcon(key);
+  // Also refresh sibling cards that share the same hidden base (e.g. ore + deepslate_ore)
+  document.querySelectorAll(`.ttog-select`).forEach(s => {
+    if (s !== sel) {
+      const fn = s.getAttribute('onchange');
+      if (fn && fn.includes("'" + hiddenId + "'")) setCardIcon(s.getAttribute('data-for'));
+    }
+  });
+}
+function setAllItems(on) {
+  document.querySelectorAll('.ttog').forEach(cb => {
+    cb.checked = on;
+    syncCard(cb);
+  });
+}
+async function generate(){
+  const rawName   = document.getElementById('matName').value.trim();
+  const matName   = rawName.toLowerCase().replace(/\s+/g,'_')||'custom';
+  const mainColor = document.getElementById('colorPicker').value;
+  const blend     = parseInt(document.getElementById('blendStr').value);
+  const satBoost  = parseInt(document.getElementById('satBoost').value);
+  const stickColor= document.getElementById('stickColor').value;
+  const stickBlend= parseInt(document.getElementById('stickBlend').value);
+  const rawBase   = document.getElementById('rawBase').value;
+  const oreBase   = document.getElementById('oreBase').value;
+  const armorBase = document.getElementById('armorBase').value;
+  const gemBase   = document.getElementById('gemBase').value;
+  const blockBase = document.getElementById('blockBase').value;
+  const ingotBase = document.getElementById('ingotBase').value;
+  const doWood    = document.getElementById('woodToggle').checked;
+  const woodBase  = document.getElementById('woodBase').value;
+  const wBark     = document.getElementById('wBark').value;
+  const wWood     = document.getElementById('wWood').value;
+  const wPlanks   = document.getElementById('wPlanks').value;
+  const wLeaves   = document.getElementById('wLeaves').value;
+
+  const checked = new Set(Array.from(document.querySelectorAll('.ttog:checked')).map(c=>c.value));
+  const tasks = Object.keys(ZIP_PATH).filter(k=>{if(!checked.has(k))return false;if(WOOD_KEYS.has(k)&&!doWood)return false;return true;});
+  if(!tasks.length)return alert('Select at least one texture.');
+
+  generated={};
+  const area=document.getElementById('previewArea'); area.innerHTML='';
+  setStatus('Generating…','busy');
+  document.getElementById('progressWrap').classList.add('open');
+  document.getElementById('headerCount').classList.remove('show');
+  document.getElementById('zipBtn').disabled = true;
+  setProgress(0,'Starting…');
+
+  const catRows={};
+  CATS.forEach(cat=>{
+    if(!cat.keys.some(k=>tasks.includes(k)))return;
+    const sec=document.createElement('div'); sec.className='cat-section';
+    sec.innerHTML=`<div class="cat-label">${cat.label}</div>`;
+    const row=document.createElement('div'); row.className='cards-row';
+    sec.appendChild(row); area.appendChild(sec);
+    cat.keys.forEach(k=>{catRows[k]=row;});
+  });
+
+  let done=0,skipped=[];
+  for(const key of tasks){
+    setProgress(Math.round(done/tasks.length*100),`Processing ${key}…`);
+    try{
+      let src=null;
+      const cf=findCustom(key,woodBase,gemBase,blockBase,rawBase,oreBase,armorBase);
+      if(cf)src=customMap[cf];
+      else if(WOOD_KEYS.has(key))src=await toCanvas(getWoodUrl(key,woodBase));
+      else if(key==='gem')src=await toCanvas(GEM_BASES[gemBase]||GEM_BASES.diamond);
+      else if(key==='block')src=await toCanvas(BLOCK_BASES[blockBase]||BLOCK_BASES.diamond);
+      else{let url=getDynamicUrl(key,rawBase,oreBase,armorBase,ingotBase);if(!url)url=TEX[key];if(!url){skipped.push(key);done++;continue;}src=await toCanvas(url);}
+
+      let result;
+      if(TOOL_KEYS.has(key))result=colorizeCanvasTool(src,mainColor,blend,satBoost,stickColor,stickBlend);
+      else if(key==='log'||key==='log_top')result=colorizeCanvasWood(src,key,wBark,wWood,blend,satBoost);
+      else if(key==='planks')result=colorizeCanvas(src,wPlanks,blend,satBoost);
+      else if(key==='leaves')result=colorizeCanvas(src,wLeaves,blend,satBoost);
+      else if(key==='sapling')result=colorizeCanvasSapling(src,wLeaves,wBark,blend,satBoost);
+      else if(key==='ore'||key==='deepslate_ore')result=(oreBase==='coal')?colorizeCanvas(src,mainColor,blend,satBoost):colorizeCanvasOre(src,mainColor,blend,satBoost);
+      else result=colorizeCanvas(src,mainColor,blend,satBoost);
+
+      generated[key]=result;
+
+      const fileName = ZIP_PATH[key](matName).split('/').pop();
+      const filePath = ZIP_PATH[key](matName);
+
+      const card = document.createElement('div');
+      card.className = 'tex-card';
+      card.title = `Click to download ${fileName}`;
+
+      const imgArea = document.createElement('div');
+      imgArea.className = 'card-img-area';
+
+      const cv = document.createElement('canvas');
+      cv.width = result.width; cv.height = result.height;
+      cv.getContext('2d').drawImage(result,0,0);
+      if(result.width > result.height) cv.className = 'wide';
+      imgArea.appendChild(cv);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'dl-overlay';
+      overlay.innerHTML = `<div class="dl-icon"><i class="fa-solid fa-download"></i></div><div class="dl-label">Download</div><div class="dl-fname">${fileName}</div>`;
+
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+      meta.innerHTML = `<div class="tex-name">${key.replace(/_/g,' ')}</div><div class="tex-path">${filePath}</div>`;
+
+      card.appendChild(overlay);
+      card.appendChild(imgArea);
+      card.appendChild(meta);
+
+      card.onclick = ()=>downloadSingle(key,matName);
+      catRows[key].appendChild(card);
+    }catch(err){console.warn('Skipped:',key,err.message);skipped.push(key);}
+    done++;
+  }
+
+  setProgress(100,'Complete!');
+  const ct=Object.keys(generated).length;
+  const skipNote=skipped.length?` · ${skipped.length} skipped`:'';
+  setStatus(`${ct} textures generated${skipNote}`,'ready');
+  const hc=document.getElementById('headerCount');
+  hc.textContent=`${ct} textures`;
+  hc.classList.add('show');
+  if(ct>0) document.getElementById('zipBtn').disabled = false;
+}
+
+async function downloadAll() {
+  if (!Object.keys(generated).length) return alert('Generate textures first.');
+  const matName = (document.getElementById('matName').value.trim().toLowerCase().replace(/\s+/g,'_')) || 'custom';
+  const zipBtn = document.getElementById('zipBtn');
+  zipBtn.disabled = true;
+  zipBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Zipping…';
+  try {
+    const zip = new JSZip();
+    for (const [key, canvas] of Object.entries(generated)) {
+      const path = ZIP_PATH[key](matName);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      zip.file(path, blob);
+    }
+    const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(content);
+    a.download = `${matName}_textures.zip`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 6000);
+  } finally {
+    zipBtn.disabled = false;
+    zipBtn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> Download All';
+  }
+}
+
+function downloadSingle(key,matName){
+  const canvas=generated[key]; if(!canvas)return;
+  canvas.toBlob(blob=>{
+    const fname=ZIP_PATH[key](matName).split('/').pop();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=fname; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  },'image/png');
+}
+function setProgress(pct,msg){document.getElementById('progFill').style.width=pct+'%';document.getElementById('progText').textContent=msg;}
+function setStatus(msg,state){document.getElementById('statusMsg').textContent=msg;const d=document.getElementById('sdot');d.className='sdot'+(state?' '+state:'');}
+</script>
+</body>
+</html>

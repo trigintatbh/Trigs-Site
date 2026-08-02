@@ -1,197 +1,295 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #09090c;
-  --color-background-2: #070709;
-  --color-card: #27272e;
-  --color-border: #1b1b20;
-  --color-primary: #262626;
-  --color-secondary-text: #c0c0c0;
+  --color-background:   #000000;
+  --color-background-2: #000000;
+  --color-card:         #0a0a0a;
+  --color-border:       #1a1a1a;
+  --color-primary:      #0a0a0a;
+  --color-secondary-text: #8a8a92;
+  --color-accent:       #5500ff;
+  --color-accent-2:     #7a33ff;
+  --color-accent-glow:  #5500ff;
 }
 
 @font-face {
-  font-family: 'Inter';
+  font-family: 'Sora';
   font-style: normal;
-  font-weight: 600;
+  font-weight: 100 800;
   font-display: swap;
-  src: url(/src/assets/Inter.ttf);
+  src: url(/src/assets/Sora.ttf);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─── Body & Background ────────────────────────────────────────────────────── */
 body {
-  --rgb: 255 255 255;
-  --opacity: .05;
-  --size: 6px 6px;
-
-  background-image:
-    linear-gradient(
-      -45deg,
-      rgb(var(--rgb)/var(--opacity)) 25%,
-      transparent 25%,
-      transparent 50%,
-      rgb(var(--rgb)/var(--opacity)) 50%,
-      rgb(var(--rgb)/var(--opacity)) 75%,
-      transparent 75%,
-      transparent 100%
-    ),
-    linear-gradient(180deg, var(--color-background-2) 0%, var(--color-background) 100%);
-
-  background-size: var(--size);
-  background-repeat: repeat;
-  background-attachment: fixed;
-  font-family: 'Inter';
-  font-weight: 600;
+  background: #000000;
+  font-family: 'Sora', sans-serif;
+  font-weight: 400;
 }
 
 #root {
   @apply min-h-screen;
 }
 
-.header,
-.footer {
-  @apply flex w-full justify-between py-4 px-5 border-b-2 select-none;
-}
-
-.header {
-  @apply border-none;
-}
-
-.footer {
-  @apply border-b-0 border-t-2 flex-col items-center justify-center gap-4 py-12 mt-12;
-}
-
-/* --- New Liquid Glass Effect Class --- */
+/* ─── Liquid Glass ─────────────────────────────────────────────────────────── */
 .liquid-glass {
-  background: rgba(80, 80, 110, 0.15); /* Semi-transparent background with a slight cool tint */
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px); /* For Safari compatibility */
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  /* Inner shadows create the "liquid" 3D look */
-  box-shadow: 
-    inset 0 2px 3px rgba(255, 255, 255, 0.1), 
-    inset 0 -2px 3px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
-/* --- Refactored Header Styles --- */
-.header__logo {
-  @apply flex items-center gap-2.5 rounded-lg;
-  padding: 0.3rem 1rem 0.3rem 0.3rem;
+/* ─── Page container (left-oriented) ───────────────────────────────────────── */
+.page-container {
+  @apply w-full max-w-3xl px-6 md:px-12 lg:px-20;
 }
 
-.header__nav {
-  @apply flex items-center gap-8 rounded-lg;
-  padding: 0.9rem 1rem;
+.wide-container {
+  @apply w-full px-6 md:px-12 lg:px-20;
 }
 
-.header__logo--image {
-  @apply rounded-lg w-11 h-11;
-}
-
-.header__logo--text {
-  @apply font-bold;
-}
-
+/* ─── Main ─────────────────────────────────────────────────────────────────── */
 .main {
-  @apply flex flex-col grow-1;
+  @apply flex flex-col grow;
 }
 
+/* ─── Hero ─────────────────────────────────────────────────────────────────── */
+.hero {
+  @apply flex flex-col items-start gap-6 pt-24 pb-16 text-left;
+}
+
+.hero--name {
+  background: linear-gradient(135deg, #c9a3ff 0%, #9a5bff 45%, #5500ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+  font-weight: 900;
+}
+
+.hero--grade {
+  font-weight: 900;
+}
+
+/* ─── Section eyebrow ──────────────────────────────────────────────────────── */
+.section-eyebrow {
+  @apply text-xs uppercase font-semibold;
+  color: var(--color-accent-2);
+  letter-spacing: 0.14em;
+}
+
+/* ─── About (fat 'ol about me) ─────────────────────────────────────────────── */
+#about {
+  scroll-margin-top: 90px;
+}
+
+.about {
+  @apply flex flex-col gap-14 py-20;
+}
+
+.about--block {
+  @apply flex flex-col md:flex-row items-start gap-8;
+}
+
+.about--block.reverse {
+  @apply md:flex-row-reverse;
+}
+
+.about--image {
+  @apply w-40 h-40 md:w-48 md:h-48 rounded-2xl object-cover shrink-0;
+}
+
+.about--text {
+  @apply flex flex-col gap-3 text-left max-w-3xl relative;
+  color: var(--color-secondary-text);
+  line-height: 1.7;
+  background: var(--color-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.75rem;
+}
+
+@media (min-width: 768px) {
+  /* Speech bubble tail.
+     ::before = filled triangle (dynamic fill via var(--color-card))
+     ::after  = inline SVG that strokes ONLY the two slanted edges with a
+                true 1px border (rgba(255,255,255,0.08)). The base is left
+                open so the card's own 1px border continues across it,
+                making the tail read as part of the bubble, not a separate
+                piece. */
+  .about--text::before {
+    content: '';
+    position: absolute;
+    top: 32px;
+    left: -14px;
+    width: 0;
+    height: 0;
+    border-top: 14px solid transparent;
+    border-bottom: 14px solid transparent;
+    border-right: 14px solid var(--color-card);
+  }
+
+  .about--text::after {
+    content: '';
+    position: absolute;
+    top: 31.5px;
+    left: -14.5px;
+    width: 15px;
+    height: 29px;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='15'%20height='29'%20viewBox='0%200%2015%2029'%3E%3Cpath%20d='M%2014.5%200.5%20L%200.5%2014.5%20L%2014.5%2028.5'%20fill='none'%20stroke='%23ffffff'%20stroke-opacity='0.08'%20stroke-width='1'%20stroke-linejoin='miter'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+
+  /* Reverse layout (image on right): mirror the tail to point right */
+  .about--block.reverse .about--text::before {
+    left: auto;
+    right: -14px;
+    border-right: none;
+    border-left: 14px solid var(--color-card);
+  }
+  .about--block.reverse .about--text::after {
+    left: auto;
+    right: -14.5px;
+    transform: scaleX(-1);
+  }
+}
+
+.about--text p strong {
+  color: #e8e3ff;
+  font-weight: 600;
+}
+
+/* ─── Games Grid ────────────────────────────────────────────────────────────── */
 .games {
-  @apply mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-5 gap-5 xl:gap-15;
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 xl:gap-6;
 }
 
-.games--window {
-  @apply absolute left-0 top-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center z-1;
+#games {
+  scroll-margin-top: 90px;
+}
 
+/* ─── Game Window ──────────────────────────────────────────────────────────── */
+.games--window {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
 }
 
 .games--window--bar {
   width: 100%;
-  height: 28px;
-  background: linear-gradient(to bottom, #2b03ae 0%, #542ac0 100%);
+  height: 30px;
+  background: linear-gradient(to right, #0a0a0a 0%, #161616 50%, #0a0a0a 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
   user-select: none;
   font-size: medium;
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
+  border-top-left-radius: 0.6rem;
+  border-top-right-radius: 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .games--window--bar svg {
   cursor: pointer;
-  height: 100%; 
-  width: 26px; 
+  height: 100%;
+  width: 26px;
   font-size: large;
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  color: white; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(210, 210, 218, 0.9);
 }
 
-.games--window--bar svg:hover {
-  background-color: rgb(245, 20, 80); 
-  border-top-right-radius: 0.5rem;
+.close-icon-wrapper {
+  height: 100%;
+  width: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: rgba(210, 210, 218, 0.8);
+  transition: background 0.15s ease, color 0.15s ease;
+  border-top-right-radius: 0.6rem;
 }
 
-.close-icon-wrapper { 
-  height: 100%; 
-  width: 26px; 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  cursor: pointer; 
-  color: white; 
+.close-icon-wrapper:hover {
+  background-color: rgba(239, 68, 68, 0.85);
+  color: white;
 }
 
-.close-icon-wrapper svg { 
-  transform: scale(0.7); 
-  transform-origin: center; 
-}
-
-.close-icon-wrapper:hover { 
-  background-color: rgb(245, 20, 80);
-  border-top-right-radius: 0.5rem;
+.close-icon-wrapper svg {
+  transform: scale(0.75);
+  transform-origin: center;
 }
 
 .games--window iframe {
   width: 100%;
   height: 100%;
-  border-bottom-left-radius: 0.5rem;
-  border-bottom-right-radius: 0.5rem;
-  margin-bottom: 3px;
+  border-bottom-left-radius: 0.6rem;
+  border-bottom-right-radius: 0.6rem;
 }
 
+/* ─── Card ─────────────────────────────────────────────────────────────────── */
 .card {
-  @apply p-5 pb-0 bg-card h-50 w-50 lg:h-75 lg:w-75 rounded-lg z-0 relative overflow-hidden;
-  
-  background: linear-gradient(45deg, rgba(38, 38, 43, 0.5), rgba(28, 28, 33, 0.5));
-  
-  border-style: dashed;
-  border-width: 1px;
-  border-color: rgba(255, 255, 255, 0.147);
-  backdrop-filter: blur(1px);
+  @apply p-5 pb-0 h-50 w-full lg:h-64 rounded-xl z-0 relative overflow-hidden;
 
-  box-shadow: 
-    0 5px 20px rgba(0, 0, 0, 0.4),
-    inset 0 2px 3px rgba(255, 255, 255, 0.1),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.1); 
+  background: linear-gradient(
+    145deg,
+    rgba(14, 14, 16, 0.9) 0%,
+    rgba(4, 4, 5, 0.95) 100%
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(4px);
+
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.card:hover {
+  border-color: rgba(122, 51, 255, 0.4);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
 }
 
 .card--title {
-  @apply font-bold;
+  @apply font-bold text-sm;
+  color: #ece9f7;
+  letter-spacing: 0.01em;
 }
 
 .card--content {
-  background-position: center; 
+  background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
   width: 100%;
   height: 75%;
-  /* Add transition for a smoother blur effect */
-  transition: filter 0.25s ease-in-out; /* */
-}
-
-.card--content--blurred {
-  filter: blur(5px); /* */
+  transition: filter 0.25s ease-in-out;
 }
 
 .card--content::before {
@@ -201,38 +299,164 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-position: center; 
+  background-position: center;
   background-repeat: no-repeat;
-  background-size: contain; /* The image now goes on the pseudo-element */
-  transition: filter 0.25s ease-in-out; /* Smooth transition for the blur */
+  background-size: contain;
+  transition: filter 0.25s ease-in-out;
 }
 
 .group:hover .card--content::before {
-  filter: blur(5px); /* Apply blur to the pseudo-element on group hover */
-}
-
-.card--title {
-  text-shadow: 0 0 6px #5f5f5f;
+  filter: blur(5px);
 }
 
 .card--description {
-  text-shadow: 0 0 6px #000000;
-}
-
-.card--description {
-  @apply text-sm pt-2;
+  @apply text-xs pt-1.5;
   font-style: italic;
   color: var(--color-secondary-text);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+  line-height: 1.4;
 }
 
 .card--footer {
   @apply mt-3 pt-2;
+  color: rgba(170, 170, 178, 0.85);
 }
 
+.card--footer svg {
+  transition: color 0.15s ease, filter 0.15s ease;
+}
+
+.card--footer svg:hover {
+  color: #a97bff;
+}
+
+/* ─── Elsewhere (social links) ─────────────────────────────────────────────── */
+#elsewhere {
+  scroll-margin-top: 90px;
+}
+
+.elsewhere {
+  @apply flex flex-col gap-6 py-20 text-left;
+}
+
+.elsewhere--grid {
+  @apply flex flex-col sm:flex-row gap-4;
+}
+
+.elsewhere--card {
+  @apply flex items-center gap-4 rounded-2xl px-5 py-4 flex-1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.elsewhere--card:hover {
+  border-color: rgba(122, 51, 255, 0.45);
+  transform: translateY(-2px);
+}
+
+.elsewhere--card svg {
+  color: #d6c4ff;
+  flex-shrink: 0;
+}
+
+.elsewhere--card-body {
+  @apply flex flex-col;
+}
+
+.elsewhere--card-title {
+  @apply text-sm font-bold;
+  color: #f0f0f5;
+}
+
+.elsewhere--card-sub {
+  @apply text-xs;
+  color: var(--color-secondary-text);
+}
+
+.elsewhere--stats {
+  @apply flex flex-col items-end gap-0.5 ml-auto text-right;
+}
+
+.elsewhere--stats span {
+  @apply text-xs;
+  color: rgba(170, 170, 178, 0.9);
+  white-space: nowrap;
+}
+
+.elsewhere--stats-muted {
+  color: rgba(170, 170, 178, 0.5) !important;
+}
+
+.elsewhere--skeleton {
+  display: block;
+  width: 64px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 37%, rgba(255,255,255,0.05) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shine 1.4s ease infinite;
+}
+
+@keyframes skeleton-shine {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ─── Wave Text ────────────────────────────────────────────────────────────── */
+@keyframes wave {
+  0%, 100% { transform: translateY(4px); }
+  50%       { transform: translateY(-4px); }
+}
+
+.wave-char {
+  display: inline-block;
+  animation: wave 2s infinite ease-in-out;
+}
+
+/* ─── Global resets ────────────────────────────────────────────────────────── */
 * {
-  @apply border-border;
+  border-color: var(--color-border);
 }
 
 body, #root {
-  @apply text-white;
+  color: #f0f0f5;
+}
+
+/* ─── About page text (legacy standalone /about, and shared utility classes) ── */
+.text-neutral-300 {
+  color: var(--color-secondary-text) !important;
+}
+
+.text-neutral-400 {
+  color: rgba(150, 153, 168, 0.75) !important;
+}
+
+.text-neutral-700 {
+  color: rgba(110, 113, 128, 0.55) !important;
+}
+
+/* ─── Scrollbar (webkit) ───────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(85, 0, 255, 0.45);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 51, 255, 0.65);
+}
+
+/* ─── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(85, 0, 255, 0.4);
+  color: #f0f0f5;
 }
