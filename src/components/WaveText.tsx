@@ -12,7 +12,7 @@ const WaveText: React.FC<WaveTextProps> = ({ text }) => {
         <span
           key={index}
           className="wave-char"
-          style={{ animationDelay: `${index * 75}ms` }}
+          style={{ animationDelay: `${index * -75}ms` }}
         >
           {char === ' ' ? '\u00A0' : char}
         </span>

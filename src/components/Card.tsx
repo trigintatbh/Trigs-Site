@@ -1,10 +1,12 @@
 import { ReactNode } from "react";
+import { IoInformationCircleOutline } from "react-icons/io5";
 
 interface ICard {
     title: string;
     description: string;
     thumbnail: string;
     footer: ReactNode;
+    onInfo?: () => void;
 }
 
 export default function Card(props: ICard) {
@@ -12,8 +14,12 @@ export default function Card(props: ICard) {
         <div className="group card">
             {/* Default title — fades out on hover */}
             <div className="relative z-10 opacity-100 group-hover:opacity-0 transition-opacity duration-250">
-                <div className="card--title">
+                <div className="card--title flex items-center gap-1.5">
                     <h2>{props.title}</h2>
+                    <IoInformationCircleOutline
+                        onClick={(e) => { e.stopPropagation(); props.onInfo?.(); }}
+                        className="opacity-60 hover:opacity-100 cursor-pointer shrink-0"
+                    />
                 </div>
             </div>
 
@@ -33,8 +39,12 @@ export default function Card(props: ICard) {
                 }}
             >
                 <div className="relative">
-                    <div className="card--title">
+                    <div className="card--title flex items-center gap-1.5">
                         <h2>{props.title}</h2>
+                        <IoInformationCircleOutline
+                            onClick={(e) => { e.stopPropagation(); props.onInfo?.(); }}
+                            className="opacity-60 hover:opacity-100 cursor-pointer shrink-0"
+                        />
                     </div>
                     <div className="card--description">
                         <p>{props.description}</p>

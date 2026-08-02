@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaYoutube, FaGithub } from "react-icons/fa";
+import { SiGmail } from "react-icons/si";
 
 interface YouTubeStats {
     subscribers: string;
@@ -117,6 +118,18 @@ export default function SocialLinks() {
                         ) : (
                             <span className="elsewhere--stats-muted">visit profile →</span>
                         )}
+                    </div>
+                </a>
+                <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=triginta777@gmail.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="elsewhere--card"
+                >
+                    <SiGmail size={26} />
+                    <div className="elsewhere--card-body">
+                        <span className="elsewhere--card-title">Gmail</span>
+                        <span className="elsewhere--card-sub">triginta777@gmail.com</span>
                     </div>
                 </a>
             </div>

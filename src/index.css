@@ -180,30 +180,55 @@ body {
 /* ─── Game Window ──────────────────────────────────────────────────────────── */
 .games--window {
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(8px);
+  inset: 0;
+  background: radial-gradient(circle at 50% 38%, rgba(85, 0, 255, 0.10), rgba(0, 0, 0, 0.9) 68%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 100;
 }
 
+/* ─── Window frame ──────────────────────────────────────────────────────── */
+.games--window--frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  height: 90%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: width 0.25s ease, height 0.25s ease, border-radius 0.25s ease, box-shadow 0.25s ease;
+}
+
+.games--window--frame.fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* ─── Titlebar ──────────────────────────────────────────────────────────── */
 .games--window--bar {
   width: 100%;
-  height: 30px;
-  background: linear-gradient(to right, #0a0a0a 0%, #161616 50%, #0a0a0a 100%);
+  height: 34px;
+  flex-shrink: 0;
+  background: linear-gradient(to right, #0c0c0e 0%, #18161c 50%, #0c0c0e 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
   user-select: none;
   font-size: medium;
-  border-top-left-radius: 0.6rem;
-  border-top-right-radius: 0.6rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .games--window--bar svg {
@@ -217,6 +242,13 @@ body {
   color: rgba(210, 210, 218, 0.9);
 }
 
+.games--window--bar-actions {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.fullscreen-icon-wrapper,
 .close-icon-wrapper {
   height: 100%;
   width: 30px;
@@ -226,7 +258,11 @@ body {
   cursor: pointer;
   color: rgba(210, 210, 218, 0.8);
   transition: background 0.15s ease, color 0.15s ease;
-  border-top-right-radius: 0.6rem;
+}
+
+.fullscreen-icon-wrapper:hover {
+  background-color: rgba(122, 51, 255, 0.85);
+  color: white;
 }
 
 .close-icon-wrapper:hover {
@@ -234,16 +270,141 @@ body {
   color: white;
 }
 
+.fullscreen-icon-wrapper svg {
+  transform: scale(0.6);
+  transform-origin: center;
+}
+
 .close-icon-wrapper svg {
   transform: scale(0.75);
   transform-origin: center;
 }
 
+/* Rounded top-right corner belongs to whichever action sits last */
+.games--window--bar-actions {
+  border-top-right-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.games--window--frame.fullscreen .games--window--bar-actions {
+  border-radius: 0;
+}
+
+/* ─── Fullscreen: bar hides, peeks in on hover near the top ───────────────── */
+.games--window--frame.fullscreen .games--window--bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  border-radius: 0;
+  transform: translateY(-100%);
+  transition: transform 0.22s ease;
+  z-index: 10;
+}
+
+.games--window--hover-zone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 46px;
+  z-index: 9;
+}
+
+.games--window--frame.fullscreen .games--window--hover-zone:hover ~ .games--window--bar,
+.games--window--frame.fullscreen .games--window--bar:hover {
+  transform: translateY(0);
+}
+
 .games--window iframe {
   width: 100%;
   height: 100%;
-  border-bottom-left-radius: 0.6rem;
-  border-bottom-right-radius: 0.6rem;
+  flex: 1;
+  border: none;
+}
+
+/* ─── Game info modal ──────────────────────────────────────────────────── */
+.info-modal {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 35%, rgba(85, 0, 255, 0.10), rgba(0, 0, 0, 0.85) 70%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 150;
+  padding: 1rem;
+}
+
+.info-modal--frame {
+  width: 100%;
+  max-width: 768px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.info-modal--bar {
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to right, #0c0c0e 0%, #18161c 50%, #0c0c0e 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-left: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ece9f7;
+}
+
+.info-modal--body {
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.info-modal--howto h3 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-accent-2);
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.info-modal--howto p {
+  color: #d6d3e0;
+  line-height: 1.65;
+  font-size: 0.9rem;
+}
+
+.info-modal--howto-content {
+  color: #d6d3e0;
+  line-height: 1.65;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-modal--howto-content img {
+  width: 100%;
+  display: block;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 /* ─── Card ─────────────────────────────────────────────────────────────────── */
