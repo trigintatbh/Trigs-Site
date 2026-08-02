@@ -720,6 +720,70 @@ body::before {
 .settings-menu button:hover { border-color: var(--accent); color: var(--accent); }
 .settings-menu button.danger:hover { border-color: var(--accent2); color: var(--accent2); }
 
+/* ── SETTINGS PANEL ── */
+#settings-panel {
+    display: none;
+    grid-area: main;
+    overflow-y: auto;
+    padding: 20px 22px;
+    z-index: 1;
+}
+#settings-panel.visible { display: block; }
+.settings-section {
+    max-width: 480px;
+    margin-bottom: 28px;
+}
+.settings-section h3 {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+}
+.settings-section label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--dim);
+    margin: 12px 0 6px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.settings-section input[type="range"] { width: 100%; accent-color: var(--accent); }
+.settings-section input[type="number"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 10px;
+    border-radius: 4px;
+}
+.settings-section button {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+.settings-section button:hover { border-color: var(--accent); color: var(--accent); }
+.settings-section button.danger:hover { border-color: var(--accent2); color: var(--accent2); }
+
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -1216,8 +1280,6 @@ body::before {
         <div id="sell-strip">
             <button id="sellData-mobile">Sell Data</button>
             <span id="dataPrice-mobile"></span>
-            <button id="settings-button-mobile" class="settings-btn"><i class="fas fa-gear"></i></button>
-            <div id="settings-menu-mobile" class="settings-menu"></div>
         </div>
     </div>
 </div>
@@ -1244,21 +1306,12 @@ body::before {
             <i class="fas fa-star"></i>
             Prestige
         </button>
+        <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">
+            <i class="fas fa-gear"></i>
+            Settings
+        </button>
     </div>
-    <div id="bottom-actions">
-        <button id="settings-button" class="settings-btn"><i class="fas fa-gear"></i></button>
-        <div id="settings-menu" class="settings-menu">
-            <h3>Audio</h3>
-            <label for="master-volume">Master Volume</label>
-            <input type="range" id="master-volume" min="0" max="100" value="100">
-            <h3 style="margin-top:14px;">Save</h3>
-            <button id="import-save">Import Save</button>
-            <button id="export-save">Export Save</button>
-            <label for="auto-save-interval">Autosave interval (sec)</label>
-            <input type="number" id="auto-save-interval" min="10" max="120" value="30">
-            <button id="wipe-save" class="danger" style="margin-top:10px;">Wipe Save</button>
-        </div>
-    </div>
+    <div id="bottom-actions"></div>
 </div>
 
 <!-- Prestige panel -->
@@ -1287,6 +1340,26 @@ body::before {
     <div class="ach-grid" id="ach-grid"></div>
 </div>
 
+<!-- Settings panel — same grid area as #main, shown via tab switch -->
+<div id="settings-panel">
+    <div class="ach-page-header">
+        <span>Settings</span>
+    </div>
+    <div class="settings-section">
+        <h3>Audio</h3>
+        <label for="master-volume">Master Volume</label>
+        <input type="range" id="master-volume" min="0" max="100" value="100">
+    </div>
+    <div class="settings-section">
+        <h3>Save</h3>
+        <button id="import-save">Import Save</button>
+        <button id="export-save">Export Save</button>
+        <label for="auto-save-interval">Autosave interval (sec)</label>
+        <input type="number" id="auto-save-interval" min="10" max="120" value="30">
+        <button id="wipe-save" class="danger" style="margin-top:14px;">Wipe Save</button>
+    </div>
+</div>
+
 <!-- Toast -->
 <div id="ach-toast">
     <span id="ach-toast-icon"></span>
@@ -1301,6 +1374,37 @@ body::before {
 <div id="burst-overlay"></div>
 
 <!-- ── UPGRADE MODAL ── -->
+<div id="export-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;min-width:280px;max-width:480px;box-shadow:0 0 60px rgba(108,63,255,0.25);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <span style="font-size:11px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim);">Export Save</span>
+            <button onclick="playBuffer('tap'); document.getElementById('export-modal').style.display='none';" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;line-height:1;">✕</button>
+        </div>
+        <p style="font-size:11px;color:var(--dim);margin-bottom:12px;">Copy this string somewhere safe. Paste it into Import Save to restore.</p>
+        <textarea id="export-textarea" readonly style="width:100%;height:120px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+            <button id="export-copy-btn" style="flex:1;background:var(--accent);border:none;border-radius:6px;padding:10px;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Copy to Clipboard</button>
+            <button id="export-download-btn" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Download .txt</button>
+        </div>
+        <p id="export-status" style="font-size:10px;color:var(--accent3);margin-top:10px;text-align:center;min-height:14px;"></p>
+    </div>
+</div>
+<div id="import-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;min-width:280px;max-width:480px;box-shadow:0 0 60px rgba(108,63,255,0.25);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <span style="font-size:11px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim);">Import Save</span>
+            <button onclick="playBuffer('tap'); document.getElementById('import-modal').style.display='none';" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;line-height:1;">✕</button>
+        </div>
+        <p style="font-size:11px;color:var(--dim);margin-bottom:12px;">Paste your save string below. This will overwrite your current progress.</p>
+        <textarea id="import-textarea" placeholder="Paste save string here..." style="width:100%;height:120px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+            <button id="import-confirm-btn" style="flex:1;background:var(--accent);border:none;border-radius:6px;padding:10px;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Import Save</button>
+            <button id="import-file-btn" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">Load from .txt</button>
+        </div>
+        <p id="import-status" style="font-size:10px;color:var(--accent3);margin-top:10px;text-align:center;min-height:14px;"></p>
+        <input type="file" id="import-file-input" accept=".txt,text/plain" style="display:none;">
+    </div>
+</div>
 <div id="upgrade-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;">
     <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;min-width:280px;max-width:340px;box-shadow:0 0 60px rgba(108,63,255,0.25);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -2380,34 +2484,171 @@ document.getElementById('upgFileCap').addEventListener('click', () => {
 
 startFileSpawner();
 
-document.getElementById('settings-button').addEventListener('click', () => {
-    playBuffer('tap');
-    const m = document.getElementById('settings-menu');
-    m.style.display = m.style.display === 'block' ? 'none' : 'block';
-});
-
 document.getElementById('master-volume').addEventListener('input', e => {
     gainNode.gain.value = e.target.value / 100;
 });
 
+// ── Unicode-safe base64 helpers ──
+// btoa() throws on any char > U+00FF (emojis, →, –, etc.), which silently
+// breaks the export button on mobile. These wrap btoa/atob with UTF-8 encoding.
+function b64EncodeUnicode(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+}
+function b64DecodeUnicode(str) {
+    const binary = atob(str);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+}
+
 document.getElementById('import-save').addEventListener('click', () => {
     playBuffer('tap');
-    const data = prompt("Paste your save string here:");
-    if (data) {
-        try {
-            const parsed = JSON.parse(atob(data));
-            loadGameData(parsed);
-            alert("Save imported!");
-        } catch (e) {
-            alert("Invalid save data.");
-        }
+    const modal = document.getElementById('import-modal');
+    const ta = document.getElementById('import-textarea');
+    const status = document.getElementById('import-status');
+    ta.value = '';
+    status.textContent = '';
+    status.style.color = 'var(--accent3)';
+    modal.style.display = 'flex';
+    setTimeout(() => ta.focus(), 50);
+});
+
+document.getElementById('import-confirm-btn').addEventListener('click', () => {
+    playBuffer('tap');
+    const ta = document.getElementById('import-textarea');
+    const status = document.getElementById('import-status');
+    const raw = ta.value.trim();
+    if (!raw) {
+        status.style.color = 'var(--accent2)';
+        status.textContent = 'Paste a save string first';
+        return;
+    }
+    try {
+        const parsed = JSON.parse(b64DecodeUnicode(raw));
+        loadGameData(parsed);
+        autoSave();
+        status.style.color = 'var(--accent3)';
+        status.textContent = '✓ Save imported successfully';
+        setTimeout(() => {
+            document.getElementById('import-modal').style.display = 'none';
+        }, 800);
+    } catch (e) {
+        status.style.color = 'var(--accent2)';
+        status.textContent = '✗ Invalid save data — check the string';
     }
 });
 
-document.getElementById('export-save').addEventListener('click', () => {
+document.getElementById('import-file-btn').addEventListener('click', () => {
     playBuffer('tap');
-    const saveStr = btoa(JSON.stringify(getSaveData()));
-    navigator.clipboard.writeText(saveStr).then(() => alert("Save string copied to clipboard!"));
+    document.getElementById('import-file-input').click();
+});
+
+document.getElementById('import-file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    const status = document.getElementById('import-status');
+    const ta = document.getElementById('import-textarea');
+    reader.onload = () => {
+        ta.value = reader.result.trim();
+        status.style.color = 'var(--accent3)';
+        status.textContent = '✓ File loaded — click Import Save to apply';
+    };
+    reader.onerror = () => {
+        status.style.color = 'var(--accent2)';
+        status.textContent = '✗ Could not read file';
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // reset so same file can be re-selected
+});
+
+document.getElementById('export-save').addEventListener('click', () => {
+    console.log('[Downloadaire] Export button clicked');
+    let saveStr;
+    try {
+        playBuffer('tap');
+        saveStr = b64EncodeUnicode(JSON.stringify(getSaveData()));
+        console.log('[Downloadaire] Save string generated, length:', saveStr.length);
+        const modal = document.getElementById('export-modal');
+        const ta = document.getElementById('export-textarea');
+        const status = document.getElementById('export-status');
+        if (!modal || !ta || !status) {
+            console.error('[Downloadaire] Export modal elements missing!');
+            alert('Export failed: modal elements not found.\n\nSave string:\n\n' + saveStr);
+            return;
+        }
+        ta.value = saveStr;
+        status.textContent = '';
+        modal.style.display = 'flex';
+        console.log('[Downloadaire] Export modal opened');
+        // Pre-select the textarea text so user can Ctrl/Cmd+C immediately
+        setTimeout(() => { ta.focus(); ta.select(); }, 50);
+    } catch (err) {
+        console.error('[Downloadaire] Export handler error:', err);
+        alert('Export failed with error: ' + (err && err.message ? err.message : err));
+    }
+});
+
+async function copyToClipboardFallback(text) {
+    // Layer 1: modern async clipboard API (only works in secure contexts)
+    if (navigator.clipboard && window.isSecureContext) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (e) { /* fall through */ }
+    }
+    // Layer 2: legacy execCommand with a temp textarea
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) return true;
+    } catch (e) { /* fall through */ }
+    return false;
+}
+
+document.getElementById('export-copy-btn').addEventListener('click', async () => {
+    playBuffer('tap');
+    const ta = document.getElementById('export-textarea');
+    const status = document.getElementById('export-status');
+    const ok = await copyToClipboardFallback(ta.value);
+    if (ok) {
+        status.style.color = 'var(--accent3)';
+        status.textContent = '✓ Copied to clipboard';
+    } else {
+        // Final fallback: keep textarea selected so user can manually copy
+        ta.focus();
+        ta.select();
+        status.style.color = 'var(--accent2)';
+        status.textContent = 'Auto-copy blocked — use Ctrl/Cmd+C on the text above';
+    }
+});
+
+document.getElementById('export-download-btn').addEventListener('click', () => {
+    playBuffer('tap');
+    const ta = document.getElementById('export-textarea');
+    const status = document.getElementById('export-status');
+    const blob = new Blob([ta.value], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `downloadaire-save-${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    status.style.color = 'var(--accent3)';
+    status.textContent = '✓ Save file downloaded';
 });
 
 document.getElementById('auto-save-interval').addEventListener('change', e => {
@@ -4084,29 +4325,48 @@ const shopRefreshTimers = {};
 const SHOP_REFRESH_MS = 5 * 60 * 1000;
 
 function computeStatForTier(type, tier, statMod) {
-    // Simulate what the stat would be after `tier` upgrades from current level
+    // Simulate what the stat would be after `tier` upgrades from current level.
+    // statMod is applied to the DELTA only, never the base — guarantees every
+    // shop item is strictly better than current and higher tier > lower tier
+    // (same brand).
     if (type === 'storage') {
-        let s = maxStorage;
-        for (let i = 0; i < tier; i++) s = Math.round((s + 2) * 1.15);
-        s = Math.round(s * statMod);
+        // Polynomial growth: k=4.0, p=1.5. Capacity stays ~5-7x file size throughout.
+        const base = maxStorage;
+        const startN = storageUpgrades;
+        const endN = startN + tier;
+        const delta = 4.0 * (Math.pow(endN + 1, 1.5) - Math.pow(startN + 1, 1.5));
+        const s = base + Math.round(delta * statMod);
         return `→ ${formatStorage(s, true)}`;
     }
     if (type === 'modem') {
-        let s = modemSpeed;
-        for (let i = 0; i < tier; i++) s = (s + 0.5) * 1.12;
-        s *= statMod;
+        // Polynomial growth: total(n) = base + k * ((n+1)^p - 1)
+        // Standard incremental-game pattern: deltas INCREASE each tier (feels like
+        // progress), growth is sub-exponential (no explosion), cost (1.1^n)
+        // outpaces production → creates the save-up loop.
+        // k=1.3, p=1.4 → modem ~130% of CPU throughout.
+        const base = modemSpeed;
+        const startN = modemUpgrades;
+        const endN = startN + tier;
+        const delta = 1.3 * (Math.pow(endN + 1, 1.4) - Math.pow(startN + 1, 1.4));
+        const s = base + delta * statMod;
         return `→ ${formatSpeed(s, true)}`;
     }
     if (type === 'cpu') {
-        let s = cpuSpeed;
-        for (let i = 0; i < tier; i++) s = (s + 1.5) * 1.07;
-        s *= statMod;
+        // Polynomial growth matching modem pattern. k=1.0, p=1.4.
+        const base = cpuSpeed;
+        const startN = cpuUpgrades;
+        const endN = startN + tier;
+        const delta = 1.0 * (Math.pow(endN + 1, 1.4) - Math.pow(startN + 1, 1.4));
+        const s = base + delta * statMod;
         return `→ ${s.toFixed(2)} spd`;
     }
     if (type === 'gpu') {
-        let s = gpuPower;
-        for (let i = 0; i < tier; i++) s = (s + 0.25) * 1.15;
-        s *= statMod;
+        // Polynomial growth: k=0.5, p=1.4. Matches CPU pattern, smaller magnitude.
+        const base = gpuPower;
+        const startN = gpuUpgrades;
+        const endN = startN + tier;
+        const delta = 0.5 * (Math.pow(endN + 1, 1.4) - Math.pow(startN + 1, 1.4));
+        const s = base + delta * statMod;
         return `→ ${s.toFixed(3)} pwr`;
     }
     if (type === 'ram') {
@@ -4124,7 +4384,7 @@ function getTierPriceMod(type, tier, basePrice) {
         else if (type === 'modem') p = (p + 0.0005) * 1.15;
         else if (type === 'cpu') p = (p + 0.001) * 1.15;
         else if (type === 'gpu') p = (p + 0.1) * 1.15;
-        else if (type === 'ram') p = (p + 0.005) * 1.25;
+        else if (type === 'ram') p = (p + 0.005) * 1.32;
         
         extraPrice += p;
     }
@@ -4297,43 +4557,55 @@ function confirmUpgrade(optionIndex) {
     const statMod = opt.statMod ?? 1;
     
     if (type === 'storage') {
-        let s = maxStorage;
+        // Polynomial growth: k=4.0, p=1.5.
+        const base = maxStorage;
+        const startN = storageUpgrades;
+        const endN = startN + tiers;
+        const delta = 4.0 * (Math.pow(endN + 1, 1.5) - Math.pow(startN + 1, 1.5));
+        maxStorage = base + Math.round(delta * statMod);
         for (let t = 0; t < tiers; t++) {
-            s = Math.round((s + 2) * 1.15);
             storageUpgrades++;
             upgradePrices.storage = (upgradePrices.storage + 0.001) * 1.11;
         }
-        maxStorage = Math.round(s * statMod);
     } else if (type === 'modem') {
-        let s = modemSpeed;
+        // Polynomial growth: modemSpeed += k * ((endN+1)^p - (startN+1)^p) * statMod
+        const base = modemSpeed;
+        const startN = modemUpgrades;
+        const endN = startN + tiers;
+        const delta = 1.3 * (Math.pow(endN + 1, 1.4) - Math.pow(startN + 1, 1.4));
+        modemSpeed = base + delta * statMod;
         for (let t = 0; t < tiers; t++) {
-            s = (s + 0.5) * 1.12;
             modemUpgrades++;
             upgradePrices.modem = (upgradePrices.modem + 0.001) * 1.1;
         }
-        modemSpeed = s * statMod;
         restartFileSpawner();
     } else if (type === 'cpu') {
-        let s = cpuSpeed;
+        // Polynomial growth matching modem pattern.
+        const base = cpuSpeed;
+        const startN = cpuUpgrades;
+        const endN = startN + tiers;
+        const delta = 1.0 * (Math.pow(endN + 1, 1.4) - Math.pow(startN + 1, 1.4));
+        cpuSpeed = base + delta * statMod;
         for (let t = 0; t < tiers; t++) {
-            s = (s + 1.5) * 1.07;
             cpuUpgrades++;
             upgradePrices.cpu = (upgradePrices.cpu + 0.002) * 1.09;
         }
-        cpuSpeed = s * statMod;
     } else if (type === 'gpu') {
-        let s = gpuPower;
+        // Polynomial growth: k=0.5, p=1.4.
+        const base = gpuPower;
+        const startN = gpuUpgrades;
+        const endN = startN + tiers;
+        const delta = 0.5 * (Math.pow(endN + 1, 1.4) - Math.pow(startN + 1, 1.4));
+        gpuPower = base + delta * statMod;
         for (let t = 0; t < tiers; t++) {
-            s = (s + 0.25) * 1.15;
             gpuUpgrades++;
             upgradePrices.gpu = (upgradePrices.gpu + 0.2) * 1.49;
         }
-        gpuPower = s * statMod;
     } else if (type === 'ram') {
         for (let t = 0; t < tiers; t++) {
             ramSlots++;
             ramUpgrades++;
-            upgradePrices.ram = (upgradePrices.ram + 0.005) * 1.225;
+            upgradePrices.ram = (upgradePrices.ram + 0.005) * 1.30;
         }
         renderFileList();
     }
@@ -4463,14 +4735,18 @@ function switchTab(tab) {
     const isProd = tab === 'production';
     const isAch = tab === 'achievements';
     const isPrest = tab === 'prestige';
+    const isSet = tab === 'settings';
     document.getElementById('main').style.display = isProd ? '' : 'none';
     const ap = document.getElementById('achievements-panel');
     ap.classList.toggle('visible', isAch);
     const pp = document.getElementById('prestige-panel');
     pp.classList.toggle('visible', isPrest);
+    const sp = document.getElementById('settings-panel');
+    sp.classList.toggle('visible', isSet);
     document.getElementById('tab-production').classList.toggle('active', isProd);
     document.getElementById('tab-achievements').classList.toggle('active', isAch);
     document.getElementById('tab-prestige').classList.toggle('active', isPrest);
+    document.getElementById('tab-settings').classList.toggle('active', isSet);
     if (isAch) renderAchievements();
     if (isPrest) { renderSkillTree(); renderAutomatons(); updatePrestigeUI(); }
 }
@@ -4485,254 +4761,254 @@ function switchTab(tab) {
 // formatVal: (v) => display string for progress text
 
 const ACHIEVEMENT_TRACKS = [
-	{
-		id: 'bytes_dl',
-		icon: '📥',
-		name: 'Downloader',
-		spoiled: false,
-		showProgress: true,
-		getValue: () => totalBytesDownloaded,
-		formatVal: v => formatStorage(v),
-		levels: [
-			{ label: 'First Packet', desc: 'Download 100 B total. You gonna frame it on your wall?', threshold: 100, bonus: { speedMult: 1.01 } },
-			{ label: 'Kilobyte Club', desc: 'Download 1 KB total', threshold: 1000, bonus: { speedMult: 1.02 } },
-			{ label: 'Megabyte Miner', desc: 'Download 1 MB total', threshold: 1000**2, bonus: { speedMult: 1.03 } },
-			{ label: 'Data Hoarder', desc: 'Download 100 MB total', threshold: 100*1000**2, bonus: { speedMult: 1.04 } },
-			{ label: 'Gigabyte Grinder', desc: 'Download 1 GB total', threshold: 1000**3, bonus: { speedMult: 1.05 } },
-			{ label: 'Century of Gigs', desc: 'Download 100 GB total', threshold: 100*1000**3, bonus: { speedMult: 1.06 } },
-			{ label: 'Terabyte Titan', desc: 'Download 1 TB total', threshold: 1000**4, bonus: { speedMult: 1.08 } },
-			{ label: 'Petabyte Phantom', desc: 'Download 1 PB total', threshold: 1000**5, bonus: { speedMult: 1.10 } },
-		]
-	},
-	{
-		id: 'files_dl',
-		icon: '📂',
-		name: 'File Counter',
-		spoiled: false,
-		showProgress: true,
-		getValue: () => totalFilesDownloaded,
-		formatVal: v => v.toLocaleString() + ' files',
-		levels: [
-			{ label: 'First File', desc: 'Complete your first download', threshold: 1, bonus: { speedMult: 1.01 } },
-			{ label: 'Ten Downloads', desc: 'Complete 10 downloads', threshold: 10, bonus: { speedMult: 1.02 } },
-			{ label: 'Centurion', desc: 'Complete 100 downloads', threshold: 100, bonus: { speedMult: 1.03 } },
-			{ label: 'Download Machine', desc: 'Complete 500 downloads', threshold: 500, bonus: { speedMult: 1.04 } },
-			{ label: 'Production Pipeline', desc: 'Complete 1,000 downloads', threshold: 1000, bonus: { speedMult: 1.06 } },
-			{ label: 'Factory Floor', desc: 'Complete 10,000 downloads', threshold: 10000, bonus: { speedMult: 1.08 } },
-			{ label: 'Infinite Pipeline', desc: 'Complete 100,000 downloads', threshold: 100000, bonus: { speedMult: 1.10 } },
-		]
-	},
-	{
-		id: 'money_earned',
-		icon: '💰',
-		name: 'Data Broker',
-		spoiled: false,
-		showProgress: true,
-		getValue: () => totalMoneyEarned,
-		formatVal: v => '$' + formatNumber(v),
-		levels: [
-			{ label: 'First Cent', desc: 'Earn $0.01 total', threshold: 0.01, bonus: { sellMult: 1.02 } },
-			{ label: 'Dollar Sign', desc: 'Earn $1.00 total', threshold: 1, bonus: { sellMult: 1.03 } },
-			{ label: 'Triple Digits', desc: 'Earn $100 total', threshold: 100, bonus: { sellMult: 1.05 } },
-			{ label: 'Getting Somewhere', desc: 'Earn $10,000 total', threshold: 10000, bonus: { sellMult: 1.08 } },
-			{ label: 'Millionaire', desc: 'Earn $1,000,000 total', threshold: 1e6, bonus: { sellMult: 1.10 } },
-			{ label: 'Billionaire', desc: 'Earn $1,000,000,000 total', threshold: 1e9, bonus: { sellMult: 1.15 } },
-			{ label: 'Trillionaire', desc: 'Earn $1 trillion total', threshold: 1e12, bonus: { sellMult: 1.20 } },
-		]
-	},
-	{
-		id: 'sells',
-		icon: '🛒',
-		name: 'Seller',
-		spoiled: false,
-		showProgress: true,
-		getValue: () => totalSells,
-		formatVal: v => v.toLocaleString() + ' sells',
-		levels: [
-			{ label: 'Open for Business', desc: 'Sell data for the first time', threshold: 1, bonus: { sellMult: 1.02 } },
-			{ label: 'Regular Seller', desc: 'Sell data 25 times', threshold: 25, bonus: { sellMult: 1.05 } },
-			{ label: 'Data Vendor', desc: 'Sell data 100 times', threshold: 100, bonus: { sellMult: 1.08 } },
-			{ label: 'Marketplace King', desc: 'Sell data 500 times', threshold: 500, bonus: { sellMult: 1.12 } },
-		]
-	},
-	{
-		id: 'playtime',
-		icon: '⏱️',
-		name: 'Online',
-		spoiled: false,
-		showProgress: true,
-		getValue: () => playTimeSeconds,
-		formatVal: v => {
-			if (v < 60) return v + 's';
-			if (v < 3600) return Math.floor(v/60) + 'm ' + (v%60) + 's';
-			return Math.floor(v/3600) + 'h ' + Math.floor((v%3600)/60) + 'm';
-		},
-		levels: [
-			{ label: 'Just Booted', desc: 'Play for 1 minute', threshold: 60, bonus: { minSpeedFlat: 0.01 } },
-			{ label: 'Getting Warmed Up', desc: 'Play for 10 minutes', threshold: 600, bonus: { minSpeedFlat: 0.02 } },
-			{ label: 'Dedicated', desc: 'Play for 1 hour', threshold: 3600, bonus: { minSpeedFlat: 0.03 } },
-			{ label: 'Committed', desc: 'Play for 5 hours', threshold: 18000, bonus: { minSpeedFlat: 0.04 } },
-			{ label: 'No Life', desc: 'Play for 24 hours', threshold: 86400, bonus: { minSpeedFlat: 0.05 } },
-			{ label: 'What is grass?', desc: 'Play for 100 hours, get off the game', threshold: 360000, bonus: { minSpeedFlat: 0.06 } },
-		]
-	},
-	{
-		id: 'abilities',
-		icon: '⚡',
-		name: 'Power User',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => totalAbilityUses,
-		formatVal: v => v + ' uses',
-		levels: [
-			{ label: 'Power Move', desc: 'Use any ability once', threshold: 1, bonus: { speedMult: 1.02 } },
-			{ label: 'Spammer', desc: 'Use abilities 10 times', threshold: 10, bonus: { speedMult: 1.04 } },
-			{ label: 'Power Addict', desc: 'Use abilities 50 times', threshold: 50, bonus: { speedMult: 1.07 } },
-			{ label: 'Ability God', desc: 'Use abilities 200 times', threshold: 200, bonus: { speedMult: 1.10 } },
-		]
-	},
-	{
-		id: 'overclock',
-		icon: '🔥',
-		name: 'Overclocker',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => ABILITY_USES.overclock,
-		formatVal: v => v + ' uses',
-		levels: [
-			{ label: 'Is This How You Overclock?', desc: 'Use Overclock once', threshold: 1, bonus: { speedMult: 1.02 } },
-			{ label: 'True Overclocker', desc: 'Use Overclock 10 times', threshold: 10, bonus: { speedMult: 1.05 } },
-			{ label: 'Melt Risk', desc: 'Use Overclock 50 times', threshold: 50, bonus: { speedMult: 1.08 } },
-		]
-	},
-	{
-		id: 'burst',
-		icon: '💥',
-		name: 'Burst Specialist',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => ABILITY_USES.burst,
-		formatVal: v => v + ' uses',
-		levels: [
-			{ label: 'Burst Fire', desc: 'Use Burst Download once', threshold: 1, bonus: { speedMult: 1.02 } },
-			{ label: 'Burst Expert', desc: 'Use Burst Download 10 times', threshold: 10, bonus: { speedMult: 1.04 } },
-			{ label: 'Burst Legend', desc: 'Use Burst Download 50 times', threshold: 50, bonus: { speedMult: 1.06 } },
-		]
-	},
-	{
-		id: 'hardware_all',
-		icon: '⚙️',
-		name: 'Hardware Collector',
-		spoiled: true,
-		showProgress: false,
-		getValue: () => [storageUpgrades, modemUpgrades, cpuUpgrades, gpuUpgrades, ramUpgrades].filter(x => x >= 1).length,
-		formatVal: v => v + '/5 types',
-		levels: [
-			{ label: 'First Upgrade', desc: 'Upgrade any hardware', threshold: 1, bonus: { speedMult: 1.03 } },
-			{ label: 'Full Rig', desc: 'Upgrade all 5 hardware types', threshold: 5, bonus: { speedMult: 1.10 } },
-		]
-	},
-	{
-		id: 'storage_lvls',
-		icon: '💾',
-		name: 'Storage Baron',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => maxStorage,
-		formatVal: v => formatStorage(v),
-		levels: [
-			{ label: 'More Room', desc: 'Reach 5 B Storage', threshold: 5, bonus: { sellMult: 1.01 } },
-			{ label: 'Hoarder Setup', desc: 'Reach 1 KB Storage', threshold: 1e3, bonus: { sellMult: 1.03 } },
-			{ label: 'Data Shelf', desc: 'Reach 1 MB Storage', threshold: 1e6, bonus: { sellMult: 1.06 } },
-			{ label: 'Data Vault', desc: 'Reach 1 GB Storage', threshold: 1e9, bonus: { sellMult: 1.10 } },
-			{ label: 'Library of Alexandria', desc: 'Reach 1 PB Storage', threshold: 1e15, bonus: { sellMult: 1.20 } },
-		]
-	},
-	{
-		id: 'modem_lvls',
-		icon: '📡',
-		name: 'Bandwidth King',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => modemSpeed,
-		formatVal: v => formatSpeed(v),
-		levels: [
-			{ label: 'Five Letters Per Second', desc: 'Reach 5 bps Modem Speed', threshold: 5, bonus: { speedMult: 1.02 } },
-			{ label: 'Dial-Up', desc: 'Reach 56 bps Modem Speed', threshold: 56, bonus: { speedMult: 1.03 } },
-			{ label: 'Early Modem', desc: 'Reach 300 bps Modem Speed', threshold: 300, bonus: { speedMult: 1.032 } },
-			{ label: 'Home Modem', desc: 'Reach 1.2 Kbps Modem Speed', threshold: 1200, bonus: { speedMult: 1.035 } },
-			{ label: 'Fast Modem', desc: 'Reach 2.4 Kbps Modem Speed', threshold: 2400, bonus: { speedMult: 1.038 } },
-			{ label: 'V.32 Modem', desc: 'Reach 9.6 Kbps Modem Speed', threshold: 9600, bonus: { speedMult: 1.042 } },
-			{ label: '2G', desc: 'Reach 14.4 Kbps Modem Speed', threshold: 14400, bonus: { speedMult: 1.045 } },
-			{ label: 'GPRS', desc: 'Reach 40 Kbps Modem Speed', threshold: 40000, bonus: { speedMult: 1.06 } },
-			{ label: 'ISDN', desc: 'Reach 128 Kbps Modem Speed', threshold: 128000, bonus: { speedMult: 1.075 } },
-			{ label: 'EDGE', desc: 'Reach 190 Kbps Modem Speed', threshold: 190000, bonus: { speedMult: 1.1 } },
-			{ label: '3G', desc: 'Reach 384 Kbps Modem Speed', threshold: 384000, bonus: { speedMult: 1.15 } },
-			{ label: '3.5G', desc: 'Reach 4 Mbps Modem Speed', threshold: 4000000, bonus: { speedMult: 1.225 } },
-			{ label: '3.75G', desc: 'Reach 8 Mbps Modem Speed', threshold: 8000000, bonus: { speedMult: 1.33 } },
-			{ label: '4G', desc: 'Reach 20 Mbps Modem Speed', threshold: 20000000, bonus: { speedMult: 1.45 } },
-			{ label: '4G LTE', desc: 'Reach 75 Mbps Modem Speed', threshold: 75000000, bonus: { speedMult: 1.6 } },
-			{ label: '5G', desc: 'Reach 250 Mbps Modem Speed', threshold: 250000000, bonus: { speedMult: 1.75 } },
-		]
-	},
-	{
-		id: 'ram_slots',
-		icon: '🧠',
-		name: 'Multitasker',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => ramSlots,
-		formatVal: v => v + ' slots',
-		levels: [
-			{ label: 'Two Slots', desc: 'Reach 2 RAM slots', threshold: 2, bonus: { speedMult: 1.02 } },
-			{ label: 'Multi-Threaded', desc: 'Reach 4 RAM slots', threshold: 4, bonus: { speedMult: 1.05 } },
-			{ label: 'Parallel Monster', desc: 'Reach 8 RAM slots', threshold: 8, bonus: { speedMult: 1.08 } },
-			{ label: 'RAM Hoarder', desc: 'Reach 24 RAM slots. Are you the sole reason why RAM is so expensive?', threshold: 8, bonus: { speedMult: 1.08 } },
-		]
-	},
-	{
-		id: 'zero_latency',
-		icon: '📶',
-		name: 'Zero Latency',
-		spoiled: true,
-		showProgress: false,
-		getValue: () => minSpeedFactor,
-		formatVal: v => (v * 100).toFixed(0) + '% min speed',
-		levels: [
-			{ label: 'Low Ping', desc: 'Reach 50% minimum speed', threshold: 0.5, bonus: { minSpeedFlat: 0.03 } },
-			{ label: 'Zero Lag', desc: 'Max out QoS Config', threshold: 0.95, bonus: { minSpeedFlat: 0.06 } },
-		]
-	},
-	{
-		id: 'algo_lvls',
-		icon: '🔬',
-		name: 'Algorithmist',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => algoUpgrades,
-		formatVal: v => 'Lvl ' + v,
-		levels: [
-			{ label: 'Smarter Sell', desc: 'Buy Algorithms once', threshold: 1, bonus: { sellMult: 1.03 } },
-			{ label: 'Algorithmic Edge', desc: 'Buy Algorithms 5 times', threshold: 5, bonus: { sellMult: 1.07 } },
-			{ label: 'Quant Brain', desc: 'Buy Algorithms 15 times', threshold: 15, bonus: { sellMult: 1.12 } },
-		]
-	},
-	{
-		id: 'cooling_lvls',
-		icon: '❄️',
-		name: 'Arctic Rig',
-		spoiled: true,
-		showProgress: true,
-		getValue: () => coolantUpgrades,
-		formatVal: v => 'Lvl ' + v,
-		levels: [
-			{ label: 'You Are Cool', desc: 'Buy Cooling once', threshold: 1, bonus: { speedMult: 1.01 } },
-			{ label: 'Chilled Out', desc: 'Buy Cooling 10 times', threshold: 10, bonus: { speedMult: 1.03 } },
-			{ label: 'Antarctica', desc: 'Buy Cooling 25 times', threshold: 25, bonus: { speedMult: 1.05 } },
-			{ label: 'Sub-zero', desc: 'Buy Cooling 50 times', threshold: 50, bonus: { speedMult: 1.05 } },
-			{ label: 'Zero Kelvin', desc: 'Buy Cooling 100 times', threshold: 100, bonus: { speedMult: 1.05 } },
-		]
-	},
+        {
+                id: 'bytes_dl',
+                icon: '📥',
+                name: 'Downloader',
+                spoiled: false,
+                showProgress: true,
+                getValue: () => totalBytesDownloaded,
+                formatVal: v => formatStorage(v),
+                levels: [
+                        { label: 'First Packet', desc: 'Download 100 B total. You gonna frame it on your wall?', threshold: 100, bonus: { speedMult: 1.01 } },
+                        { label: 'Kilobyte Club', desc: 'Download 1 KB total', threshold: 1000, bonus: { speedMult: 1.02 } },
+                        { label: 'Megabyte Miner', desc: 'Download 1 MB total', threshold: 1000**2, bonus: { speedMult: 1.03 } },
+                        { label: 'Data Hoarder', desc: 'Download 100 MB total', threshold: 100*1000**2, bonus: { speedMult: 1.04 } },
+                        { label: 'Gigabyte Grinder', desc: 'Download 1 GB total', threshold: 1000**3, bonus: { speedMult: 1.05 } },
+                        { label: 'Century of Gigs', desc: 'Download 100 GB total', threshold: 100*1000**3, bonus: { speedMult: 1.06 } },
+                        { label: 'Terabyte Titan', desc: 'Download 1 TB total', threshold: 1000**4, bonus: { speedMult: 1.08 } },
+                        { label: 'Petabyte Phantom', desc: 'Download 1 PB total', threshold: 1000**5, bonus: { speedMult: 1.10 } },
+                ]
+        },
+        {
+                id: 'files_dl',
+                icon: '📂',
+                name: 'File Counter',
+                spoiled: false,
+                showProgress: true,
+                getValue: () => totalFilesDownloaded,
+                formatVal: v => v.toLocaleString() + ' files',
+                levels: [
+                        { label: 'First File', desc: 'Complete your first download', threshold: 1, bonus: { speedMult: 1.01 } },
+                        { label: 'Ten Downloads', desc: 'Complete 10 downloads', threshold: 10, bonus: { speedMult: 1.02 } },
+                        { label: 'Centurion', desc: 'Complete 100 downloads', threshold: 100, bonus: { speedMult: 1.03 } },
+                        { label: 'Download Machine', desc: 'Complete 500 downloads', threshold: 500, bonus: { speedMult: 1.04 } },
+                        { label: 'Production Pipeline', desc: 'Complete 1,000 downloads', threshold: 1000, bonus: { speedMult: 1.06 } },
+                        { label: 'Factory Floor', desc: 'Complete 10,000 downloads', threshold: 10000, bonus: { speedMult: 1.08 } },
+                        { label: 'Infinite Pipeline', desc: 'Complete 100,000 downloads', threshold: 100000, bonus: { speedMult: 1.10 } },
+                ]
+        },
+        {
+                id: 'money_earned',
+                icon: '💰',
+                name: 'Data Broker',
+                spoiled: false,
+                showProgress: true,
+                getValue: () => totalMoneyEarned,
+                formatVal: v => '$' + formatNumber(v),
+                levels: [
+                        { label: 'First Cent', desc: 'Earn $0.01 total', threshold: 0.01, bonus: { sellMult: 1.02 } },
+                        { label: 'Dollar Sign', desc: 'Earn $1.00 total', threshold: 1, bonus: { sellMult: 1.03 } },
+                        { label: 'Triple Digits', desc: 'Earn $100 total', threshold: 100, bonus: { sellMult: 1.05 } },
+                        { label: 'Getting Somewhere', desc: 'Earn $10,000 total', threshold: 10000, bonus: { sellMult: 1.08 } },
+                        { label: 'Millionaire', desc: 'Earn $1,000,000 total', threshold: 1e6, bonus: { sellMult: 1.10 } },
+                        { label: 'Billionaire', desc: 'Earn $1,000,000,000 total', threshold: 1e9, bonus: { sellMult: 1.15 } },
+                        { label: 'Trillionaire', desc: 'Earn $1 trillion total', threshold: 1e12, bonus: { sellMult: 1.20 } },
+                ]
+        },
+        {
+                id: 'sells',
+                icon: '🛒',
+                name: 'Seller',
+                spoiled: false,
+                showProgress: true,
+                getValue: () => totalSells,
+                formatVal: v => v.toLocaleString() + ' sells',
+                levels: [
+                        { label: 'Open for Business', desc: 'Sell data for the first time', threshold: 1, bonus: { sellMult: 1.02 } },
+                        { label: 'Regular Seller', desc: 'Sell data 25 times', threshold: 25, bonus: { sellMult: 1.05 } },
+                        { label: 'Data Vendor', desc: 'Sell data 100 times', threshold: 100, bonus: { sellMult: 1.08 } },
+                        { label: 'Marketplace King', desc: 'Sell data 500 times', threshold: 500, bonus: { sellMult: 1.12 } },
+                ]
+        },
+        {
+                id: 'playtime',
+                icon: '⏱️',
+                name: 'Online',
+                spoiled: false,
+                showProgress: true,
+                getValue: () => playTimeSeconds,
+                formatVal: v => {
+                        if (v < 60) return v + 's';
+                        if (v < 3600) return Math.floor(v/60) + 'm ' + (v%60) + 's';
+                        return Math.floor(v/3600) + 'h ' + Math.floor((v%3600)/60) + 'm';
+                },
+                levels: [
+                        { label: 'Just Booted', desc: 'Play for 1 minute', threshold: 60, bonus: { minSpeedFlat: 0.01 } },
+                        { label: 'Getting Warmed Up', desc: 'Play for 10 minutes', threshold: 600, bonus: { minSpeedFlat: 0.02 } },
+                        { label: 'Dedicated', desc: 'Play for 1 hour', threshold: 3600, bonus: { minSpeedFlat: 0.03 } },
+                        { label: 'Committed', desc: 'Play for 5 hours', threshold: 18000, bonus: { minSpeedFlat: 0.04 } },
+                        { label: 'No Life', desc: 'Play for 24 hours', threshold: 86400, bonus: { minSpeedFlat: 0.05 } },
+                        { label: 'What is grass?', desc: 'Play for 100 hours, get off the game', threshold: 360000, bonus: { minSpeedFlat: 0.06 } },
+                ]
+        },
+        {
+                id: 'abilities',
+                icon: '⚡',
+                name: 'Power User',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => totalAbilityUses,
+                formatVal: v => v + ' uses',
+                levels: [
+                        { label: 'Power Move', desc: 'Use any ability once', threshold: 1, bonus: { speedMult: 1.02 } },
+                        { label: 'Spammer', desc: 'Use abilities 10 times', threshold: 10, bonus: { speedMult: 1.04 } },
+                        { label: 'Power Addict', desc: 'Use abilities 50 times', threshold: 50, bonus: { speedMult: 1.07 } },
+                        { label: 'Ability God', desc: 'Use abilities 200 times', threshold: 200, bonus: { speedMult: 1.10 } },
+                ]
+        },
+        {
+                id: 'overclock',
+                icon: '🔥',
+                name: 'Overclocker',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => ABILITY_USES.overclock,
+                formatVal: v => v + ' uses',
+                levels: [
+                        { label: 'Is This How You Overclock?', desc: 'Use Overclock once', threshold: 1, bonus: { speedMult: 1.02 } },
+                        { label: 'True Overclocker', desc: 'Use Overclock 10 times', threshold: 10, bonus: { speedMult: 1.05 } },
+                        { label: 'Melt Risk', desc: 'Use Overclock 50 times', threshold: 50, bonus: { speedMult: 1.08 } },
+                ]
+        },
+        {
+                id: 'burst',
+                icon: '💥',
+                name: 'Burst Specialist',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => ABILITY_USES.burst,
+                formatVal: v => v + ' uses',
+                levels: [
+                        { label: 'Burst Fire', desc: 'Use Burst Download once', threshold: 1, bonus: { speedMult: 1.02 } },
+                        { label: 'Burst Expert', desc: 'Use Burst Download 10 times', threshold: 10, bonus: { speedMult: 1.04 } },
+                        { label: 'Burst Legend', desc: 'Use Burst Download 50 times', threshold: 50, bonus: { speedMult: 1.06 } },
+                ]
+        },
+        {
+                id: 'hardware_all',
+                icon: '⚙️',
+                name: 'Hardware Collector',
+                spoiled: true,
+                showProgress: false,
+                getValue: () => [storageUpgrades, modemUpgrades, cpuUpgrades, gpuUpgrades, ramUpgrades].filter(x => x >= 1).length,
+                formatVal: v => v + '/5 types',
+                levels: [
+                        { label: 'First Upgrade', desc: 'Upgrade any hardware', threshold: 1, bonus: { speedMult: 1.03 } },
+                        { label: 'Full Rig', desc: 'Upgrade all 5 hardware types', threshold: 5, bonus: { speedMult: 1.10 } },
+                ]
+        },
+        {
+                id: 'storage_lvls',
+                icon: '💾',
+                name: 'Storage Baron',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => maxStorage,
+                formatVal: v => formatStorage(v),
+                levels: [
+                        { label: 'More Room', desc: 'Reach 5 B Storage', threshold: 5, bonus: { sellMult: 1.01 } },
+                        { label: 'Hoarder Setup', desc: 'Reach 1 KB Storage', threshold: 1e3, bonus: { sellMult: 1.03 } },
+                        { label: 'Data Shelf', desc: 'Reach 1 MB Storage', threshold: 1e6, bonus: { sellMult: 1.06 } },
+                        { label: 'Data Vault', desc: 'Reach 1 GB Storage', threshold: 1e9, bonus: { sellMult: 1.10 } },
+                        { label: 'Library of Alexandria', desc: 'Reach 1 PB Storage', threshold: 1e15, bonus: { sellMult: 1.20 } },
+                ]
+        },
+        {
+                id: 'modem_lvls',
+                icon: '📡',
+                name: 'Bandwidth King',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => modemSpeed,
+                formatVal: v => formatSpeed(v),
+                levels: [
+                        { label: 'Five Letters Per Second', desc: 'Reach 5 bps Modem Speed', threshold: 5, bonus: { speedMult: 1.02 } },
+                        { label: 'Dial-Up', desc: 'Reach 56 bps Modem Speed', threshold: 56, bonus: { speedMult: 1.03 } },
+                        { label: 'Early Modem', desc: 'Reach 300 bps Modem Speed', threshold: 300, bonus: { speedMult: 1.032 } },
+                        { label: 'Home Modem', desc: 'Reach 1.2 Kbps Modem Speed', threshold: 1200, bonus: { speedMult: 1.035 } },
+                        { label: 'Fast Modem', desc: 'Reach 2.4 Kbps Modem Speed', threshold: 2400, bonus: { speedMult: 1.038 } },
+                        { label: 'V.32 Modem', desc: 'Reach 9.6 Kbps Modem Speed', threshold: 9600, bonus: { speedMult: 1.042 } },
+                        { label: '2G', desc: 'Reach 14.4 Kbps Modem Speed', threshold: 14400, bonus: { speedMult: 1.045 } },
+                        { label: 'GPRS', desc: 'Reach 40 Kbps Modem Speed', threshold: 40000, bonus: { speedMult: 1.06 } },
+                        { label: 'ISDN', desc: 'Reach 128 Kbps Modem Speed', threshold: 128000, bonus: { speedMult: 1.075 } },
+                        { label: 'EDGE', desc: 'Reach 190 Kbps Modem Speed', threshold: 190000, bonus: { speedMult: 1.1 } },
+                        { label: '3G', desc: 'Reach 384 Kbps Modem Speed', threshold: 384000, bonus: { speedMult: 1.15 } },
+                        { label: '3.5G', desc: 'Reach 4 Mbps Modem Speed', threshold: 4000000, bonus: { speedMult: 1.225 } },
+                        { label: '3.75G', desc: 'Reach 8 Mbps Modem Speed', threshold: 8000000, bonus: { speedMult: 1.33 } },
+                        { label: '4G', desc: 'Reach 20 Mbps Modem Speed', threshold: 20000000, bonus: { speedMult: 1.45 } },
+                        { label: '4G LTE', desc: 'Reach 75 Mbps Modem Speed', threshold: 75000000, bonus: { speedMult: 1.6 } },
+                        { label: '5G', desc: 'Reach 250 Mbps Modem Speed', threshold: 250000000, bonus: { speedMult: 1.75 } },
+                ]
+        },
+        {
+                id: 'ram_slots',
+                icon: '🧠',
+                name: 'Multitasker',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => ramSlots,
+                formatVal: v => v + ' slots',
+                levels: [
+                        { label: 'Two Slots', desc: 'Reach 2 RAM slots', threshold: 2, bonus: { speedMult: 1.02 } },
+                        { label: 'Multi-Threaded', desc: 'Reach 4 RAM slots', threshold: 4, bonus: { speedMult: 1.05 } },
+                        { label: 'Parallel Monster', desc: 'Reach 8 RAM slots', threshold: 8, bonus: { speedMult: 1.08 } },
+                        { label: 'RAM Hoarder', desc: 'Reach 24 RAM slots. Are you the sole reason why RAM is so expensive?', threshold: 8, bonus: { speedMult: 1.08 } },
+                ]
+        },
+        {
+                id: 'zero_latency',
+                icon: '📶',
+                name: 'Zero Latency',
+                spoiled: true,
+                showProgress: false,
+                getValue: () => minSpeedFactor,
+                formatVal: v => (v * 100).toFixed(0) + '% min speed',
+                levels: [
+                        { label: 'Low Ping', desc: 'Reach 50% minimum speed', threshold: 0.5, bonus: { minSpeedFlat: 0.03 } },
+                        { label: 'Zero Lag', desc: 'Max out QoS Config', threshold: 0.95, bonus: { minSpeedFlat: 0.06 } },
+                ]
+        },
+        {
+                id: 'algo_lvls',
+                icon: '🔬',
+                name: 'Algorithmist',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => algoUpgrades,
+                formatVal: v => 'Lvl ' + v,
+                levels: [
+                        { label: 'Smarter Sell', desc: 'Buy Algorithms once', threshold: 1, bonus: { sellMult: 1.03 } },
+                        { label: 'Algorithmic Edge', desc: 'Buy Algorithms 5 times', threshold: 5, bonus: { sellMult: 1.07 } },
+                        { label: 'Quant Brain', desc: 'Buy Algorithms 15 times', threshold: 15, bonus: { sellMult: 1.12 } },
+                ]
+        },
+        {
+                id: 'cooling_lvls',
+                icon: '❄️',
+                name: 'Arctic Rig',
+                spoiled: true,
+                showProgress: true,
+                getValue: () => coolantUpgrades,
+                formatVal: v => 'Lvl ' + v,
+                levels: [
+                        { label: 'You Are Cool', desc: 'Buy Cooling once', threshold: 1, bonus: { speedMult: 1.01 } },
+                        { label: 'Chilled Out', desc: 'Buy Cooling 10 times', threshold: 10, bonus: { speedMult: 1.03 } },
+                        { label: 'Antarctica', desc: 'Buy Cooling 25 times', threshold: 25, bonus: { speedMult: 1.05 } },
+                        { label: 'Sub-zero', desc: 'Buy Cooling 50 times', threshold: 50, bonus: { speedMult: 1.05 } },
+                        { label: 'Zero Kelvin', desc: 'Buy Cooling 100 times', threshold: 100, bonus: { speedMult: 1.05 } },
+                ]
+        },
 ];
 
 // ── ACHIEVEMENT BONUS ENGINE ──
@@ -5702,39 +5978,6 @@ window.addEventListener('resize', applyMobileTabVisibility);
         }).observe(origPrice, { childList: true, characterData: true, subtree: true });
     }
 
-    // Clone settings menu content into mobile strip
-    const origMenu = document.getElementById('settings-menu');
-    const mobileMenu = document.getElementById('settings-menu-mobile');
-    const mobileSettingsBtn = document.getElementById('settings-button-mobile');
-    if (origMenu && mobileMenu) {
-        mobileMenu.innerHTML = origMenu.innerHTML;
-        // Re-wire buttons in the cloned menu to trigger originals
-        ['import-save','export-save','wipe-save'].forEach(id => {
-            const clone = mobileMenu.querySelector('#' + id);
-            const orig  = document.getElementById(id);
-            if (clone && orig) clone.addEventListener('click', () => orig.click());
-        });
-        const cloneVol = mobileMenu.querySelector('#master-volume');
-        const origVol  = document.getElementById('master-volume');
-        if (cloneVol && origVol) {
-            cloneVol.value = origVol.value;
-            cloneVol.addEventListener('input', () => { origVol.value = cloneVol.value; origVol.dispatchEvent(new Event('input')); });
-        }
-        const cloneInterval = mobileMenu.querySelector('#auto-save-interval');
-        const origInterval  = document.getElementById('auto-save-interval');
-        if (cloneInterval && origInterval) {
-            cloneInterval.value = origInterval.value;
-            cloneInterval.addEventListener('change', () => { origInterval.value = cloneInterval.value; origInterval.dispatchEvent(new Event('change')); });
-        }
-    }
-    if (mobileSettingsBtn && mobileMenu) {
-        mobileSettingsBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            const open = mobileMenu.style.display === 'block';
-            mobileMenu.style.display = open ? 'none' : 'block';
-        });
-        document.addEventListener('click', () => { mobileMenu.style.display = 'none'; });
-    }
 })();
 
 // Close shop drawer on tab switch

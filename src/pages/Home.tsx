@@ -28,6 +28,7 @@ import AlloyThumbnail from "../assets/thumb/Alloy.png";
 import Astra97Thumbnail from "../assets/thumb/Astra97.png";
 import OrionThumbnail from "../assets/thumb/Orion.png";
 import RankrThumbnail from "../assets/thumb/Rankr.png";
+import ZincThumbnail from "../assets/thumb/Zinc.png";
 import TrigsSystemsThumbnail from "../assets/thumb/TrigsSystems.png";
 import HtmlInlinerThumbnail from "../assets/thumb/trigs-html-inliner.png";
 import WhiteboardThumbnail from "../assets/thumb/Whiteboard.png";
@@ -219,230 +220,256 @@ export default function Home() {
                 </div>
 
                 <div className="games">
-                    <Card title="Orion" description="a chat app, basically" thumbnail={OrionThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Orion/index.html");
-                                setWindowTitle("Orion");
-                                setWindowThumbnail(OrionThumbnail);
-                            }} />
-                            <a href="/downloads/Orion.zip" download="Orion.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Astra 97" description="windows 9x, but it's a browser tab" thumbnail={Astra97Thumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Astra%2097/index.html");
-                                setWindowTitle("Astra 97");
-                                setWindowThumbnail(Astra97Thumbnail);
-                            }} />
-                            <a href="/downloads/Astra 97.zip" download="Astra 97.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Alloy" description="idk it sounded cool" thumbnail={AlloyThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Alloy/index.html");
-                                setWindowTitle("Alloy");
-                                setWindowThumbnail(AlloyThumbnail);
-                            }} />
-                            <a href="/downloads/Alloy.zip" download="Alloy.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Rankr" description="rank stuff, chart stuff, you know the drill" thumbnail={RankrThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Rankr/index.html");
-                                setWindowTitle("Rankr");
-                                setWindowThumbnail(RankrThumbnail);
-                            }} />
-                            <a href="/downloads/Rankr.zip" download="Rankr.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Trig's Systems" description="my calendar, my units, my rules" thumbnail={TrigsSystemsThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Trig's%20Systems/index.html");
-                                setWindowTitle("Trig's Systems");
-                                setWindowThumbnail(TrigsSystemsThumbnail);
-                            }} />
-                            <a href="/downloads/Trig's Systems.zip" download="Trig's Systems.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Whiteboard" description="draw on stuff with friends" thumbnail={WhiteboardThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/whiteboard/index.html");
-                                setWindowTitle("Whiteboard");
-                                setWindowThumbnail(WhiteboardThumbnail);
-                            }} />
-                            <a href="/downloads/Whiteboard.zip" download="Whiteboard.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="trigs-html-inliner" description="squishes your html files into one, download only" thumbnail={HtmlInlinerThumbnail} footer={
-                        <div className="flex gap-2">
-                            <a href="/downloads/trigs-html-inliner.exe" download="trigs-html-inliner.exe" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Trig's Cafe" description="drink up pal it's laced" thumbnail={TrigCafeThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Trig's%20Cafe/index.html");
-                                setWindowTitle("Trig's Cafe");
-                                setWindowThumbnail(TrigCafeThumbnail);
-                            }} />
-                            <a href="/downloads/Trig's Cafe.zip" download="Trig's Cafe.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Downloadaire" description="download files man idk what you're expect" thumbnail={DownloadaireThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Downloadaire/downloadaire.html");
-                                setWindowTitle("Downloadaire");
-                                setWindowThumbnail(DownloadaireThumbnail);
-                            }} />
-                            <a href="/downloads/Downloadaire.zip" download="Downloadaire.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Cometbrick" description="bounce balls on bricks" thumbnail={CometbrickThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Cometbrick/index.html");
-                                setWindowTitle("Cometbrick");
-                                setWindowThumbnail(CometbrickThumbnail);
-                            }} />
-                            <a href="/downloads/Cometbrick.zip" download="Cometbrick.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Atombox" description="we goin atomic with this one 🗣️" thumbnail={AtomboxThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Atombox/index.html");
-                                setWindowTitle("Atombox");
-                                setWindowThumbnail(AtomboxThumbnail);
-                            }} />
-                            <a href="/downloads/Atombox.zip" download="Atombox.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title='Slotz' description="LETS GO GAMBLING" thumbnail={SlotzThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Slotz/index.html");
-                                setWindowTitle("Slotz");
-                                setWindowThumbnail(SlotzThumbnail);
-                            }} />
-                            <a href="/downloads/Slotz.zip" download="Slotz.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Marmora" description="a game about marbles" thumbnail={MarmoraThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Marmora/index.html");
-                                setWindowTitle("Marmora");
-                                setWindowThumbnail(MarmoraThumbnail);
-                            }} />
-                            <a href="/downloads/Marmora.zip" download="Marmora.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Imposter" description="who's the cow?" thumbnail={ImposterThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Imposter/imposter.html");
-                                setWindowTitle("Imposter");
-                                setWindowThumbnail(ImposterThumbnail);
-                            }} />
-                            <a href="/downloads/Imposter.zip" download="Imposter.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Nibbl" description="upgrade your pc idk" thumbnail={NibblThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Nibbl/index.html");
-                                setWindowTitle("Nibbl");
-                                setWindowThumbnail(NibblThumbnail);
-                            }} />
-                            <a href="/downloads/Nibbl.zip" download="Nibbl.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Defr4g" description="defragment like it's 2001" thumbnail={DefragThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Defrag/index.html");
-                                setWindowTitle("Defrag");
-                                setWindowThumbnail(DefragThumbnail);
-                            }} />
-                            <a href="/downloads/Defrag.zip" download="Defrag.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Terram" description="didn't know you could make terraria so bad" thumbnail={TerramThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Terram/index.html");
-                                setWindowTitle("Terram");
-                                setWindowThumbnail(TerramThumbnail);
-                            }} />
-                            <a href="/downloads/Terram.zip" download="Terram.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Running Game" description="chrome dino? where are you?" thumbnail={RunningGameThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/Running%20Game/index.html");
-                                setWindowTitle("Running Game");
-                                setWindowThumbnail(RunningGameThumbnail);
-                            }} />
-                            <a href="/downloads/Running Game.zip" download="Running Game.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                    <Card title="Lux" description="the worst light ray simulation you've ever seen" thumbnail={LuxThumbnail} footer={
-                        <div className="flex gap-2">
-                            <FaPlay className="cursor-pointer" onClick={() => {
-                                setWindowURL("games/lux/lux.html");
-                                setWindowTitle("Lux");
-                                setWindowThumbnail(LuxThumbnail);
-                            }} />
-                            <a href="/downloads/Lux.zip" download="Lux.zip" className="cursor-pointer">
-                                <FaArrowDown />
-                            </a>
-                        </div>
-                    } />
-                </div>
+    <Card title="Orion" description="super sophisticated chat app, very tuff" thumbnail={OrionThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Orion/index.html");
+                setWindowTitle("Orion");
+                setWindowThumbnail(OrionThumbnail);
+            }} />
+            <a href="/downloads/Orion.zip" download="Orion.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Astra 97" description="windows 98 in an alternate universe" thumbnail={Astra97Thumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Astra%2097/index.html");
+                setWindowTitle("Astra 97");
+                setWindowThumbnail(Astra97Thumbnail);
+            }} />
+            <a href="/downloads/Astra 97.zip" download="Astra 97.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Downloadaire" description="download files man idk what you're expecting" thumbnail={DownloadaireThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Downloadaire/downloadaire.html");
+                setWindowTitle("Downloadaire");
+                setWindowThumbnail(DownloadaireThumbnail);
+            }} />
+            <a href="/downloads/Downloadaire.zip" download="Downloadaire.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Marmora" description="a game about marbles racing" thumbnail={MarmoraThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Marmora/index.html");
+                setWindowTitle("Marmora");
+                setWindowThumbnail(MarmoraThumbnail);
+            }} />
+            <a href="/downloads/Marmora.zip" download="Marmora.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Rankr" description="rank stuff, chart stuff, you get the idea" thumbnail={RankrThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Rankr/index.html");
+                setWindowTitle("Rankr");
+                setWindowThumbnail(RankrThumbnail);
+            }} />
+            <a href="/downloads/Rankr.zip" download="Rankr.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Zinc" description="chat with local AIs (requires ollama and installation of AIs)" thumbnail={ZincThumbnail} footer={
+        <div className="flex gap-2">
+            <a href="/downloads/Zinc.zip" download="Zinc.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Trig's Cafe" description="drink up pal it's laced" thumbnail={TrigCafeThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Trig's%20Cafe/index.html");
+                setWindowTitle("Trig's Cafe");
+                setWindowThumbnail(TrigCafeThumbnail);
+            }} />
+            <a href="/downloads/Trig's Cafe.zip" download="Trig's Cafe.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Cometbrick" description="bounce balls on bricks" thumbnail={CometbrickThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Cometbrick/index.html");
+                setWindowTitle("Cometbrick");
+                setWindowThumbnail(CometbrickThumbnail);
+            }} />
+            <a href="/downloads/Cometbrick.zip" download="Cometbrick.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Atombox" description="play with atoms (try not to split them)" thumbnail={AtomboxThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Atombox/index.html");
+                setWindowTitle("Atombox");
+                setWindowThumbnail(AtomboxThumbnail);
+            }} />
+            <a href="/downloads/Atombox.zip" download="Atombox.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Nibbl" description="upgrade your pc idk" thumbnail={NibblThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Nibbl/index.html");
+                setWindowTitle("Nibbl");
+                setWindowThumbnail(NibblThumbnail);
+            }} />
+            <a href="/downloads/Nibbl.zip" download="Nibbl.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Trig's Systems" description="my calendar, my units, my rules" thumbnail={TrigsSystemsThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Trig's%20Systems/index.html");
+                setWindowTitle("Trig's Systems");
+                setWindowThumbnail(TrigsSystemsThumbnail);
+            }} />
+            <a href="/downloads/Trig's Systems.zip" download="Trig's Systems.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+    
+    <Card title="Trig's HTML Inliner" description="squishes your html files into one" thumbnail={HtmlInlinerThumbnail} footer={
+        <div className="flex gap-2">
+            <a href="/downloads/trigs-html-inliner.zip" download="trigs-html-inliner.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Alloy" description="a Minecraft texture maker for custom tools, armor, and items" thumbnail={AlloyThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Alloy/index.html");
+                setWindowTitle("Alloy");
+                setWindowThumbnail(AlloyThumbnail);
+            }} />
+            <a href="/downloads/Alloy.zip" download="Alloy.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Imposter" description="who's the cow?" thumbnail={ImposterThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Imposter/imposter.html");
+                setWindowTitle("Imposter");
+                setWindowThumbnail(ImposterThumbnail);
+            }} />
+            <a href="/downloads/Imposter.zip" download="Imposter.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Terram" description="didn't know you could make terraria so bad" thumbnail={TerramThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Terram/index.html");
+                setWindowTitle("Terram");
+                setWindowThumbnail(TerramThumbnail);
+            }} />
+            <a href="/downloads/Terram.zip" download="Terram.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Slotz" description="ha ha gambling" thumbnail={SlotzThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Slotz/index.html");
+                setWindowTitle("Slotz");
+                setWindowThumbnail(SlotzThumbnail);
+            }} />
+            <a href="/downloads/Slotz.zip" download="Slotz.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Lux" description="the worst light ray simulation you've ever seen" thumbnail={LuxThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/lux/lux.html");
+                setWindowTitle("Lux");
+                setWindowThumbnail(LuxThumbnail);
+            }} />
+            <a href="/downloads/Lux.zip" download="Lux.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Defr4g" description="defragment like it's 2001" thumbnail={DefragThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Defrag/index.html");
+                setWindowTitle("Defrag");
+                setWindowThumbnail(DefragThumbnail);
+            }} />
+            <a href="/downloads/Defrag.zip" download="Defrag.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Whiteboard" description="draw on stuff with friends" thumbnail={WhiteboardThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/whiteboard/index.html");
+                setWindowTitle("Whiteboard");
+                setWindowThumbnail(WhiteboardThumbnail);
+            }} />
+            <a href="/downloads/Whiteboard.zip" download="Whiteboard.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+
+    <Card title="Running Game" description="chrome dino? where are you?" thumbnail={RunningGameThumbnail} footer={
+        <div className="flex gap-2">
+            <FaPlay className="cursor-pointer" onClick={() => {
+                setWindowURL("games/Running%20Game/index.html");
+                setWindowTitle("Running Game");
+                setWindowThumbnail(RunningGameThumbnail);
+            }} />
+            <a href="/downloads/Running Game.zip" download="Running Game.zip" className="cursor-pointer">
+                <FaArrowDown />
+            </a>
+        </div>
+    } />
+</div>
             </section>
 
             {/* ── Elsewhere (YouTube / GitHub) ─────────────────────────────── */}
