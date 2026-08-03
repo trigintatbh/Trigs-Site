@@ -435,7 +435,8 @@ body {
     0 8px 32px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     inset 0 -1px 0 rgba(0, 0, 0, 0.4);
-  transform: translateY(-2px);
+  transform: scale(1.035);
+  z-index: 10;
 }
 
 .card--title {
@@ -514,7 +515,7 @@ body {
 
 .elsewhere--card:hover {
   border-color: rgba(122, 51, 255, 0.45);
-  transform: translateY(-2px);
+  transform: scale(1.03);
 }
 
 .elsewhere--card svg {
@@ -620,4 +621,70 @@ body, #root {
 ::selection {
   background: rgba(85, 0, 255, 0.4);
   color: #f0f0f5;
+}
+
+/* ─── Star background ──────────────────────────────────────────────────────── */
+.star-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.star-background canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Scroll reveal ────────────────────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Cascading delay for the About blocks, in DOM order
+   (the section's first div is the header, so blocks start at nth-of-type(2)) */
+.about--block.reveal:nth-of-type(2) { transition-delay: 0ms; }
+.about--block.reveal:nth-of-type(3) { transition-delay: 60ms; }
+.about--block.reveal:nth-of-type(4) { transition-delay: 60ms; }
+.about--block.reveal:nth-of-type(5) { transition-delay: 60ms; }
+.about--block.reveal:nth-of-type(6) { transition-delay: 60ms; }
+
+/* Row-based stagger for project cards */
+.games > .card.reveal:nth-child(5n+1) { transition-delay: 0ms; }
+.games > .card.reveal:nth-child(5n+2) { transition-delay: 70ms; }
+.games > .card.reveal:nth-child(5n+3) { transition-delay: 140ms; }
+.games > .card.reveal:nth-child(5n+4) { transition-delay: 210ms; }
+.games > .card.reveal:nth-child(5n+5) { transition-delay: 280ms; }
+
+/* ─── Card-style button (used on 404, etc.) ───────────────────────────────── */
+.btn-card {
+  @apply inline-flex items-center justify-center px-8 py-3.5 rounded-2xl text-sm font-bold;
+  color: #f0f0f5;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-card:hover {
+  border-color: rgba(122, 51, 255, 0.45);
+  transform: scale(1.06);
 }

@@ -11914,7 +11914,12 @@ button.emoji {
                 start(src) {
                     // Find a | at the start of a line (after ^, <br>, or \n).
                     // The tokenizer will validate whether it's actually a table.
-                    const m = /(^|<br\s*\/?>|\n)\|/.exec(src);
+                    // IMPORTANT: Skip lines that start with || (spoiler syntax)
+                    // so that ||spoiler text|| is never consumed by the table
+                    // tokenizer. Without this guard, the first | of ||text||
+                    // would be treated as a table-cell delimiter, leaving the
+                    // spoiler content mangled as |text||.
+                    const m = /(^|<br\s*\/?>|\n)\|(?!\|)/.exec(src);
                     return m ? m.index + m[1].length : undefined;
                 },
                 tokenizer(src) {
@@ -11964,9 +11969,13 @@ button.emoji {
 
                     // Find the first line containing | that could be a header,
                     // followed by a valid separator line.
+                    // Skip lines that start with || (spoiler syntax) to avoid
+                    // the table tokenizer consuming spoiler content.
                     for (let li = 0; li < lines.length - 1; li++) {
                         const headerLine = lines[li].line;
                         if (!headerLine.includes('|')) continue;
+                        // Skip lines starting with || — these are spoilers, not tables
+                        if (/^\|\|/.test(headerLine)) continue;
 
                         const headerCells = splitPipeCells(headerLine);
                         if (headerCells.length < 1) continue;
@@ -12082,6 +12091,16 @@ button.emoji {
                     };
                     html = html.replace(/```[\s\S]*?```/g, stash);
                     html = html.replace(/`[^`\n]+`/g, stash);
+
+                    // Stash ||spoiler|| delimiters so marked's built-in GFM table tokenizer
+                    // never sees the raw | characters.  Without this, the table tokenizer
+                    // treats the first | of ||text|| as a cell delimiter, leaving the
+                    // rendered output as | |text|| instead of a spoiler span.  The custom
+                    // table extension has a negative-lookahead guard for ||, but the
+                    // built-in GFM table tokenizer does not, and it can still match first.
+                    // We replace only the || delimiters with a unique marker, preserving
+                    // the inner content so marked can still process markdown inside spoilers.
+                    html = html.replace(/\|\|/g, '\u0000SP\u0000');
 
                     // Backslash escaping: \X produces a literal X character, preventing
                     // the next character from being interpreted as markdown formatting.
@@ -12204,6 +12223,12 @@ button.emoji {
                 }
             },
             tokenizer: {
+                // Disable the built-in ---/***/___ horizontal rule so that
+                // --- is never consumed as <hr>. The custom ::: extension
+                // (above) handles horizontal rules instead. Without this
+                // override, typing --- on its own line would render as an
+                // unwanted <hr> instead of staying as literal dashes.
+                hr(src) { return undefined; },
                 // Only "- item" bullets are supported (not "1. item" numbered lists).
                 // Consumes consecutive dash-prefixed lines (each ending in <br> or a
                 // real newline, same convention as the blockquote/heading tokenizers
@@ -20906,7 +20931,15 @@ function applySpoilers(text) {
     const withColors = applyColorFormatting(text);
     const withZalgo   = withColors.replace(/\$\$([\s\S]*?)\$\$/g, (_, inner) => applyZalgoToHtml(inner, 6));
     const withEffects = parseEffectTags(withZalgo);
-    const withSpoilers = withEffects.trim().replace(/\|\|([\s\S]*?)\|\|/g, '<span class="orion-spoiler" data-spoiler="1">$1</span>');
+    // Restore spoiler markers placed by the marked preprocess hook.
+    // The preprocess hook replaces || with \u0000SP\u0000 to protect them
+    // from marked's built-in GFM table tokenizer.  We convert matched
+    // pairs back to spoiler spans.  The fallback regex below still handles
+    // any ||...|| that wasn't stashed (e.g. from parseInline which doesn't
+    // run the preprocess hook).
+    const withStashedSpoilers = withEffects.replace(/\u0000SP\u0000([\s\S]*?)\u0000SP\u0000/g,
+        '<span class="orion-spoiler" data-spoiler="1">$1</span>');
+    const withSpoilers = withStashedSpoilers.trim().replace(/\|\|([\s\S]*?)\|\|/g, '<span class="orion-spoiler" data-spoiler="1">$1</span>');
     return sanitizeMessageHtml(withSpoilers);
 }
 
@@ -21234,6 +21267,177 @@ if (msgInputBackdropBinder) {
     msgInputBackdropBinder.addEventListener('scroll', () => {
         const backdrop = document.getElementById('messageInputBackdrop');
         if (backdrop) backdrop.scrollTop = msgInputBackdropBinder.scrollTop;
+    });
+}
+
+// ── Auto-format replacements (smart typography) ──────────────────────
+// When the user types certain character sequences, they are automatically
+// replaced with their Unicode equivalents.  Pressing Backspace immediately
+// after a replacement undoes it, restoring the original characters.
+//
+// Supported replacements:
+//   ^0 → ⁰   ^1 → ¹   ^2 → ²   ^3 → ³   ^4 → ⁴
+//   ^5 → ⁵   ^6 → ⁶   ^7 → ⁷   ^8 → ⁸   ^9 → ⁹   ^+ → ⁺
+//   ->  → →   <-  → ←   =>  → ⇒   <=  → ⇐
+//   =/= → ≠   ~=  → ≈   !=  → ≠
+//   ... → …
+
+const AUTO_FORMAT_MAP = [
+    // Superscript digits (must be checked before generic ^ rules)
+    { trigger: /\^0$/, replacement: '⁰', original: '^0' },
+    { trigger: /\^1$/, replacement: '¹', original: '^1' },
+    { trigger: /\^2$/, replacement: '²', original: '^2' },
+    { trigger: /\^3$/, replacement: '³', original: '^3' },
+    { trigger: /\^4$/, replacement: '⁴', original: '^4' },
+    { trigger: /\^5$/, replacement: '⁵', original: '^5' },
+    { trigger: /\^6$/, replacement: '⁶', original: '^6' },
+    { trigger: /\^7$/, replacement: '⁷', original: '^7' },
+    { trigger: /\^8$/, replacement: '⁸', original: '^8' },
+    { trigger: /\^9$/, replacement: '⁹', original: '^9' },
+    { trigger: /\^\+$/, replacement: '⁺', original: '^+' },
+    { trigger: /\^-$/, replacement: '⁻', original: '^-' },
+    // Arrows
+    { trigger: /->$/,  replacement: '→', original: '->' },
+    { trigger: /<-$/,  replacement: '←', original: '<-' },
+    { trigger: /=>$/,  replacement: '⇒', original: '=>' },
+    { trigger: /<=$/,  replacement: '⇐', original: '<=' },
+    // Math
+    { trigger: /~=$/,  replacement: '≈', original: '~=' },
+    { trigger: /!=$/,  replacement: '≠', original: '!=' },
+    { trigger: /=\/=$/, replacement: '≠', original: '=/=' },
+    // Punctuation
+    { trigger: /\.\.\.$/, replacement: '…', original: '...' },
+    { trigger: /--$/, replacement: '—', original: '--' },
+];
+
+// Stack of auto-format undo entries: { index, original, replacement }
+// Only the most recent replacement is kept (so Backspace undoes exactly one).
+let _autoFormatUndo = null;
+// When a Backspace-undo restores the original text, the dispatched input event
+// would re-trigger applyAutoFormat and immediately re-replace the text.  This
+// flag suppresses exactly one applyAutoFormat call after an undo.
+let _autoFormatSuppress = false;
+
+function applyAutoFormat(input) {
+    if (!input || input.tagName !== 'TEXTAREA') return;
+    // If we just undid an auto-format, skip this call so the restored text
+    // isn't immediately re-replaced.
+    if (_autoFormatSuppress) {
+        _autoFormatSuppress = false;
+        return;
+    }
+    const val = input.value;
+    const pos = input.selectionStart;
+    if (pos === 0) return;
+
+    // Only check the text up to the cursor
+    const textBeforeCursor = val.slice(0, pos);
+
+    for (const rule of AUTO_FORMAT_MAP) {
+        const match = rule.trigger.exec(textBeforeCursor);
+        if (!match) continue;
+
+        const matchStart = pos - rule.original.length;
+        const matchEnd = pos;
+
+        // Replace the matched text
+        const newVal = val.slice(0, matchStart) + rule.replacement + val.slice(matchEnd);
+        input.value = newVal;
+        const newPos = matchStart + rule.replacement.length;
+        input.selectionStart = input.selectionEnd = newPos;
+
+        // Store undo info
+        _autoFormatUndo = {
+            index: matchStart,
+            original: rule.original,
+            replacement: rule.replacement
+        };
+
+        // Fire input event so the backdrop and other listeners update
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return;
+    }
+
+    // If we got here, no replacement was made — decide whether to keep the undo stack.
+    // Keep it only if the replacement text is still physically present at the expected
+    // position in the input value.  This is more robust than checking the cursor position,
+    // which can be off by one due to microtask timing or other synchronous input handlers.
+    if (_autoFormatUndo) {
+        const idx = _autoFormatUndo.index;
+        const rep = _autoFormatUndo.replacement;
+        if (val.slice(idx, idx + rep.length) !== rep) {
+            _autoFormatUndo = null;
+        }
+    }
+}
+
+function handleAutoFormatBackspace(input) {
+    if (!input || input.tagName !== 'TEXTAREA') return false;
+    if (!_autoFormatUndo) return false;
+
+    const val = input.value;
+    const idx = _autoFormatUndo.index;
+    const rep = _autoFormatUndo.replacement;
+
+    // First, verify the replacement text is still at the expected position.
+    // If it's been deleted or overwritten, the undo is stale.
+    if (val.slice(idx, idx + rep.length) !== rep) {
+        _autoFormatUndo = null;
+        return false;
+    }
+
+    const pos = input.selectionStart;
+    const repEnd = idx + rep.length;
+
+    // Only undo if the cursor is inside or immediately after the replacement.
+    // For a 1-char replacement like ≠ the cursor can be at idx (before) or
+    // idx+1 (after); both should trigger the undo so Backspace feels natural.
+    if (pos < idx || pos > repEnd) {
+        _autoFormatUndo = null;
+        return false;
+    }
+
+    const before = val.slice(0, idx);
+    const after = val.slice(repEnd);
+
+    // Restore original text
+    input.value = before + _autoFormatUndo.original + after;
+    const newPos = idx + _autoFormatUndo.original.length;
+    input.selectionStart = input.selectionEnd = newPos;
+
+    // Clear the undo entry
+    _autoFormatUndo = null;
+
+    // Suppress the next applyAutoFormat call so the restored text
+    // (e.g. =/=) isn't immediately re-replaced with ≠.
+    _autoFormatSuppress = true;
+
+    // Fire input event so the backdrop and other listeners update
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+}
+
+// Bind to the main message input
+const _autoFormatInput = document.getElementById('messageInput');
+if (_autoFormatInput) {
+    _autoFormatInput.addEventListener('input', function() {
+        // Use a microtask to avoid interfering with other input handlers
+        // that run synchronously (e.g. the backdrop updater).
+        const input = this;
+        queueMicrotask(() => applyAutoFormat(input));
+    });
+    _autoFormatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            const undone = handleAutoFormatBackspace(this);
+            if (undone) {
+                // Prevent the browser's default Backspace behavior (which would
+                // delete an extra character from the restored text).
+                e.preventDefault();
+            }
+        } else {
+            // Any non-Backspace key clears the undo stack
+            _autoFormatUndo = null;
+        }
     });
 }
 
@@ -24602,9 +24806,12 @@ async function showContextMenu(event, messageId, messageOwnerId, imageUrl, messa
     // DMs — not just the author. We therefore gate the admin check on
     // currentServerData.type === 'server' so DM contexts fall through to the
     // author-only branch.)
+    // Additionally, users with the Orion owner badge (userData.owner === true)
+    // can delete ANY message in any context — they have global delete powers.
+    const isOrionOwner = !!(currentUserData && currentUserData.owner);
     const isServerContextForDelete = !!(currentServerData && currentServerData.type === 'server');
     const canManageMessagesForDelete = isServerContextForDelete && hasPermission(currentServerId, currentChannelId, 'manageMessages');
-    if (messageOwnerId === currentUserId || canManageMessagesForDelete) {
+    if (messageOwnerId === currentUserId || canManageMessagesForDelete || isOrionOwner) {
         deleteMessageButton.style.display = "flex";
         deleteMessageButton.onclick = function(e) {
             hideContextMenu();

@@ -11,7 +11,7 @@ interface ICard {
 
 export default function Card(props: ICard) {
     return (
-        <div className="group card">
+        <div className="group card reveal">
             {/* Default title — fades out on hover */}
             <div className="relative z-10 opacity-100 group-hover:opacity-0 transition-opacity duration-250">
                 <div className="card--title flex items-center gap-1.5">

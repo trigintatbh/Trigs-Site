@@ -127,7 +127,7 @@ export default function Home() {
                 <div className="flex flex-col gap-2">
                     <h1 className="hero--name text-6xl md:text-7xl leading-[1.15] pb-1">Logan Ellingson</h1>
                     <div className="flex items-center gap-2">
-                        <img src={az} className="w-7 h-5 rounded-sm border border-neutral-800 object-cover" alt="Arizona flag" />
+                        <img src={az} className="w-12 h-8 rounded-sm border border-neutral-800 object-fit" alt="Arizona flag" />
                         <span className="text-neutral-300! font-semibold text-sm">Proudly from Arizona</span>
                     </div>
                 </div>
@@ -174,7 +174,7 @@ export default function Home() {
                     <h2 className="text-3xl font-bold">Heya, it's me, Triginta</h2>
                 </div>
 
-                <div className="about--block">
+                <div className="about--block reveal">
                     <img src={am1} className="about--image" alt="Triginta illustration 1" />
                     <div className="about--text">
                         <p>
@@ -192,7 +192,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div className="about--block">
+                <div className="about--block reveal">
                     <img src={am2} className="about--image" alt="Triginta illustration 2" />
                     <div className="about--text">
                         <p>
@@ -215,7 +215,23 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div className="about--block">
+                <div className="about--block reveal">
+                    <img src={am1} className="about--image" alt="Triginta illustration 5" />
+                    <div className="about--text">
+                        <p>
+                            One of my weirder hyper-fixations is mapping out scenarios that will, hopefully,
+                            never actually happen. Think a second US Civil War, or what WWIII would look like if
+                            it kicked off next week. I map the whole thing out, occupation and all, entirely in{" "}
+                            <strong>Paint.NET</strong>.
+                        </p>
+                        <p>
+                            I'm also a huge <strong>science, space, and astronomy</strong> nerd, which is probably obvious
+                            if you look at how many of my projects end up being planets, stars, atoms, etc.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="about--block reveal">
                     <img src={am3} className="about--image" alt="Triginta illustration 3" />
                     <div className="about--text">
                         <p>
@@ -233,7 +249,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div className="about--block">
+                <div className="about--block reveal">
                     <img src={am4} className="about--image" alt="Triginta illustration 4" />
                     <div className="about--text">
                         <p>
@@ -249,7 +265,7 @@ export default function Home() {
 
             {/* ── Games ─────────────────────────────────────────────────────── */}
             <section id="games" className="wide-container flex flex-col gap-8 py-20">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 reveal">
                     <span className="section-eyebrow">Projects</span>
                     <h2 className="text-3xl font-bold">Games &amp; things</h2>
                 </div>

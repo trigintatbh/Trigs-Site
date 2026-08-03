@@ -64,12 +64,12 @@ export default function SocialLinks() {
 
     return (
         <section id="elsewhere" className="page-container elsewhere">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 reveal">
                 <span className="section-eyebrow">Elsewhere</span>
                 <h2 className="text-3xl font-bold">Find me around</h2>
             </div>
 
-            <div className="elsewhere--grid">
+            <div className="elsewhere--grid reveal">
                 <a
                     href="https://www.youtube.com/@triginta777"
                     target="_blank"

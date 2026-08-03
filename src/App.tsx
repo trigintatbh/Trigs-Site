@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Main from './components/Main';
 import Home from './pages/Home';
-import Contact from './pages/Contact';
 import PNF from './pages/404';
 
 function App() {
@@ -11,7 +10,6 @@ function App() {
         <Main>
           <Routes>
             <Route index element={<Home />} />
-            <Route path='contact' element={<Contact />} />
             <Route path='*' element={<PNF />} />
           </Routes>
         </Main>
